@@ -1,5 +1,11 @@
 # Build plan — Zector v1
 
+## Tab background presets (2026-07-19) — DONE
+User's Wave bg@* presets ported to styles/bgPresets.ts (9 "Shadow's ..." gradients w/ opacity). Per-tab
+`bg` key on Tab (validated in uiState parse), applied as a fixed gradient layer behind tab bar + blocks
+(App WorkspaceBg). Picker: tab right-click → Background submenu. Limitation: terminal canvases are opaque
+(WebGL transparency is broken — see earlier note), so the gradient shows in chrome/gaps/files blocks only.
+
 ## Feature round (2026-07-19): drag-rearrange, fonts, local rename, key path, column resize — DONE
 Pointer-based block drag (grab header, 4-edge drop zones w/ accent half-overlay, moveLeafInTree keeps leaf id
 so terminal sessions survive; store/uiState.ts extracted from layout.ts). Terminal default font 13px/500 (bold 700).
