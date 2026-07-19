@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon } from '../ui/icons/general';
 import { useFilesNavStore } from '../../store/filesNav';
 import {
   COLUMNS,
@@ -68,7 +68,7 @@ export function FileTableHeader({
     >
       {COLUMNS.map((col) => {
         const active = sort.key === col.key;
-        const Arrow = sort.dir === 'asc' ? ArrowUp : ArrowDown;
+        const Arrow = sort.dir === 'asc' ? ArrowUpIcon : ArrowDownIcon;
         const sortButton = (
           <button
             type="button"

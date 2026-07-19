@@ -1,4 +1,6 @@
-import { Clipboard, Copy, Eraser, RotateCw } from 'lucide-react';
+import { RestartIcon } from '../ui/icons/general';
+import { CopyIcon } from '../ui/icons/files';
+import { ClipboardIcon, EraserIcon } from '../ui/icons/terminal';
 import type { Terminal } from '@xterm/xterm';
 import type { TerminalBlockData } from '../../api/types';
 import type { MenuEntry } from '../../store/contextMenu';
@@ -52,7 +54,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
   return [
     {
       label: 'Copy',
-      icon: <Copy size={14} />,
+      icon: <CopyIcon size={14} />,
       disabled: !term?.hasSelection(),
       onClick: () => {
         const sel = term?.getSelection();
@@ -63,7 +65,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
     },
     {
       label: 'Paste',
-      icon: <Clipboard size={14} />,
+      icon: <ClipboardIcon size={14} />,
       onClick: () => {
         navigator.clipboard
           .readText()
@@ -77,7 +79,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
     { label: 'Themes', submenu: themes },
     { label: 'Font Size', submenu: sizes },
     'separator',
-    { label: 'Clear', icon: <Eraser size={14} />, onClick: () => term?.clear() },
-    { label: 'Restart Session', icon: <RotateCw size={14} />, onClick: restart },
+    { label: 'Clear', icon: <EraserIcon size={14} />, onClick: () => term?.clear() },
+    { label: 'Restart Session', icon: <RestartIcon size={14} />, onClick: restart },
   ];
 }

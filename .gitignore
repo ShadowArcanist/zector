@@ -1,2 +1,4 @@
 reference
 ai
+apps/frontend/assets/
+.DS_Store

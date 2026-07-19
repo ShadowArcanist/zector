@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon } from '../ui/icons/general';
 import { useFilesNavStore } from '../../store/filesNav';
 
 const NAV_BTN =
@@ -25,7 +25,7 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
         className={`${NAV_BTN} ${canBack ? 'opacity-70 hover:opacity-100' : 'opacity-25'}`}
         onClick={() => goBack(leafId)}
       >
-        <ChevronLeft size={15} />
+        <ChevronLeftIcon size={15} />
       </button>
       <button
         type="button"
@@ -35,7 +35,7 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
         className={`${NAV_BTN} ${canForward ? 'opacity-70 hover:opacity-100' : 'opacity-25'}`}
         onClick={() => goForward(leafId)}
       >
-        <ChevronRight size={15} />
+        <ChevronRightIcon size={15} />
       </button>
     </div>
   );
@@ -52,7 +52,7 @@ export function FilesRefreshButton({ leafId, className }: { leafId: string; clas
       className={className}
       onClick={() => bumpRefresh(leafId)}
     >
-      <RefreshCw size={13} />
+      <RefreshIcon size={13} />
     </button>
   );
 }

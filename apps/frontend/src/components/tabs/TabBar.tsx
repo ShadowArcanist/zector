@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react';
-import { Palette, Plus, Server } from 'lucide-react';
+import { PaletteIcon, PlusIcon } from '../ui/icons/general';
+import { ServerIcon } from '../ui/icons/terminal';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
@@ -29,9 +30,9 @@ export function TabBar() {
       className="mx-[3px] mt-[3px] flex h-[33px] shrink-0 items-center gap-1 rounded-lg bg-black/35 pr-1 pl-1.5 backdrop-blur-[20px]"
       onContextMenu={(e) =>
         openContextMenu(e, [
-          { label: 'New Tab', icon: <Plus size={13} />, onClick: addTab },
+          { label: 'New Tab', icon: <PlusIcon size={13} />, onClick: addTab },
           'separator',
-          { label: 'UI Theme', icon: <Palette size={13} />, submenu: themeItems },
+          { label: 'UI Theme', icon: <PaletteIcon size={13} />, submenu: themeItems },
         ])
       }
     >
@@ -54,7 +55,7 @@ export function TabBar() {
           className="ml-1 flex h-[22px] shrink-0 cursor-pointer items-center justify-center rounded-md px-2 text-fg-dim transition-colors hover:bg-hover hover:text-fg"
           onClick={addTab}
         >
-          <Plus size={12} />
+          <PlusIcon size={12} />
         </button>
       </div>
       <button
@@ -65,7 +66,7 @@ export function TabBar() {
         onClick={(e) => openContextMenu(e, themeItems)}
         onContextMenu={(e) => e.stopPropagation()}
       >
-        <Palette size={14} />
+        <PaletteIcon size={14} />
       </button>
       <button
         type="button"
@@ -75,7 +76,7 @@ export function TabBar() {
         onClick={() => openConnections()}
         onContextMenu={(e) => e.stopPropagation()}
       >
-        <Server size={14} />
+        <ServerIcon size={14} />
       </button>
     </header>
   );

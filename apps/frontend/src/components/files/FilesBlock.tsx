@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Copy, Download, FolderOpen, FolderPlus, Pencil, RefreshCw, Trash2, Upload } from 'lucide-react';
+import { EditIcon, RefreshIcon, TrashIcon } from '../ui/icons/general';
+import { CopyIcon, DownloadIcon, FolderOpenIcon, FolderPlusIcon, UploadIcon } from '../ui/icons/files';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsReadUrl } from '../../api/fs';
 import { pushToast } from '../../store/toast';
@@ -44,20 +45,20 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   };
 
   const entryMenu = (entry: FsEntry): MenuEntry[] => [
-    { label: 'Open', icon: <FolderOpen size={14} />, onClick: () => open(entry) },
+    { label: 'Open', icon: <FolderOpenIcon size={14} />, onClick: () => open(entry) },
     ...(entry.is_dir
       ? []
       : [
           {
             label: 'Download',
-            icon: <Download size={14} />,
+            icon: <DownloadIcon size={14} />,
             onClick: () => download(block.target, entry.path),
           },
         ]),
-    { label: 'Rename', icon: <Pencil size={14} />, onClick: () => setRenaming(entry.path) },
+    { label: 'Rename', icon: <EditIcon size={14} />, onClick: () => setRenaming(entry.path) },
     {
       label: 'Copy path',
-      icon: <Copy size={14} />,
+      icon: <CopyIcon size={14} />,
       onClick: () => {
         navigator.clipboard
           .writeText(entry.path)
@@ -68,7 +69,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     'separator',
     {
       label: 'Delete',
-      icon: <Trash2 size={14} />,
+      icon: <TrashIcon size={14} />,
       danger: true,
       onClick: () => {
         if (window.confirm(`Delete "${entry.name}"?${entry.is_dir ? ' (recursive)' : ''}`)) {
@@ -80,14 +81,14 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
 
   const listMenu = (e: React.MouseEvent) =>
     openContextMenu(e, [
-      { label: 'New Folder', icon: <FolderPlus size={14} />, onClick: () => setCreatingFolder(true) },
+      { label: 'New Folder', icon: <FolderPlusIcon size={14} />, onClick: () => setCreatingFolder(true) },
       {
         label: 'Upload Files…',
-        icon: <Upload size={14} />,
+        icon: <UploadIcon size={14} />,
         onClick: () => fileInputRef.current?.click(),
       },
       'separator',
-      { label: 'Refresh', icon: <RefreshCw size={14} />, onClick: refresh },
+      { label: 'Refresh', icon: <RefreshIcon size={14} />, onClick: refresh },
     ]);
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { File, Folder, Link2 } from 'lucide-react';
+import { FileIcon, FolderIcon, LinkIcon } from '../ui/icons/files';
 import type { FsEntry } from '../../api/types';
 import {
   formatModified,
@@ -25,9 +25,9 @@ type Props = {
 };
 
 function EntryIcon({ entry }: { entry: FsEntry }) {
-  if (entry.is_symlink) return <Link2 size={14} className="shrink-0 text-fg-faint" />;
-  if (entry.is_dir) return <Folder size={14} className="shrink-0 text-accent/80" />;
-  return <File size={14} className="shrink-0 text-fg-faint" />;
+  if (entry.is_symlink) return <LinkIcon size={14} className="shrink-0 text-fg-faint" />;
+  if (entry.is_dir) return <FolderIcon size={14} className="shrink-0 text-accent/80" />;
+  return <FileIcon size={14} className="shrink-0 text-fg-faint" />;
 }
 
 export function RenameInput({

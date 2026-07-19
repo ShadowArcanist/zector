@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pencil, Wallpaper, X } from 'lucide-react';
+import { CloseIcon, EditIcon, WallpaperIcon } from '../ui/icons/general';
 import type { Tab } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
@@ -67,10 +67,10 @@ export function TabItem({
       }}
       onContextMenu={(e) =>
         openContextMenu(e, [
-          { label: 'Rename Tab', icon: <Pencil size={14} />, onClick: startRename },
-          { label: 'Background', icon: <Wallpaper size={14} />, submenu: bgItems },
+          { label: 'Rename Tab', icon: <EditIcon size={14} />, onClick: startRename },
+          { label: 'Background', icon: <WallpaperIcon size={14} />, submenu: bgItems },
           'separator',
-          { label: 'Close Tab', icon: <X size={14} />, onClick: () => closeTab(tab.id) },
+          { label: 'Close Tab', icon: <CloseIcon size={14} />, onClick: () => closeTab(tab.id) },
         ])
       }
     >
@@ -114,7 +114,7 @@ export function TabItem({
             closeTab(tab.id);
           }}
         >
-          <X size={12} />
+          <CloseIcon size={12} />
         </button>
       </div>
     </div>

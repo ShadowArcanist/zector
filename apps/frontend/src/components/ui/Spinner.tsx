@@ -1,5 +1,5 @@
-import { LoaderCircle } from 'lucide-react';
+import { LoaderIcon } from './icons/general';
 
 export function Spinner({ size = 14, className = '' }: { size?: number; className?: string }) {
-  return <LoaderCircle size={size} className={`animate-spin text-fg-dim ${className}`} />;
+  return <LoaderIcon size={size} className={`animate-spin text-fg-dim ${className}`} />;
 }

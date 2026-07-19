@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Folder,
-  Pencil,
-  Server,
-  SquareSplitHorizontal,
-  SquareSplitVertical,
-  Terminal as TerminalIcon,
-  X,
-} from 'lucide-react';
+import { CloseIcon, EditIcon } from '../ui/icons/general';
+import { FolderIcon } from '../ui/icons/files';
+import { ServerIcon, SplitDownIcon, SplitRightIcon, TerminalIcon } from '../ui/icons/terminal';
 import type { Block, LeafNode } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
@@ -68,13 +62,13 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
 
   const headerMenu = (e: React.MouseEvent) =>
     openContextMenu(e, [
-      { label: 'Rename Block', icon: <Pencil size={14} />, onClick: startRename },
-      { label: 'Change Connection…', icon: <Server size={14} />, onClick: () => setConnOpen(true) },
+      { label: 'Rename Block', icon: <EditIcon size={14} />, onClick: startRename },
+      { label: 'Change Connection…', icon: <ServerIcon size={14} />, onClick: () => setConnOpen(true) },
       'separator',
-      { label: 'Split Right', icon: <SquareSplitHorizontal size={14} />, onClick: splitRight },
-      { label: 'Split Down', icon: <SquareSplitVertical size={14} />, onClick: splitDown },
+      { label: 'Split Right', icon: <SplitRightIcon size={14} />, onClick: splitRight },
+      { label: 'Split Down', icon: <SplitDownIcon size={14} />, onClick: splitDown },
       'separator',
-      { label: 'Close Block', icon: <X size={14} />, onClick: () => closeLeaf(leaf.id) },
+      { label: 'Close Block', icon: <CloseIcon size={14} />, onClick: () => closeLeaf(leaf.id) },
     ]);
 
   return (
@@ -85,7 +79,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
     >
       {block.kind === 'files' && <FilesNavButtons leafId={leaf.id} target={block.target} />}
       <span className="flex w-4 shrink-0 justify-center opacity-50">
-        {block.kind === 'terminal' ? <TerminalIcon size={14} /> : <Folder size={14} />}
+        {block.kind === 'terminal' ? <TerminalIcon size={14} /> : <FolderIcon size={14} />}
       </span>
       <ConnectionButton
         leafId={leaf.id}
@@ -119,13 +113,13 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           <FilesRefreshButton leafId={leaf.id} className={END_ICON_CLASS} />
         )}
         <button type="button" title="Split right" aria-label="Split right" className={END_ICON_CLASS} onClick={splitRight}>
-          <SquareSplitHorizontal size={13} />
+          <SplitRightIcon size={13} />
         </button>
         <button type="button" title="Split down" aria-label="Split down" className={END_ICON_CLASS} onClick={splitDown}>
-          <SquareSplitVertical size={13} />
+          <SplitDownIcon size={13} />
         </button>
         <button type="button" title="Close block" aria-label="Close block" className={END_ICON_CLASS} onClick={() => closeLeaf(leaf.id)}>
-          <X size={13} />
+          <CloseIcon size={13} />
         </button>
       </div>
     </div>

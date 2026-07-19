@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowRightLeft, Laptop, Plus } from 'lucide-react';
+import { PlusIcon } from '../ui/icons/general';
+import { LaptopIcon, SwapIcon } from '../ui/icons/terminal';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { connColor } from './colors';
@@ -120,7 +121,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
                   onMouseEnter={() => setHi(i)}
                   onClick={() => pick(opt)}
                 >
-                  <Plus size={14} className="shrink-0 text-fg-faint" />
+                  <PlusIcon size={14} className="shrink-0 text-fg-faint" />
                   New connection…
                 </button>
               </div>
@@ -137,9 +138,9 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               onClick={() => pick(opt)}
             >
               {isLocal ? (
-                <Laptop size={14} className="shrink-0 text-fg-dim" />
+                <LaptopIcon size={14} className="shrink-0 text-fg-dim" />
               ) : (
-                <ArrowRightLeft size={14} className="shrink-0" style={{ color: connColor(opt.id) }} />
+                <SwapIcon size={14} className="shrink-0" style={{ color: connColor(opt.id) }} />
               )}
               <span className="truncate">{isLocal ? localName : opt.name}</span>
               {!isLocal && (

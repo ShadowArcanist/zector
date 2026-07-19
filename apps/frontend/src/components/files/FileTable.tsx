@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FolderPlus } from 'lucide-react';
+import { FolderPlusIcon } from '../ui/icons/files';
 import type { FsEntry } from '../../api/types';
 import { useFilesNavStore } from '../../store/filesNav';
 import {
@@ -95,7 +95,7 @@ export function FileTable({
       <FileTableHeader leafId={leafId} widths={widths} sort={sort} onToggleSort={toggleSort} />
       {creatingFolder && (
         <div className="flex h-6 shrink-0 items-center gap-2 px-2">
-          <FolderPlus size={14} className="shrink-0 text-accent/80" />
+          <FolderPlusIcon size={14} className="shrink-0 text-accent/80" />
           <span className="min-w-0 flex-1">
             <RenameInput initial="" placeholder="folder name" onCommit={onMkdir} onCancel={onMkdirCancel} />
           </span>

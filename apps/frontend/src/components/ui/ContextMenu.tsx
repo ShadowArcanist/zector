@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, ChevronRight } from 'lucide-react';
+import { CheckIcon, ChevronRightIcon } from './icons/general';
 import {
   useContextMenuStore,
   type MenuEntry,
@@ -53,12 +53,12 @@ function ItemRow({
       >
         {hasChecks && (
           <span className="flex w-3.5 shrink-0 justify-center">
-            {item.checked && <Check size={12} className="text-accent" />}
+            {item.checked && <CheckIcon size={12} className="text-accent" />}
           </span>
         )}
         {item.icon && <span className="flex w-4 shrink-0 justify-center">{item.icon}</span>}
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
-        {item.submenu && <ChevronRight size={12} className="shrink-0 text-fg-faint" />}
+        {item.submenu && <ChevronRightIcon size={12} className="shrink-0 text-fg-faint" />}
       </button>
       {item.submenu && subOpen && (
         <div

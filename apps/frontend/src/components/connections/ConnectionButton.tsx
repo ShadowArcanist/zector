@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ArrowRightLeft, Laptop } from 'lucide-react';
+import { LaptopIcon, SwapIcon } from '../ui/icons/terminal';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
@@ -34,9 +34,9 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
         onClick={() => setOpen(!open)}
       >
         {conn ? (
-          <ArrowRightLeft size={12} className="shrink-0" style={{ color: connColor(conn.id) }} />
+          <SwapIcon size={12} className="shrink-0" style={{ color: connColor(conn.id) }} />
         ) : (
-          <Laptop size={12} className="shrink-0" />
+          <LaptopIcon size={12} className="shrink-0" />
         )}
         {/* Wave shows icon-only for the local target; name only for remotes */}
         {conn && <span className="truncate">{name}</span>}

@@ -1,4 +1,4 @@
-import { CircleAlert, RotateCw } from 'lucide-react';
+import { AlertIcon, RestartIcon } from '../ui/icons/general';
 import type { TerminalBlockData } from '../../api/types';
 import { killTerm } from '../../api/term';
 import { useLayoutStore } from '../../store/layout';
@@ -62,7 +62,7 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-bg0/80 backdrop-blur-[2px]">
           {status.kind === 'error' ? (
             <div className="flex max-w-[80%] items-start gap-2 text-[13px] text-danger">
-              <CircleAlert size={16} className="mt-0.5 shrink-0" />
+              <AlertIcon size={16} className="mt-0.5 shrink-0" />
               <span className="break-words">{status.message}</span>
             </div>
           ) : (
@@ -72,12 +72,12 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
           )}
           {status.kind === 'disconnected' ? (
             <Button variant="primary" size="sm" onClick={retry}>
-              <RotateCw size={12} />
+              <RestartIcon size={12} />
               Reconnect
             </Button>
           ) : (
             <Button variant="primary" size="sm" onClick={restart}>
-              <RotateCw size={12} />
+              <RestartIcon size={12} />
               Restart session
             </Button>
           )}
