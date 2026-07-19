@@ -96,7 +96,8 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
         const tab = defaultTab(1);
         ui = { tabs: [tab], activeTabId: tab.id };
       }
-      set({ ...ui, loaded: true, focusedLeafId: firstLeafId(ui.tabs[0]?.root ?? null) });
+      const activeRoot = ui.tabs.find((t) => t.id === ui.activeTabId)?.root ?? null;
+      set({ ...ui, loaded: true, focusedLeafId: firstLeafId(activeRoot) });
     },
 
     addTab: () =>

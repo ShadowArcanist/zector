@@ -1,0 +1,58 @@
+import { useRef } from 'react';
+import { ArrowRightLeft, Laptop } from 'lucide-react';
+import { useConnectionsStore } from '../../store/connections';
+import { useUiStore } from '../../store/ui';
+import { switchBlockTarget } from '../../store/blocks';
+import { connColor } from './colors';
+import { ConnectionDropdown } from './ConnectionDropdown';
+
+type Props = {
+  leafId: string;
+  target: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+};
+
+/** Wave-style connection button shown in every block header. */
+export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
+  const connections = useConnectionsStore((s) => s.connections);
+  const openConnections = useUiStore((s) => s.openConnections);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const conn = target === 'local' ? null : (connections.find((c) => c.id === target) ?? null);
+  const name = target === 'local' ? 'local' : (conn?.name ?? 'unknown host');
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        title={conn ? `${conn.username}@${conn.host}` : 'local'}
+        className="flex max-w-40 shrink-0 cursor-pointer items-center gap-1.5 rounded-[2px] px-1 py-0.5 text-[11px] font-normal text-fg-dim transition-colors hover:bg-highlight"
+        onClick={() => setOpen(!open)}
+      >
+        {conn ? (
+          <ArrowRightLeft size={12} className="shrink-0" style={{ color: connColor(conn.id) }} />
+        ) : (
+          <Laptop size={12} className="shrink-0 text-fg-dim" />
+        )}
+        <span className="truncate">{name}</span>
+      </button>
+      {open && (
+        <ConnectionDropdown
+          anchorRef={btnRef}
+          current={target}
+          onSelect={(t) => {
+            setOpen(false);
+            switchBlockTarget(leafId, t);
+          }}
+          onNew={() => {
+            setOpen(false);
+            openConnections('new');
+          }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}

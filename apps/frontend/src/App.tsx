@@ -6,6 +6,7 @@ import { TabBar } from './components/tabs/TabBar';
 import { NodeView } from './components/layout/NodeView';
 import { BlockPickerList, BlockPickerModal } from './components/blockpicker/BlockPicker';
 import { ConnectionsModal } from './components/connections/ConnectionsModal';
+import { ContextMenuHost } from './components/ui/ContextMenu';
 import { Toasts } from './components/ui/Toasts';
 import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
@@ -15,8 +16,8 @@ function EmptyTabPicker({ tabId }: { tabId: string }) {
   const setTabRoot = useLayoutStore((s) => s.setTabRoot);
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="w-90 rounded-lg border border-edge2 bg-bg1 shadow-xl shadow-black/40">
-        <p className="border-b border-edge px-4 py-2.5 text-[13px] font-semibold text-fg">
+      <div className="w-90 rounded-md border border-edge2 bg-bg1 shadow-modal">
+        <p className="border-b border-white/8 px-4 py-2.5 text-[13px] font-semibold text-fg">
           Add a block
         </p>
         <BlockPickerList onPick={(block) => setTabRoot(tabId, block)} />
@@ -66,11 +67,13 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-bg0 text-fg">
       <TabBar />
-      <main className="relative min-h-0 flex-1">
+      {/* Wave-style 3px gap around blocks */}
+      <main className="relative min-h-0 flex-1 p-[3px]">
         <Workspace />
       </main>
       {picker && <BlockPickerModal />}
       {connectionsOpen && <ConnectionsModal />}
+      <ContextMenuHost />
       <Toasts />
     </div>
   );
