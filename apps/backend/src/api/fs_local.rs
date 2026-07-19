@@ -1,3 +1,4 @@
+use std::os::unix::fs::PermissionsExt;
 use std::time::UNIX_EPOCH;
 
 use anyhow::Context;
@@ -37,6 +38,7 @@ pub async fn list(path: &str) -> anyhow::Result<Vec<FsEntry>> {
                 .ok()
                 .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
                 .map(|d| d.as_secs()),
+            mode: Some(meta.permissions().mode()),
         });
     }
     Ok(entries)

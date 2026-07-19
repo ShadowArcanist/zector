@@ -19,6 +19,7 @@ pub struct FsEntry {
     pub is_symlink: bool,
     pub size: u64,
     pub modified: Option<u64>,
+    pub mode: Option<u32>,
 }
 
 #[derive(Debug, Serialize)]

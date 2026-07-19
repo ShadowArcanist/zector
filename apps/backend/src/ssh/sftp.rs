@@ -41,6 +41,7 @@ pub async fn list(sftp: &SftpSession, path: &str) -> anyhow::Result<Vec<FsEntry>
             is_symlink: file_type.is_symlink(),
             size: meta.size.unwrap_or(0),
             modified: meta.mtime.map(u64::from),
+            mode: meta.permissions,
         });
     }
     Ok(entries)
