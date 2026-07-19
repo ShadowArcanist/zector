@@ -13,6 +13,8 @@ import { defaultTermThemeFor } from '../../styles/uiThemes';
 export function TerminalBlock({ leafId, block }: { leafId: string; block: TerminalBlockData }) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
   const uiTheme = useLayoutStore((s) => s.uiTheme);
+  // Tab background preset showing? Terminals go transparent so it shines through.
+  const transparent = useLayoutStore((s) => !!s.tabs.find((t) => t.id === s.activeTabId)?.bg);
   const { theme } = resolveTermTheme(block.termTheme ?? defaultTermThemeFor(uiTheme));
   const fontSize = block.fontSize ?? DEFAULT_TERM_FONT_SIZE;
   const { containerRef, status, focus, retry, getTerm } = useTermSession(
@@ -20,6 +22,7 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
     block.target,
     theme,
     fontSize,
+    transparent,
   );
 
   const restart = () => {
@@ -33,7 +36,7 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
   return (
     <div
       className="absolute inset-0"
-      style={{ background: theme.background }}
+      style={{ background: transparent ? 'transparent' : theme.background }}
       onMouseUp={() => focus()}
       onContextMenu={(e) =>
         openContextMenu(e, buildTermMenu({ leafId, block, term: getTerm(), restart }))

@@ -105,7 +105,10 @@ body.col-resizing * {
   user-select: none !important;
 }
 
-/* xterm container should never show its own scroll chrome oddly */
+/* xterm container should never show its own scroll chrome oddly; kill its
+   stock black viewport bg so transparent terminals show the tab background
+   (same override Wave Terminal ships) */
 .xterm .xterm-viewport {
   scrollbar-width: thin;
+  background-color: transparent !important;
 }

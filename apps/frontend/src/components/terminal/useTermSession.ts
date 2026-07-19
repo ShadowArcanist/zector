@@ -17,15 +17,23 @@ export type TermStatus =
 
 const BACKOFF_MS = [500, 1000, 2000, 4000, 5000];
 
-// The container div also paints theme.background, but xterm gets the real
-// color too: the WebGL renderer does not reliably honor a transparent bg.
+// The WebGL renderer does not honor a transparent background, so opaque
+// terminals use it while transparent ones (tab bg preset) fall back to the
+// DOM renderer; the renderer swap recreates the xterm instance (session and
+// scrollback survive via the server-side replay on reattach).
 
 /**
  * Owns one xterm instance + WebSocket for a termId/target pair.
- * The whole session is torn down and rebuilt when termId changes (restart);
- * theme and fontSize are applied in place without recreating the session.
+ * The whole session is torn down and rebuilt when termId changes (restart)
+ * or `transparent` flips; theme and fontSize are applied in place.
  */
-export function useTermSession(termId: string, target: string, theme: ITheme, fontSize: number) {
+export function useTermSession(
+  termId: string,
+  target: string,
+  theme: ITheme,
+  fontSize: number,
+  transparent = false,
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitRef = useRef<FitAddon | null>(null);
@@ -33,15 +41,18 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
   const retryRef = useRef<() => void>(() => {});
   const [status, setStatus] = useState<TermStatus>({ kind: 'connecting' });
 
+  const themed = (t: ITheme): ITheme => (transparent ? { ...t, background: '#00000000' } : t);
+
   // Declared before the session effect so a brand-new session reads current
   // options from optsRef; on later changes it restyles the live terminal.
   useEffect(() => {
     optsRef.current = { theme, fontSize };
     const term = termRef.current;
     if (!term) return;
-    term.options.theme = theme;
+    term.options.theme = themed(theme);
     term.options.fontSize = fontSize;
     fitRef.current?.fit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `transparent` recreates the session below
   }, [theme, fontSize]);
 
   useEffect(() => {
@@ -50,6 +61,7 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
 
     const term = new Terminal({
       allowProposedApi: true,
+      allowTransparency: transparent,
       cursorBlink: true,
       fontFamily: TERM_FONT,
       fontSize: optsRef.current.fontSize,
@@ -57,18 +69,20 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
       fontWeightBold: TERM_FONT_WEIGHT_BOLD,
       lineHeight: 1.15,
       scrollback: 5000,
-      theme: optsRef.current.theme,
+      theme: themed(optsRef.current.theme),
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.loadAddon(new WebLinksAddon());
     term.open(container);
-    try {
-      const webgl = new WebglAddon();
-      webgl.onContextLoss(() => webgl.dispose());
-      term.loadAddon(webgl);
-    } catch {
-      // WebGL unavailable — xterm 6 falls back to the DOM renderer
+    if (!transparent) {
+      try {
+        const webgl = new WebglAddon();
+        webgl.onContextLoss(() => webgl.dispose());
+        term.loadAddon(webgl);
+      } catch {
+        // WebGL unavailable — xterm 6 falls back to the DOM renderer
+      }
     }
     fit.fit();
     termRef.current = term;
@@ -171,7 +185,8 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
       termRef.current = null;
       fitRef.current = null;
     };
-  }, [termId, target]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- themed() reads only `transparent`, already a dep
+  }, [termId, target, transparent]);
 
   const focus = () => termRef.current?.focus();
   const retry = () => retryRef.current();
