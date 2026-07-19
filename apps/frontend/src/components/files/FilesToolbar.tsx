@@ -32,7 +32,7 @@ export function FilesToolbar({
   const elided = crumbs.length > 4;
 
   return (
-    <div className="flex h-8 shrink-0 items-center gap-1 border-b border-edge bg-bg1 px-1.5">
+    <div className="flex h-8 shrink-0 items-center gap-1 border-b border-white/8 px-1.5">
       <IconButton title="Up one directory" aria-label="Up" onClick={() => onNavigate(parentPath(path))}>
         <ArrowUp size={13} />
       </IconButton>
@@ -43,7 +43,7 @@ export function FilesToolbar({
             {i === 1 && elided && <span className="mr-0.5 text-fg-faint">…</span>}
             <button
               type="button"
-              className="cursor-pointer truncate rounded px-1 py-0.5 transition-colors hover:bg-bg3 hover:text-fg"
+              className="cursor-pointer truncate rounded px-1 py-0.5 transition-colors hover:bg-hover hover:text-fg"
               onClick={() => onNavigate(crumb.path)}
             >
               {crumb.label}
@@ -63,7 +63,7 @@ export function FilesToolbar({
           autoFocus
           value={newFolder}
           placeholder="folder name"
-          className="h-6 w-32 rounded border border-accent-dim bg-bg0 px-1.5 text-xs text-fg outline-none"
+          className="h-6 w-32 rounded-[2px] border border-white/18 bg-black/30 px-1.5 text-xs text-fg outline-none focus:border-accent"
           onChange={(e) => setNewFolder(e.target.value)}
           onBlur={() => setNewFolder(null)}
           onKeyDown={(e) => {

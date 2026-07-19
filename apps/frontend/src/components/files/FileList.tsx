@@ -9,7 +9,7 @@ type Props = {
   renaming: string | null; // entry path being renamed inline
   onSelect: (entry: FsEntry) => void;
   onOpen: (entry: FsEntry) => void;
-  onContextMenu: (entry: FsEntry, x: number, y: number) => void;
+  onContextMenu: (entry: FsEntry, e: React.MouseEvent) => void;
   onRenameCommit: (entry: FsEntry, newName: string) => void;
   onRenameCancel: () => void;
 };
@@ -34,7 +34,7 @@ function RenameInput({ entry, onCommit, onCancel }: { entry: FsEntry; onCommit: 
     <input
       ref={ref}
       value={draft}
-      className="h-5.5 w-full min-w-0 rounded border border-accent-dim bg-bg0 px-1 text-[12.5px] text-fg outline-none"
+      className="h-5.5 w-full min-w-0 rounded-[2px] border border-white/18 bg-black/30 px-1 text-[12px] text-fg outline-none focus:border-accent"
       onChange={(e) => setDraft(e.target.value)}
       onBlur={onCancel}
       onClick={(e) => e.stopPropagation()}
@@ -70,17 +70,14 @@ export function FileList({
         <div
           key={entry.path}
           className={`mx-1 flex h-6.5 cursor-default items-center gap-2 rounded px-2 select-none ${
-            selected === entry.path ? 'bg-bg3 text-fg' : 'text-fg-dim hover:bg-bg2'
+            selected === entry.path ? 'bg-highlight text-fg' : 'text-fg-dim hover:bg-hover'
           }`}
           onClick={() => onSelect(entry)}
           onDoubleClick={() => onOpen(entry)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            onContextMenu(entry, e.clientX, e.clientY);
-          }}
+          onContextMenu={(e) => onContextMenu(entry, e)}
         >
           <EntryIcon entry={entry} />
-          <span className="min-w-0 flex-1 truncate text-[12.5px]">
+          <span className="min-w-0 flex-1 truncate text-[12px]">
             {renaming === entry.path ? (
               <RenameInput entry={entry} onCommit={(name) => onRenameCommit(entry, name)} onCancel={onRenameCancel} />
             ) : (

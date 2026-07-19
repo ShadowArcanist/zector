@@ -19,7 +19,7 @@ function PickRow({
   return (
     <button
       type="button"
-      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] text-fg-dim transition-colors hover:bg-bg3 hover:text-fg"
+      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left text-[12px] text-fg-dim transition-colors hover:bg-hover hover:text-fg"
       onClick={onPick}
     >
       <span className="text-fg-faint">{icon}</span>
@@ -45,30 +45,30 @@ export function BlockPickerList({ onPick }: { onPick: (block: Block) => void }) 
     <div className="flex flex-col gap-0.5 p-2">
       <PickRow icon={<Terminal size={14} />} label="Terminal — Local" onPick={() => onPick(term('local'))} />
       <PickRow icon={<Folder size={14} />} label="Files — Local" onPick={() => onPick(files('local'))} />
-      {connections.length > 0 && <div className="mx-2 my-1 h-px bg-edge" />}
+      {connections.length > 0 && <div className="mx-2 my-1 h-px bg-white/8" />}
       {connections.map((c) => (
         <div key={c.id} className="flex items-center gap-0.5">
-          <span className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-1 text-[13px] text-fg-dim">
+          <span className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-1 text-[12px] text-fg-dim">
             <Server size={14} className="shrink-0 text-fg-faint" />
             <span className="truncate">{c.name}</span>
           </span>
           <button
             type="button"
-            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-bg3 hover:text-fg"
+            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-hover hover:text-fg"
             onClick={() => onPick(term(c.id))}
           >
             Terminal
           </button>
           <button
             type="button"
-            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-bg3 hover:text-fg"
+            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-hover hover:text-fg"
             onClick={() => onPick(files(c.id))}
           >
             Files
           </button>
         </div>
       ))}
-      <div className="mx-2 my-1 h-px bg-edge" />
+      <div className="mx-2 my-1 h-px bg-white/8" />
       <PickRow
         icon={<Plus size={14} />}
         label="New SSH connection…"

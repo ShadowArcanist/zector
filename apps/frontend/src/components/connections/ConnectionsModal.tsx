@@ -22,10 +22,10 @@ function ConnectionRow({ conn }: { conn: Connection }) {
   };
 
   return (
-    <div className="group flex items-center gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-bg2">
+    <div className="group flex items-center gap-2 rounded-md px-2.5 py-2 transition-colors hover:bg-hover">
       <Server size={14} className="shrink-0 text-fg-faint" />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[13px] text-fg">{conn.name}</div>
+        <div className="truncate text-[12px] text-fg">{conn.name}</div>
         <div className="truncate font-mono text-[11px] text-fg-faint">
           {conn.username}@{conn.host}:{conn.port}
         </div>
@@ -79,13 +79,13 @@ export function ConnectionsModal() {
       ) : (
         <div className="p-2">
           {connections.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[13px] text-fg-faint">
+            <p className="px-3 py-6 text-center text-[12px] text-fg-faint">
               No saved connections yet.
             </p>
           ) : (
             connections.map((c) => <ConnectionRow key={c.id} conn={c} />)
           )}
-          <div className="mt-1 border-t border-edge px-1 pt-2 pb-1">
+          <div className="mt-1 border-t border-white/8 px-1 pt-2 pb-1">
             <Button variant="ghost" onClick={() => openConnections('new')}>
               <Plus size={13} />
               New SSH connection

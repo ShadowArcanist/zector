@@ -3,8 +3,8 @@ import { Copy, Download, FolderOpen, Pencil, Trash2 } from 'lucide-react';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsReadUrl } from '../../api/fs';
 import { pushToast } from '../../store/toast';
+import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
-import { ContextMenu, type MenuItemDef } from '../ui/Menu';
 import { EditorOverlay, ImageOverlay } from './FileOverlays';
 import { FileList } from './FileList';
 import { FilesToolbar } from './FilesToolbar';
@@ -12,7 +12,6 @@ import { isImageFile, isTextFile } from './format';
 import { useFiles } from './useFiles';
 
 type Overlay = { kind: 'image' | 'editor'; path: string } | null;
-type Menu = { entry: FsEntry; x: number; y: number } | null;
 
 function download(target: string, path: string) {
   const a = document.createElement('a');
@@ -27,7 +26,6 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(null);
-  const [menu, setMenu] = useState<Menu>(null);
   const [dragOver, setDragOver] = useState(false);
 
   const open = (entry: FsEntry) => {
@@ -43,27 +41,34 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     }
   };
 
-  const menuItems = (entry: FsEntry): MenuItemDef[] => [
-    { label: 'Open', icon: <FolderOpen size={13} />, onSelect: () => open(entry) },
+  const menuItems = (entry: FsEntry): MenuEntry[] => [
+    { label: 'Open', icon: <FolderOpen size={13} />, onClick: () => open(entry) },
     ...(entry.is_dir
       ? []
-      : [{ label: 'Download', icon: <Download size={13} />, onSelect: () => download(block.target, entry.path) }]),
-    { label: 'Rename', icon: <Pencil size={13} />, onSelect: () => setRenaming(entry.path) },
+      : [
+          {
+            label: 'Download',
+            icon: <Download size={13} />,
+            onClick: () => download(block.target, entry.path),
+          },
+        ]),
+    { label: 'Rename', icon: <Pencil size={13} />, onClick: () => setRenaming(entry.path) },
     {
       label: 'Copy path',
       icon: <Copy size={13} />,
-      onSelect: () => {
+      onClick: () => {
         navigator.clipboard
           .writeText(entry.path)
           .then(() => pushToast('ok', 'Path copied'))
           .catch(() => pushToast('error', 'Could not copy path'));
       },
     },
+    'separator',
     {
       label: 'Delete',
       icon: <Trash2 size={13} />,
       danger: true,
-      onSelect: () => {
+      onClick: () => {
         if (window.confirm(`Delete "${entry.name}"?${entry.is_dir ? ' (recursive)' : ''}`)) {
           void remove(entry.path);
         }
@@ -73,7 +78,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
 
   return (
     <div
-      className="absolute inset-0 flex flex-col bg-bg1"
+      className="absolute inset-0 flex flex-col"
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -102,7 +107,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       <div className="min-h-0 flex-1 overflow-y-auto">
         {error ? (
           <div className="flex flex-col items-center gap-3 px-4 py-8">
-            <p className="text-center text-[13px] text-danger">{error}</p>
+            <p className="text-center text-[12px] text-danger">{error}</p>
             <Button size="sm" onClick={refresh}>Retry</Button>
           </div>
         ) : (
@@ -112,9 +117,9 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
             renaming={renaming}
             onSelect={(entry) => setSelected(entry.path)}
             onOpen={open}
-            onContextMenu={(entry, x, y) => {
+            onContextMenu={(entry, e) => {
               setSelected(entry.path);
-              setMenu({ entry, x, y });
+              openContextMenu(e, menuItems(entry));
             }}
             onRenameCommit={(entry, name) => {
               setRenaming(null);
@@ -126,12 +131,11 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       </div>
       {dragOver && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-accent/70 bg-accent/10">
-          <span className="rounded-md bg-bg0/90 px-3 py-1.5 text-[13px] text-accent">
+          <span className="rounded-md bg-bg0/90 px-3 py-1.5 text-[12px] text-accent">
             Drop files to upload
           </span>
         </div>
       )}
-      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems(menu.entry)} onClose={() => setMenu(null)} />}
       {overlay?.kind === 'image' && (
         <ImageOverlay target={block.target} path={overlay.path} onClose={() => setOverlay(null)} />
       )}

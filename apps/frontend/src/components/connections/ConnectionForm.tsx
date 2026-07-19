@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 
 const field =
-  'h-8 w-full rounded-md border border-edge2 bg-bg0 px-2.5 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:border-accent-dim';
+  'h-8 w-full rounded-md border border-edge2 bg-black/20 px-2.5 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:border-accent';
 const label = 'mb-1 block text-[11px] font-medium tracking-wide text-fg-faint uppercase';
 
 export function ConnectionForm({
@@ -89,7 +89,7 @@ export function ConnectionForm({
               key={t}
               type="button"
               className={`flex-1 cursor-pointer py-1.5 text-[12px] font-medium transition-colors ${
-                authType === t ? 'bg-bg3 text-fg' : 'bg-bg0 text-fg-faint hover:text-fg-dim'
+                authType === t ? 'bg-highlight text-fg' : 'bg-black/20 text-fg-faint hover:text-fg-dim'
               }`}
               onClick={() => setAuthType(t)}
             >
@@ -109,7 +109,7 @@ export function ConnectionForm({
             <label className={label} htmlFor="conn-key">Private key</label>
             <textarea
               id="conn-key"
-              className="h-28 w-full resize-y rounded-md border border-edge2 bg-bg0 p-2.5 font-mono text-[11px] text-fg outline-none placeholder:text-fg-faint focus:border-accent-dim"
+              className="h-28 w-full resize-y rounded-md border border-edge2 bg-black/20 p-2.5 font-mono text-[11px] text-fg outline-none placeholder:text-fg-faint focus:border-accent"
               value={privateKey}
               onChange={(e) => setPrivateKey(e.target.value)}
               placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
