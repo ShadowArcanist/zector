@@ -2,8 +2,9 @@
 
 ## Theme system removal (2026-07-19) — DONE
 Per user decision: no UI themes, no per-terminal theme presets — tab background presets are the ONLY
-visual customization. Deleted styles/uiThemes.ts; terminal/themes.ts is now a single fixed Tokyo Night
-ITheme + font constants. Removed: palette button, UI Theme submenu, terminal Themes submenu, setTermTheme,
+visual customization. Deleted styles/uiThemes.ts; terminal/themes.ts is now a single fixed ITheme + font
+constants. Follow-up: user picked "neutral graphite" as the fixed look (was Tokyo Night briefly) —
+near-black neutral grays, #4c8dff accent, Wave-default-dark-style ANSI colors on #141414. Removed: palette button, UI Theme submenu, terminal Themes submenu, setTermTheme,
 uiTheme/termTheme fields. Old state blobs with those fields still load (fields ignored).
 Auto-redactor idea parked in ideas.md.
 

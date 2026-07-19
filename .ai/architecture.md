@@ -83,7 +83,8 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 ```ts
 type UiState = { tabs: Tab[]; activeTabId: string | null; localName?: string };
 // localName = user-chosen display name for the local target (default "Localhost").
-// NOTE: theme system removed (2026-07-19) — shell + terminals are fixed Tokyo Night; per-tab
+// NOTE: theme system removed (2026-07-19) — shell + terminals are fixed "neutral graphite"
+// (near-black grays, #4c8dff accent; tokens in styles/global.css, terminal in terminal/themes.ts); per-tab
 // background presets (Tab.bg → styles/bgPresets.ts) are the only visual customization.
 // Old blobs may still contain uiTheme / Block.termTheme; both are ignored on load.
 type Tab = { id: string; name: string; root: Node; bg?: string };
