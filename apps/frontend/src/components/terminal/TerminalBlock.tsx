@@ -2,13 +2,23 @@ import { CircleAlert, RotateCw } from 'lucide-react';
 import type { TerminalBlockData } from '../../api/types';
 import { killTerm } from '../../api/term';
 import { useLayoutStore } from '../../store/layout';
+import { openContextMenu } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 import { useTermSession } from './useTermSession';
+import { buildTermMenu } from './termMenu';
+import { DEFAULT_TERM_FONT_SIZE, resolveTermTheme } from './themes';
 
 export function TerminalBlock({ leafId, block }: { leafId: string; block: TerminalBlockData }) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
-  const { containerRef, status, focus, retry } = useTermSession(block.termId, block.target);
+  const { theme } = resolveTermTheme(block.termTheme);
+  const fontSize = block.fontSize ?? DEFAULT_TERM_FONT_SIZE;
+  const { containerRef, status, focus, retry, getTerm } = useTermSession(
+    block.termId,
+    block.target,
+    theme,
+    fontSize,
+  );
 
   const restart = () => {
     killTerm(block.termId).catch(() => {});
@@ -19,8 +29,16 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
     status.kind === 'exited' || status.kind === 'error' || status.kind === 'disconnected';
 
   return (
-    <div className="absolute inset-0 bg-bg1" onMouseUp={() => focus()}>
-      <div ref={containerRef} className="absolute inset-0 px-2 pt-1.5" />
+    <div
+      className="absolute inset-0"
+      style={{ background: theme.background }}
+      onMouseUp={() => focus()}
+      onContextMenu={(e) =>
+        openContextMenu(e, buildTermMenu({ leafId, block, term: getTerm(), restart }))
+      }
+    >
+      {/* Wave-exact terminal viewport padding */}
+      <div ref={containerRef} className="absolute inset-0 pt-[5px] pr-px pb-[5px] pl-1" />
 
       {status.kind === 'reconnecting' && (
         <div className="absolute inset-x-0 top-0 z-10 flex h-5 items-center justify-center gap-1.5 bg-warn/15 text-[11px] text-warn">

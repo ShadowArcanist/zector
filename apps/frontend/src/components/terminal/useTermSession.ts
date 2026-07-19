@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Terminal } from '@xterm/xterm';
+import { Terminal, type ITheme } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
 import { termWsUrl } from '../../api/term';
-import { zectorTermTheme, TERM_FONT } from './xtermTheme';
+import { TERM_FONT } from './themes';
 
 export type TermStatus =
   | { kind: 'connecting' }
@@ -17,15 +17,32 @@ export type TermStatus =
 
 const BACKOFF_MS = [500, 1000, 2000, 4000, 5000];
 
+/** Block content paints the theme bg; xterm itself stays transparent (Wave-style). */
+const transparent = (theme: ITheme): ITheme => ({ ...theme, background: '#00000000' });
+
 /**
  * Owns one xterm instance + WebSocket for a termId/target pair.
- * The whole session is torn down and rebuilt when termId changes (restart).
+ * The whole session is torn down and rebuilt when termId changes (restart);
+ * theme and fontSize are applied in place without recreating the session.
  */
-export function useTermSession(termId: string, target: string) {
+export function useTermSession(termId: string, target: string, theme: ITheme, fontSize: number) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<Terminal | null>(null);
+  const fitRef = useRef<FitAddon | null>(null);
+  const optsRef = useRef({ theme, fontSize });
   const retryRef = useRef<() => void>(() => {});
   const [status, setStatus] = useState<TermStatus>({ kind: 'connecting' });
+
+  // Declared before the session effect so a brand-new session reads current
+  // options from optsRef; on later changes it restyles the live terminal.
+  useEffect(() => {
+    optsRef.current = { theme, fontSize };
+    const term = termRef.current;
+    if (!term) return;
+    term.options.theme = transparent(theme);
+    term.options.fontSize = fontSize;
+    fitRef.current?.fit();
+  }, [theme, fontSize]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -33,12 +50,13 @@ export function useTermSession(termId: string, target: string) {
 
     const term = new Terminal({
       allowProposedApi: true,
+      allowTransparency: true,
       cursorBlink: true,
       fontFamily: TERM_FONT,
-      fontSize: 13,
+      fontSize: optsRef.current.fontSize,
       lineHeight: 1.15,
       scrollback: 5000,
-      theme: zectorTermTheme,
+      theme: transparent(optsRef.current.theme),
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -53,6 +71,7 @@ export function useTermSession(termId: string, target: string) {
     }
     fit.fit();
     termRef.current = term;
+    fitRef.current = fit;
     setStatus({ kind: 'connecting' });
 
     let ws: WebSocket | null = null;
@@ -149,10 +168,12 @@ export function useTermSession(termId: string, target: string) {
       socket?.close();
       term.dispose();
       termRef.current = null;
+      fitRef.current = null;
     };
   }, [termId, target]);
 
   const focus = () => termRef.current?.focus();
   const retry = () => retryRef.current();
-  return { containerRef, status, focus, retry };
+  const getTerm = () => termRef.current;
+  return { containerRef, status, focus, retry, getTerm };
 }
