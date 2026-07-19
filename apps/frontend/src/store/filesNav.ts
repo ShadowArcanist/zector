@@ -14,11 +14,15 @@ type FilesNavStore = {
   nav: Record<string, NavStacks | undefined>;
   homes: Record<string, string | undefined>;
   refreshNonce: Record<string, number | undefined>;
+  /** Per-block (leafId) file-table column width overrides, colKey → px. */
+  colWidths: Record<string, Record<string, number> | undefined>;
   recordVisit: (leafId: string, target: string, fromPath: string) => void;
   goBack: (leafId: string) => void;
   goForward: (leafId: string) => void;
   bumpRefresh: (leafId: string) => void;
   setHome: (target: string, home: string) => void;
+  setColWidth: (leafId: string, colKey: string, px: number) => void;
+  resetColWidth: (leafId: string, colKey: string) => void;
 };
 
 const emptyNav = (target: string): NavStacks => ({ target, back: [], forward: [] });
@@ -32,6 +36,7 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
   nav: {},
   homes: {},
   refreshNonce: {},
+  colWidths: {},
 
   recordVisit: (leafId, target, fromPath) =>
     set((s) => {
@@ -85,6 +90,18 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
     })),
 
   setHome: (target, home) => set((s) => ({ homes: { ...s.homes, [target]: home } })),
+
+  setColWidth: (leafId, colKey, px) =>
+    set((s) => ({
+      colWidths: { ...s.colWidths, [leafId]: { ...s.colWidths[leafId], [colKey]: px } },
+    })),
+
+  resetColWidth: (leafId, colKey) =>
+    set((s) => {
+      const cur = { ...s.colWidths[leafId] };
+      delete cur[colKey];
+      return { colWidths: { ...s.colWidths, [leafId]: cur } };
+    }),
 }));
 
 const homeFetches = new Set<string>();

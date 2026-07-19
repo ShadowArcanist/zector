@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { File, Folder, Link2 } from 'lucide-react';
 import type { FsEntry } from '../../api/types';
-import { COL, formatModified, MIN_ROW_CLASS, permString, typeLabel } from './columns';
+import {
+  formatModified,
+  NAME_MIN_WIDTH,
+  permString,
+  rowMinWidth,
+  typeLabel,
+  type ColWidths,
+} from './columns';
 import { humanSize } from './format';
 
 type Props = {
   entry: FsEntry;
+  widths: ColWidths;
   isParent: boolean; // the synthetic ".." row
   selected: boolean;
   renaming: boolean;
@@ -65,6 +73,7 @@ export function RenameInput({
 /** One ~24px table row; cell widths mirror COLUMNS in columns.ts. */
 export function FileRow({
   entry,
+  widths,
   isParent,
   selected,
   renaming,
@@ -83,14 +92,15 @@ export function FileRow({
   return (
     <div
       ref={ref}
-      className={`flex h-6 shrink-0 cursor-default items-center px-2 text-[12px] select-none ${MIN_ROW_CLASS} ${
+      className={`flex h-6 shrink-0 cursor-default items-center px-2 text-[12px] select-none ${
         selected ? 'bg-accent/30 text-fg' : 'text-fg-dim hover:bg-white/8'
       }`}
+      style={{ minWidth: rowMinWidth(widths) }}
       onClick={() => onSelect(entry)}
       onDoubleClick={() => onOpen(entry)}
       onContextMenu={isParent ? undefined : (e) => onContextMenu(entry, e)}
     >
-      <span className={`flex items-center gap-2 ${COL.name}`}>
+      <span className="flex flex-1 items-center gap-2" style={{ minWidth: NAME_MIN_WIDTH }}>
         <EntryIcon entry={entry} />
         <span className="min-w-0 flex-1 truncate">
           {renaming ? (
@@ -104,16 +114,30 @@ export function FileRow({
           )}
         </span>
       </span>
-      <span className={`truncate font-mono text-[11px] ${metaCls} ${COL.perm}`}>
+      <span
+        className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
+        style={{ width: widths.perm }}
+      >
         {isParent ? '' : permString(entry)}
       </span>
-      <span className={`truncate font-mono text-[11px] ${metaCls} ${COL.modified}`}>
+      <span
+        className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
+        style={{ width: widths.modified }}
+      >
         {isParent ? '' : formatModified(entry.modified)}
       </span>
-      <span className={`font-mono text-[11px] ${metaCls} ${COL.size}`}>
+      <span
+        className={`shrink-0 text-right font-mono text-[11px] ${metaCls}`}
+        style={{ width: widths.size }}
+      >
         {entry.is_dir ? '' : humanSize(entry.size)}
       </span>
-      <span className={`truncate text-[11px] ${metaCls} ${COL.type}`}>{typeLabel(entry)}</span>
+      <span
+        className={`shrink-0 truncate pl-3 text-[11px] ${metaCls}`}
+        style={{ width: widths.type }}
+      >
+        {typeLabel(entry)}
+      </span>
     </div>
   );
 }

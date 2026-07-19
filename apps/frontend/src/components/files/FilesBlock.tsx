@@ -113,6 +113,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
         </div>
       ) : (
         <FileTable
+          leafId={leafId}
           path={block.path}
           entries={entries}
           selected={selected}

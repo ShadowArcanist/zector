@@ -6,24 +6,29 @@ export type SortState = { key: SortKey; dir: 'asc' | 'desc' };
 
 export const DEFAULT_SORT: SortState = { key: 'name', dir: 'asc' };
 
-/** Shared column sizing so header and rows line up. Name flexes; rest fixed. */
-export const COL = {
-  name: 'min-w-0 flex-1',
-  perm: 'w-[76px] shrink-0',
-  modified: 'w-[96px] shrink-0',
-  size: 'w-[56px] shrink-0 text-right',
-  type: 'w-[68px] shrink-0 pl-3',
-} as const;
+/**
+ * Column sizing shared by header and rows so they line up. Name flexes into
+ * the remaining space; the rest have pixel widths (user-resizable per block,
+ * kept in the filesNav store keyed by leafId).
+ */
+export const DEFAULT_COL_WIDTHS = { perm: 76, modified: 96, size: 56, type: 68 } as const;
+export type FixedColKey = keyof typeof DEFAULT_COL_WIDTHS;
+export type ColWidths = Record<FixedColKey, number>;
+export const MIN_COL_WIDTH = 50;
+export const MAX_COL_WIDTH = 400;
+export const NAME_MIN_WIDTH = 120;
 
-/** Rows keep at least this width; narrow blocks scroll horizontally (Wave-style). */
-export const MIN_ROW_CLASS = 'min-w-[440px]';
+/** Minimum row width: name min + horizontal padding + the fixed columns. */
+export function rowMinWidth(widths: ColWidths): number {
+  return NAME_MIN_WIDTH + 16 + widths.perm + widths.modified + widths.size + widths.type;
+}
 
-export const COLUMNS: { key: SortKey; label: string; className: string }[] = [
-  { key: 'name', label: 'Name', className: COL.name },
-  { key: 'perm', label: 'Perm', className: COL.perm },
-  { key: 'modified', label: 'Last Modified', className: COL.modified },
-  { key: 'size', label: 'Size', className: COL.size },
-  { key: 'type', label: 'Type', className: COL.type },
+export const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'perm', label: 'Perm' },
+  { key: 'modified', label: 'Last Modified' },
+  { key: 'size', label: 'Size' },
+  { key: 'type', label: 'Type' },
 ];
 
 /** 0o100644 → "-rw-r--r--"; null/undefined mode → "-". */

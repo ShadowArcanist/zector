@@ -1,11 +1,20 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, FolderPlus } from 'lucide-react';
+import { FolderPlus } from 'lucide-react';
 import type { FsEntry } from '../../api/types';
-import { COLUMNS, compareEntries, DEFAULT_SORT, MIN_ROW_CLASS, type SortState } from './columns';
+import { useFilesNavStore } from '../../store/filesNav';
+import {
+  compareEntries,
+  DEFAULT_COL_WIDTHS,
+  DEFAULT_SORT,
+  type ColWidths,
+  type SortState,
+} from './columns';
 import { parentPath } from './format';
 import { FileRow, RenameInput } from './FileRow';
+import { FileTableHeader } from './FileTableHeader';
 
 type Props = {
+  leafId: string;
   path: string;
   entries: FsEntry[];
   selected: string | null; // entry path
@@ -27,6 +36,7 @@ function parentEntry(path: string): FsEntry {
 
 /** Wave-style directory table: sticky sortable headers, ".." row, keyboard nav. */
 export function FileTable({
+  leafId,
   path,
   entries,
   selected,
@@ -43,6 +53,8 @@ export function FileTable({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
+  const widthOverrides = useFilesNavStore((s) => s.colWidths[leafId]);
+  const widths: ColWidths = { ...DEFAULT_COL_WIDTHS, ...widthOverrides };
 
   const atRoot = path === '/' || path === '';
   const rows: FsEntry[] = [
@@ -80,29 +92,7 @@ export function FileTable({
       onMouseDown={() => ref.current?.focus()}
       onContextMenu={onEmptyMenu}
     >
-      <div
-        className={`sticky top-0 z-10 flex h-[26px] shrink-0 items-center border-b border-white/8 bg-block-flat px-2 ${MIN_ROW_CLASS}`}
-      >
-        {COLUMNS.map((col) => {
-          const active = sort.key === col.key;
-          const Arrow = sort.dir === 'asc' ? ArrowUp : ArrowDown;
-          return (
-            <button
-              key={col.key}
-              type="button"
-              className={`flex cursor-pointer items-center gap-1 text-[11px] font-medium select-none ${
-                col.className
-              } ${col.key === 'size' ? 'justify-end' : ''} ${
-                active ? 'text-fg-dim' : 'text-fg-faint hover:text-fg-dim'
-              }`}
-              onClick={() => toggleSort(col.key)}
-            >
-              {col.label}
-              {active && <Arrow size={10} className="shrink-0" />}
-            </button>
-          );
-        })}
-      </div>
+      <FileTableHeader leafId={leafId} widths={widths} sort={sort} onToggleSort={toggleSort} />
       {creatingFolder && (
         <div className="flex h-6 shrink-0 items-center gap-2 px-2">
           <FolderPlus size={14} className="shrink-0 text-accent/80" />
@@ -115,6 +105,7 @@ export function FileTable({
         <FileRow
           key={entry.path}
           entry={entry}
+          widths={widths}
           isParent={entry.name === '..'}
           selected={selected === entry.path}
           renaming={renaming === entry.path}
