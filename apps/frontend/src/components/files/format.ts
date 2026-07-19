@@ -11,23 +11,6 @@ export function humanSize(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${unit}`;
 }
 
-/** Relative for recent, else yyyy-mm-dd. `modified` is unix seconds. */
-export function formatModified(modified: number | null): string {
-  if (modified === null) return '—';
-  const then = modified * 1000;
-  const diff = Date.now() - then;
-  const minute = 60_000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  if (diff < minute) return 'just now';
-  if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
-  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
-  if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`;
-  const d = new Date(then);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 const IMAGE_EXTS = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif',
 ]);
@@ -37,7 +20,7 @@ const TEXT_EXTS = new Set([
   'xml', 'yaml', 'yml', 'toml', 'ini', 'conf', 'cfg', 'env', 'sh', 'bash', 'zsh', 'fish',
   'py', 'rb', 'rs', 'go', 'c', 'h', 'cpp', 'hpp', 'cc', 'java', 'kt', 'swift', 'php',
   'sql', 'log', 'csv', 'tsv', 'lock', 'gitignore', 'dockerfile', 'service', 'lua', 'vim',
-  'properties', 'gradle', 'tf', 'nix',
+  'properties', 'gradle', 'tf', 'nix', 'pub',
 ]);
 
 export function extOf(name: string): string {
@@ -47,8 +30,11 @@ export function extOf(name: string): string {
 
 export const isImageFile = (name: string) => IMAGE_EXTS.has(extOf(name));
 
+/** Extension looks like text, regardless of size (used for the Type column). */
+export const isTextName = (name: string) => TEXT_EXTS.has(extOf(name));
+
 export const isTextFile = (name: string, size: number) =>
-  size < 1024 * 1024 && TEXT_EXTS.has(extOf(name));
+  size < 1024 * 1024 && isTextName(name);
 
 export function joinPath(dir: string, name: string): string {
   return dir.endsWith('/') ? `${dir}${name}` : `${dir}/${name}`;
@@ -61,13 +47,14 @@ export function parentPath(path: string): string {
   return trimmed.slice(0, idx);
 }
 
-/** ['/', '/home', '/home/user'] style breadcrumb segments with labels. */
-export function breadcrumbs(path: string): { label: string; path: string }[] {
-  const crumbs: { label: string; path: string }[] = [{ label: '/', path: '/' }];
-  let acc = '';
-  for (const part of path.split('/').filter(Boolean)) {
-    acc += `/${part}`;
-    crumbs.push({ label: part, path: acc });
-  }
-  return crumbs;
+/**
+ * Header display for a files block path: home-relative with `~`, middle
+ * ellipsis when very long ("~/dev/…/deep/dir").
+ */
+export function displayPath(path: string, home?: string): string {
+  if (!path) return 'files';
+  let p = path;
+  if (home && (p === home || p.startsWith(`${home}/`))) p = `~${p.slice(home.length)}`;
+  if (p.length > 44) p = `${p.slice(0, 18)}…${p.slice(-25)}`;
+  return p;
 }

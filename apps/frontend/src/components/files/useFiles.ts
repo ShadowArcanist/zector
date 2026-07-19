@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsDelete, fsHome, fsList, fsMkdir, fsRename, fsWrite } from '../../api/fs';
 import { useLayoutStore } from '../../store/layout';
+import { ensureHome, useFilesNavStore } from '../../store/filesNav';
 import { pushToast } from '../../store/toast';
 import { joinPath } from './format';
 
@@ -14,8 +15,11 @@ type LoadResult = { key: string; entries: FsEntry[]; error: string | null };
 
 export function useFiles(leafId: string, block: FilesBlockData) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
+  const recordVisit = useFilesNavStore((s) => s.recordVisit);
+  const bumpRefresh = useFilesNavStore((s) => s.bumpRefresh);
+  // header refresh button bumps this; it is part of the fetch key below
+  const refreshNonce = useFilesNavStore((s) => s.refreshNonce[leafId] ?? 0);
   const { target, path } = block;
-  const [refreshNonce, setRefreshNonce] = useState(0);
   const [result, setResult] = useState<LoadResult | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>(null);
 
@@ -29,13 +33,16 @@ export function useFiles(leafId: string, block: FilesBlockData) {
 
   const navigate = useCallback(
     (nextPath: string) => {
-      updateLeafBlock(leafId, { kind: 'files', target, path: nextPath });
+      if (nextPath === path) return;
+      recordVisit(leafId, target, path);
+      updateLeafBlock(leafId, { ...block, path: nextPath });
     },
-    [leafId, target, updateLeafBlock],
+    [leafId, target, path, block, recordVisit, updateLeafBlock],
   );
 
   useEffect(() => {
     let cancelled = false;
+    ensureHome(target);
     if (path === '') {
       // freshly created block: resolve the target's home directory first
       fsHome(target)
@@ -63,7 +70,7 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     };
   }, [key, target, path, navigate]);
 
-  const refresh = useCallback(() => setRefreshNonce((n) => n + 1), []);
+  const refresh = useCallback(() => bumpRefresh(leafId), [leafId, bumpRefresh]);
 
   const mkdir = useCallback(
     async (name: string) => {

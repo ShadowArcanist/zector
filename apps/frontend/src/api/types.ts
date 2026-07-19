@@ -24,6 +24,7 @@ export type FsEntry = {
   is_symlink: boolean;
   size: number;
   modified: number | null; // unix seconds
+  mode?: number | null; // unix mode bits (e.g. 0o100644); null/absent when unknown
 };
 
 export type FsListing = { path: string; entries: FsEntry[] };

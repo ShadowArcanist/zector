@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Copy, Download, FolderOpen, Pencil, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Copy, Download, FolderOpen, FolderPlus, Pencil, RefreshCw, Trash2, Upload } from 'lucide-react';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsReadUrl } from '../../api/fs';
 import { pushToast } from '../../store/toast';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
+import { Spinner } from '../ui/Spinner';
 import { EditorOverlay, ImageOverlay } from './FileOverlays';
-import { FileList } from './FileList';
-import { FilesToolbar } from './FilesToolbar';
+import { FileTable } from './FileTable';
 import { isImageFile, isTextFile } from './format';
 import { useFiles } from './useFiles';
 
@@ -25,8 +25,10 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     useFiles(leafId, block);
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const open = (entry: FsEntry) => {
     if (entry.is_dir) {
@@ -41,21 +43,21 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     }
   };
 
-  const menuItems = (entry: FsEntry): MenuEntry[] => [
-    { label: 'Open', icon: <FolderOpen size={13} />, onClick: () => open(entry) },
+  const entryMenu = (entry: FsEntry): MenuEntry[] => [
+    { label: 'Open', icon: <FolderOpen size={14} />, onClick: () => open(entry) },
     ...(entry.is_dir
       ? []
       : [
           {
             label: 'Download',
-            icon: <Download size={13} />,
+            icon: <Download size={14} />,
             onClick: () => download(block.target, entry.path),
           },
         ]),
-    { label: 'Rename', icon: <Pencil size={13} />, onClick: () => setRenaming(entry.path) },
+    { label: 'Rename', icon: <Pencil size={14} />, onClick: () => setRenaming(entry.path) },
     {
       label: 'Copy path',
-      icon: <Copy size={13} />,
+      icon: <Copy size={14} />,
       onClick: () => {
         navigator.clipboard
           .writeText(entry.path)
@@ -66,7 +68,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     'separator',
     {
       label: 'Delete',
-      icon: <Trash2 size={13} />,
+      icon: <Trash2 size={14} />,
       danger: true,
       onClick: () => {
         if (window.confirm(`Delete "${entry.name}"?${entry.is_dir ? ' (recursive)' : ''}`)) {
@@ -75,6 +77,18 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       },
     },
   ];
+
+  const listMenu = (e: React.MouseEvent) =>
+    openContextMenu(e, [
+      { label: 'New Folder', icon: <FolderPlus size={14} />, onClick: () => setCreatingFolder(true) },
+      {
+        label: 'Upload Files…',
+        icon: <Upload size={14} />,
+        onClick: () => fileInputRef.current?.click(),
+      },
+      'separator',
+      { label: 'Refresh', icon: <RefreshCw size={14} />, onClick: refresh },
+    ]);
 
   return (
     <div
@@ -92,43 +106,57 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
         void upload(Array.from(e.dataTransfer.files));
       }}
     >
-      <FilesToolbar
-        path={block.path}
-        loading={loading}
-        uploadState={uploadState}
-        onNavigate={(p) => {
-          setSelected(null);
-          navigate(p);
+      {error ? (
+        <div className="flex flex-col items-center gap-3 px-4 py-8">
+          <p className="text-center text-[12px] text-danger">{error}</p>
+          <Button size="sm" onClick={refresh}>Retry</Button>
+        </div>
+      ) : (
+        <FileTable
+          path={block.path}
+          entries={entries}
+          selected={selected}
+          renaming={renaming}
+          creatingFolder={creatingFolder}
+          onSelect={(entry) => setSelected(entry?.path ?? null)}
+          onOpen={open}
+          onEntryMenu={(entry, e) => {
+            setSelected(entry.path);
+            openContextMenu(e, entryMenu(entry));
+          }}
+          onEmptyMenu={listMenu}
+          onRenameCommit={(entry, name) => {
+            setRenaming(null);
+            void rename(entry.path, name);
+          }}
+          onRenameCancel={() => setRenaming(null)}
+          onMkdir={(name) => {
+            setCreatingFolder(false);
+            void mkdir(name);
+          }}
+          onMkdirCancel={() => setCreatingFolder(false)}
+        />
+      )}
+      {(loading || uploadState) && (
+        <div className="pointer-events-none absolute right-2 bottom-1.5 z-10 flex items-center gap-1.5 rounded bg-black/50 px-2 py-0.5 text-[11px] text-fg-faint">
+          <Spinner size={11} className={uploadState ? 'text-accent' : undefined} />
+          {uploadState && (
+            <span className="text-accent">
+              {uploadState.current}/{uploadState.total} {uploadState.name}
+            </span>
+          )}
+        </div>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          void upload(Array.from(e.target.files ?? []));
+          e.target.value = '';
         }}
-        onRefresh={refresh}
-        onMkdir={(name) => void mkdir(name)}
-        onUpload={(files) => void upload(files)}
       />
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {error ? (
-          <div className="flex flex-col items-center gap-3 px-4 py-8">
-            <p className="text-center text-[12px] text-danger">{error}</p>
-            <Button size="sm" onClick={refresh}>Retry</Button>
-          </div>
-        ) : (
-          <FileList
-            entries={entries}
-            selected={selected}
-            renaming={renaming}
-            onSelect={(entry) => setSelected(entry.path)}
-            onOpen={open}
-            onContextMenu={(entry, e) => {
-              setSelected(entry.path);
-              openContextMenu(e, menuItems(entry));
-            }}
-            onRenameCommit={(entry, name) => {
-              setRenaming(null);
-              void rename(entry.path, name);
-            }}
-            onRenameCancel={() => setRenaming(null)}
-          />
-        )}
-      </div>
       {dragOver && (
         <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-accent/70 bg-accent/10">
           <span className="rounded-md bg-bg0/90 px-3 py-1.5 text-[12px] text-accent">
