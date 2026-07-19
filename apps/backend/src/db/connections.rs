@@ -15,6 +15,7 @@ pub struct SshConnection {
     pub private_key: Option<String>,
     pub key_path: Option<String>,
     pub key_passphrase: Option<String>,
+    pub icon_color: Option<String>,
     pub created_at: String,
 }
 
@@ -29,6 +30,7 @@ pub struct ConnectionInput {
     pub private_key: Option<String>,
     pub key_path: Option<String>,
     pub key_passphrase: Option<String>,
+    pub icon_color: Option<String>,
 }
 
 fn from_row(row: &Row<'_>) -> rusqlite::Result<SshConnection> {
@@ -43,6 +45,7 @@ fn from_row(row: &Row<'_>) -> rusqlite::Result<SshConnection> {
         private_key: row.get("private_key")?,
         key_path: row.get("key_path")?,
         key_passphrase: row.get("key_passphrase")?,
+        icon_color: row.get("icon_color")?,
         created_at: row.get("created_at")?,
     })
 }
@@ -66,8 +69,8 @@ pub fn insert(db: &Db, input: &ConnectionInput) -> anyhow::Result<SshConnection>
     let conn = super::lock(db)?;
     conn.execute(
         "INSERT INTO connections
-            (id, name, host, port, username, auth_type, password, private_key, key_path, key_passphrase, created_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))",
+            (id, name, host, port, username, auth_type, password, private_key, key_path, key_passphrase, icon_color, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))",
         params![
             id,
             input.name,
@@ -79,6 +82,7 @@ pub fn insert(db: &Db, input: &ConnectionInput) -> anyhow::Result<SshConnection>
             input.private_key,
             input.key_path,
             input.key_passphrase,
+            input.icon_color,
         ],
     )?;
     let mut stmt = conn.prepare("SELECT * FROM connections WHERE id = ?1")?;
@@ -90,7 +94,7 @@ pub fn update(db: &Db, id: &str, input: &ConnectionInput) -> anyhow::Result<Opti
     let changed = conn.execute(
         "UPDATE connections SET
             name = ?2, host = ?3, port = ?4, username = ?5, auth_type = ?6,
-            password = ?7, private_key = ?8, key_path = ?9, key_passphrase = ?10
+            password = ?7, private_key = ?8, key_path = ?9, key_passphrase = ?10, icon_color = ?11
          WHERE id = ?1",
         params![
             id,
@@ -103,6 +107,7 @@ pub fn update(db: &Db, id: &str, input: &ConnectionInput) -> anyhow::Result<Opti
             input.private_key,
             input.key_path,
             input.key_passphrase,
+            input.icon_color,
         ],
     )?;
     if changed == 0 {
