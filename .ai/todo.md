@@ -1,5 +1,14 @@
 # Build plan — Zector v1
 
+## UI rework (2026-07-19, after v1) — DONE
+Wave-Terminal-exact structure with Tokyo Night palette: brandless 33px tab bar, 30px block headers
+(icon + connection switcher + renameable title + split/close icons), 2px accent focus border, 3px block gaps,
+custom context menus everywhere (tabs, tab bar, block header, terminal, file list), 9 terminal theme presets
+(Wave's 7 + Tokyo Night default) with per-block theme/font-size via terminal right-click.
+Design specs extracted from reference/waveterm-dev (theme.scss, tab.scss, block.scss, termthemes.json).
+Note: terminal sessions allow ONE attached websocket — two browser windows on the same layout fight over
+sessions (last attacher wins after the other's 5 reconnect tries). Known v1 limitation.
+
 - [x] Decide stack + API contract (see architecture.md)
 - [x] Add backend crates + frontend packages
 - [x] Backend: config, DB (migrations, connections, state)

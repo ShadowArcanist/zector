@@ -86,8 +86,9 @@ type Node =
   | { type: 'split'; id: string; dir: 'row' | 'col'; children: Node[]; sizes: number[] }
   | { type: 'leaf'; id: string; block: Block };
 type Block =
-  | { kind: 'terminal'; target: string; termId: string }
-  | { kind: 'files'; target: string; path: string };
+  | { kind: 'terminal'; target: string; termId: string; title?: string; termTheme?: string; fontSize?: number }
+  | { kind: 'files'; target: string; path: string; title?: string };
+// title = user rename (block header); termTheme = key into terminal/themes.ts (default "tokyonight"); all optional for back-compat.
 ```
 
 ## Runtime details
