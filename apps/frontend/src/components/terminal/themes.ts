@@ -1,6 +1,6 @@
 import type { ITheme } from '@xterm/xterm';
 
-/** Fixed terminal look: Tokyo Night. Tab backgrounds are the only visual customization. */
+/** Fixed terminal look: neutral graphite. Tab backgrounds are the only visual customization. */
 
 export const DEFAULT_TERM_FONT_SIZE = 13;
 export const TERM_FONT_WEIGHT = 500;
@@ -8,11 +8,11 @@ export const TERM_FONT_WEIGHT_BOLD = 700;
 
 // prettier-ignore
 export const TERM_THEME: ITheme = {
-  black: '#15161e', red: '#f7768e', green: '#9ece6a', yellow: '#e0af68',
-  blue: '#7aa2f7', magenta: '#bb9af7', cyan: '#7dcfff', white: '#a9b1d6',
-  brightBlack: '#414868', brightRed: '#f7768e', brightGreen: '#9ece6a', brightYellow: '#e0af68',
-  brightBlue: '#7aa2f7', brightMagenta: '#bb9af7', brightCyan: '#7dcfff', brightWhite: '#c0caf5',
-  foreground: '#c0caf5', background: '#1a1b26', cursor: '#c0caf5', selectionBackground: '#283457',
+  black: '#757575', red: '#cc685c', green: '#76c266', yellow: '#cbca9b',
+  blue: '#85aacb', magenta: '#cc72ca', cyan: '#74a7cb', white: '#c1c1c1',
+  brightBlack: '#727272', brightRed: '#cc9d97', brightGreen: '#a3dd97', brightYellow: '#cbcaaa',
+  brightBlue: '#9ab6cb', brightMagenta: '#cc8ecb', brightCyan: '#b7b8cb', brightWhite: '#f0f0f0',
+  foreground: '#d4d4d4', background: '#141414', cursor: '#d4d4d4', selectionBackground: '#3d4043',
 };
 
 export const TERM_FONT =
