@@ -7,9 +7,11 @@ import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { SettingsDivider, SettingsRow } from '../ui/Settings';
 import { Spinner } from '../ui/Spinner';
+import { ColorSelect } from './ColorSelect';
+import { CONN_COLORS, connColor } from './colors';
 
 const field =
-  'h-8 w-[220px] rounded-lg bg-white/8 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
+  'h-8 w-[220px] rounded-lg bg-white/5 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
 
 type AuthType = 'password' | 'key';
 
@@ -35,11 +37,12 @@ export function ConnectionForm({
   const [password, setPassword] = useState(existing?.password ?? '');
   const [keyPath, setKeyPath] = useState(existing?.key_path ?? '');
   const [passphrase, setPassphrase] = useState(existing?.key_passphrase ?? '');
+  const [iconColor, setIconColor] = useState(existing?.icon_color ?? null);
   const [saving, setSaving] = useState(false);
 
   // Save appears only when the form differs from the saved connection (or, for
   // a new connection, from the blank defaults).
-  const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase];
+  const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase, iconColor];
   const initial = [
     existing?.name ?? '',
     existing?.host ?? '',
@@ -49,6 +52,7 @@ export function ConnectionForm({
     existing?.password ?? '',
     existing?.key_path ?? '',
     existing?.key_passphrase ?? '',
+    existing?.icon_color ?? null,
   ];
   const dirty = current.some((v, i) => v !== initial[i]);
 
@@ -70,6 +74,7 @@ export function ConnectionForm({
       private_key: authType === 'key' ? (existing?.private_key ?? null) : null,
       key_path: authType === 'key' && keyPath.trim() ? keyPath.trim() : null,
       key_passphrase: authType === 'key' && passphrase ? passphrase : null,
+      icon_color: iconColor,
     };
     setSaving(true);
     try {
@@ -115,6 +120,14 @@ export function ConnectionForm({
           <input id="conn-user" className={field} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="root" />
         </SettingsRow>
         <SettingsDivider />
+        <SettingsRow label="Icon color">
+          <ColorSelect
+            value={iconColor}
+            autoColor={existing ? connColor(existing) : CONN_COLORS[0].value}
+            onChange={setIconColor}
+          />
+        </SettingsRow>
+        <SettingsDivider />
         <SettingsRow label="Authentication">
           <Select
             value={authType}
@@ -155,7 +168,7 @@ export function ConnectionForm({
               {testState?.state === 'testing' && <Spinner size={13} />}
               {testState?.state === 'ok' && (
                 <span className="flex items-center gap-1 text-[12px] text-ok">
-                  <CheckIcon size={13} /> Connected
+                  <CheckIcon size={13} /> Reachable
                 </span>
               )}
               {testState?.state === 'error' && (
@@ -169,8 +182,8 @@ export function ConnectionForm({
             </>
           )}
           {dirty && (
-            <Button variant="white" type="submit" disabled={saving} className="ml-auto">
-              {saving && <Spinner size={12} className="text-black" />}
+            <Button variant="blurple" type="submit" disabled={saving} className="ml-auto">
+              {saving && <Spinner size={12} className="text-white" />}
               Save
             </Button>
           )}

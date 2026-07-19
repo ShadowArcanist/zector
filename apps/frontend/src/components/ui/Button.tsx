@@ -1,10 +1,10 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-type Variant = 'primary' | 'white' | 'ghost' | 'danger' | 'subtle';
+type Variant = 'primary' | 'blurple' | 'ghost' | 'danger' | 'subtle';
 
 const styles: Record<Variant, string> = {
   primary: 'bg-accent hover:bg-accent/85 text-bg0 border border-transparent',
-  white: 'bg-white hover:bg-white/85 text-black border border-transparent',
+  blurple: 'bg-[#4d55cc] hover:bg-[#5a63e0] text-white border border-transparent',
   ghost: 'bg-white/8 hover:bg-white/12 text-fg border border-transparent',
   subtle: 'bg-transparent hover:bg-hover text-fg-dim hover:text-fg border border-transparent',
   danger: 'bg-danger/10 hover:bg-danger/20 text-danger border border-transparent',

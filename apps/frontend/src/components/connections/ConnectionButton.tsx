@@ -34,7 +34,7 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
         onClick={() => setOpen(!open)}
       >
         {conn ? (
-          <SwapIcon size={12} className="shrink-0" style={{ color: connColor(conn.id) }} />
+          <SwapIcon size={12} className="shrink-0" style={{ color: connColor(conn) }} />
         ) : (
           <LaptopIcon size={12} className="shrink-0" />
         )}

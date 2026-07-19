@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckIcon, ChevronDownIcon } from './icons/general';
+import { ChevronDownIcon } from '../ui/icons/general';
+import { CONN_COLORS } from './colors';
 
-/**
- * Custom dropdown (no native <select>): pill button opening a portal menu,
- * so it never clips inside scrollable settings panes.
- */
-export function Select<T extends string>({
+/** Icon-color dropdown: swatch + name button opening a grid of color dots. */
+export function ColorSelect({
   value,
-  options,
+  autoColor,
   onChange,
 }: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (value: T) => void;
+  value: string | null;
+  autoColor: string; // effective color shown when value is null
+  onChange: (value: string | null) => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -44,8 +42,6 @@ export function Select<T extends string>({
         setOpen(false);
       }
     };
-    // capture-phase so clicks/scrolls anywhere (incl. inside modals) close it,
-    // but never on interactions with the menu itself
     window.addEventListener('mousedown', onDown, true);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
@@ -58,7 +54,7 @@ export function Select<T extends string>({
     };
   }, [open]);
 
-  const current = options.find((o) => o.value === value);
+  const currentName = CONN_COLORS.find((c) => c.value === value)?.name ?? 'Auto';
 
   return (
     <>
@@ -70,7 +66,11 @@ export function Select<T extends string>({
         className="flex h-8 w-[220px] cursor-pointer items-center gap-2 rounded-lg bg-white/5 px-3 text-[13px] text-fg transition-colors hover:bg-white/8"
         onClick={() => (open ? setOpen(false) : openMenu())}
       >
-        <span className="min-w-0 flex-1 truncate text-left">{current?.label ?? value}</span>
+        <span
+          className="h-2.5 w-2.5 shrink-0 rounded-full"
+          style={{ background: value ?? autoColor }}
+        />
+        <span className="min-w-0 flex-1 truncate text-left">{currentName}</span>
         <ChevronDownIcon size={13} className="text-fg-faint" />
       </button>
       {open &&
@@ -79,27 +79,30 @@ export function Select<T extends string>({
           <div
             ref={menuRef}
             role="listbox"
-            className="fixed z-100 min-w-[220px] rounded-xl border border-white/6 bg-bg2 py-1.5 shadow-modal"
+            className="fixed z-100 grid w-[220px] grid-cols-4 gap-1.5 rounded-xl border border-white/6 bg-bg2 p-2 shadow-modal"
             style={{ top: pos.top, right: pos.right }}
           >
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                role="option"
-                aria-selected={opt.value === value}
-                className="flex h-8 w-full cursor-pointer items-center gap-2 px-3 text-left text-[13px] text-fg-dim hover:bg-white/8 hover:text-fg"
-                onClick={() => {
-                  onChange(opt.value);
-                  setOpen(false);
-                }}
-              >
-                <span className="flex w-4 shrink-0 justify-center">
-                  {opt.value === value && <CheckIcon size={13} className="text-fg" />}
-                </span>
-                {opt.label}
-              </button>
-            ))}
+            {CONN_COLORS.map((c) => {
+              const selected = c.value === value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  title={c.name}
+                  className={`flex h-9 cursor-pointer items-center justify-center rounded-lg bg-white/4 transition-colors hover:bg-white/10 ${
+                    selected ? 'ring-2 ring-accent' : ''
+                  }`}
+                  onClick={() => {
+                    onChange(c.value);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="h-3 w-3 rounded-full" style={{ background: c.value }} />
+                </button>
+              );
+            })}
           </div>,
           document.body,
         )}

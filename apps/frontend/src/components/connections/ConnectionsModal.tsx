@@ -70,7 +70,7 @@ function LocalPane() {
             ref={inputRef}
             value={draft}
             placeholder="Localhost"
-            className="h-8 w-[200px] rounded-lg bg-white/8 px-3 text-right text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
+            className="h-8 w-[200px] rounded-lg bg-white/5 px-3 text-right text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => {
@@ -116,18 +116,17 @@ export function ConnectionsModal() {
   return (
     <Modal onClose={closeConnections} width="w-[640px]">
       <div className="flex h-[540px] max-h-full min-h-0">
-        <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto p-3">
+        <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto bg-black/20 p-3">
           <SidebarItem
             icon={<LaptopIcon size={15} />}
             label={localName}
             active={pane === 'local'}
             onClick={() => openConnections(null)}
           />
-          {connections.length > 0 && <div className="mx-2 my-1 h-px shrink-0 bg-white/6" />}
           {connections.map((c) => (
             <SidebarItem
               key={c.id}
-              icon={<SwapIcon size={14} style={{ color: connColor(c.id) }} />}
+              icon={<SwapIcon size={14} style={{ color: connColor(c) }} />}
               label={c.name}
               active={pane === 'edit' && editing?.id === c.id}
               onClick={() => openConnections(c.id)}
@@ -152,7 +151,7 @@ export function ConnectionsModal() {
           >
             {title}
           </SettingsTitle>
-          <div className="h-px shrink-0 bg-white/6" />
+          <div className="h-px shrink-0 bg-white/4" />
           <div className="flex min-h-0 flex-1 flex-col">
             {pane === 'local' ? (
               <LocalPane />

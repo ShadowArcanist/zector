@@ -8,7 +8,7 @@ import { connColor } from './colors';
 
 type Option =
   | { kind: 'local' }
-  | { kind: 'conn'; id: string; name: string; sub: string }
+  | { kind: 'conn'; id: string; name: string; sub: string; icon_color: string | null }
   | { kind: 'new' };
 
 type Props = {
@@ -49,6 +49,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
         id: c.id,
         name: c.name,
         sub: `${c.username}@${c.host}`,
+        icon_color: c.icon_color,
       })),
     { kind: 'new' },
   ];
@@ -140,7 +141,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               {isLocal ? (
                 <LaptopIcon size={14} className="shrink-0 text-fg-dim" />
               ) : (
-                <SwapIcon size={14} className="shrink-0" style={{ color: connColor(opt.id) }} />
+                <SwapIcon size={14} className="shrink-0" style={{ color: connColor(opt) }} />
               )}
               <span className="truncate">{isLocal ? localName : opt.name}</span>
               {!isLocal && (

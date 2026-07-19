@@ -61,7 +61,7 @@ export function BlockPickerList({ onPick }: { onPick: (block: Block) => void }) 
           className="flex h-10 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-white/5"
         >
           <span className="flex w-4 shrink-0 justify-center">
-            <SwapIcon size={14} style={{ color: connColor(c.id) }} />
+            <SwapIcon size={14} style={{ color: connColor(c) }} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[13px] text-fg-dim">{c.name}</span>
           <button

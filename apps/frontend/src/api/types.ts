@@ -11,6 +11,7 @@ export type Connection = {
   private_key: string | null; // PEM/OpenSSH text (legacy fallback when key_path is empty)
   key_path: string | null; // path to a private key on the host running zector (~ expanded server-side)
   key_passphrase: string | null;
+  icon_color: string | null; // hex from connections/colors.ts; null = auto (hash-picked)
   created_at: string;
 };
 

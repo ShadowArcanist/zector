@@ -55,6 +55,16 @@ export const useConnectionsStore = create<ConnectionsStore>((set) => ({
       next = { state: 'error', message: err instanceof Error ? err.message : 'test failed' };
     }
     set((s) => ({ testStates: { ...s.testStates, [id]: next } }));
+    if (next.state === 'ok') {
+      // success indicator fades out; errors stay until the next test
+      setTimeout(() => {
+        set((s) =>
+          s.testStates[id]?.state === 'ok'
+            ? { testStates: { ...s.testStates, [id]: undefined } }
+            : s,
+        );
+      }, 5000);
+    }
   },
 }));
 

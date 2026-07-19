@@ -37,6 +37,6 @@ export function SettingsRow({
 
 /** Hairline divider between settings rows. */
 export function SettingsDivider() {
-  return <div className="mx-5 h-px shrink-0 bg-white/6" />;
+  return <div className="mx-5 h-px shrink-0 bg-white/4" />;
 }
 
