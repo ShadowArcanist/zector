@@ -5,7 +5,7 @@ import { WebglAddon } from '@xterm/addon-webgl';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
 import { termWsUrl } from '../../api/term';
-import { TERM_FONT } from './themes';
+import { TERM_FONT, TERM_FONT_WEIGHT, TERM_FONT_WEIGHT_BOLD } from './themes';
 
 export type TermStatus =
   | { kind: 'connecting' }
@@ -53,6 +53,8 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
       cursorBlink: true,
       fontFamily: TERM_FONT,
       fontSize: optsRef.current.fontSize,
+      fontWeight: TERM_FONT_WEIGHT,
+      fontWeightBold: TERM_FONT_WEIGHT_BOLD,
       lineHeight: 1.15,
       scrollback: 5000,
       theme: optsRef.current.theme,

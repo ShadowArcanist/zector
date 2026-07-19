@@ -4,7 +4,9 @@ import type { ITheme } from '@xterm/xterm';
 export type TermTheme = { name: string; theme: ITheme };
 
 export const DEFAULT_TERM_THEME = 'tokyonight';
-export const DEFAULT_TERM_FONT_SIZE = 12;
+export const DEFAULT_TERM_FONT_SIZE = 13;
+export const TERM_FONT_WEIGHT = 500;
+export const TERM_FONT_WEIGHT_BOLD = 700;
 
 // prettier-ignore
 export const TERM_THEMES: Record<string, TermTheme> = {
