@@ -7,15 +7,13 @@ import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 import { useTermSession } from './useTermSession';
 import { buildTermMenu } from './termMenu';
-import { DEFAULT_TERM_FONT_SIZE, resolveTermTheme } from './themes';
-import { defaultTermThemeFor } from '../../styles/uiThemes';
+import { DEFAULT_TERM_FONT_SIZE, TERM_THEME } from './themes';
 
 export function TerminalBlock({ leafId, block }: { leafId: string; block: TerminalBlockData }) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
-  const uiTheme = useLayoutStore((s) => s.uiTheme);
   // Tab background preset showing? Terminals go transparent so it shines through.
   const transparent = useLayoutStore((s) => !!s.tabs.find((t) => t.id === s.activeTabId)?.bg);
-  const { theme } = resolveTermTheme(block.termTheme ?? defaultTermThemeFor(uiTheme));
+  const theme = TERM_THEME;
   const fontSize = block.fontSize ?? DEFAULT_TERM_FONT_SIZE;
   const { containerRef, status, focus, retry, getTerm } = useTermSession(
     block.termId,

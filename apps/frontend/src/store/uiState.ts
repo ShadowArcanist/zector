@@ -1,7 +1,6 @@
 import type { Tab, UiState } from '../api/types';
 import { putUiState } from '../api/state';
 import { BG_PRESETS } from '../styles/bgPresets';
-import { UI_THEMES } from '../styles/uiThemes';
 import { isValidNode, makeLeaf, uuid } from './tree';
 
 /** Persistence helpers for the layout store (parse + debounced save). */
@@ -28,8 +27,6 @@ export function parseUiState(raw: unknown): UiState | null {
     tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root, bg });
   }
   const active = typeof state.activeTabId === 'string' ? state.activeTabId : null;
-  const uiTheme =
-    typeof state.uiTheme === 'string' && state.uiTheme in UI_THEMES ? state.uiTheme : undefined;
   const localName =
     typeof state.localName === 'string' && state.localName.trim()
       ? state.localName
@@ -37,7 +34,6 @@ export function parseUiState(raw: unknown): UiState | null {
   return {
     tabs,
     activeTabId: tabs.some((t) => t.id === active) ? active : tabs[0].id,
-    uiTheme,
     localName,
   };
 }
@@ -47,8 +43,8 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined;
 export function schedulePersist(get: () => UiState) {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    const { tabs, activeTabId, uiTheme, localName } = get();
-    putUiState({ tabs, activeTabId, uiTheme, localName }).catch(() => {
+    const { tabs, activeTabId, localName } = get();
+    putUiState({ tabs, activeTabId, localName }).catch(() => {
       // quiet: layout persistence is best-effort while the backend is down
     });
   }, 500);

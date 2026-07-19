@@ -4,9 +4,9 @@ import { ClipboardIcon, EraserIcon } from '../ui/icons/terminal';
 import type { Terminal } from '@xterm/xterm';
 import type { TerminalBlockData } from '../../api/types';
 import type { MenuEntry } from '../../store/contextMenu';
-import { setTermFontSize, setTermTheme } from '../../store/blocks';
+import { setTermFontSize } from '../../store/blocks';
 import { pushToast } from '../../store/toast';
-import { DEFAULT_TERM_FONT_SIZE, TERM_THEMES, TERM_THEME_KEYS } from './themes';
+import { DEFAULT_TERM_FONT_SIZE } from './themes';
 
 const FONT_SIZES = [10, 11, 12, 13, 14, 15, 16, 17, 18];
 
@@ -19,22 +19,6 @@ type Opts = {
 
 /** Right-click menu for the terminal content area. */
 export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry[] {
-  const themes: MenuEntry[] = [
-    {
-      label: 'Default',
-      checked: block.termTheme === undefined,
-      onClick: () => setTermTheme(leafId, undefined),
-    },
-    'separator',
-    ...TERM_THEME_KEYS.map(
-      (key): MenuEntry => ({
-        label: TERM_THEMES[key].name,
-        checked: block.termTheme === key,
-        onClick: () => setTermTheme(leafId, key),
-      }),
-    ),
-  ];
-
   const sizes: MenuEntry[] = [
     {
       label: `Default (${DEFAULT_TERM_FONT_SIZE}px)`,
@@ -76,7 +60,6 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
       },
     },
     'separator',
-    { label: 'Themes', submenu: themes },
     { label: 'Font Size', submenu: sizes },
     'separator',
     { label: 'Clear', icon: <EraserIcon size={14} />, onClick: () => term?.clear() },

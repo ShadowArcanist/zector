@@ -32,12 +32,10 @@ export type FsListing = { path: string; entries: FsEntry[] };
 
 // ---- UI state blob (backend-opaque, stored via /api/state) ----
 
-// `uiTheme` is a key into styles/uiThemes.ts; absent in older blobs (defaults apply).
 // `localName` is a user-chosen display name for the local target (default "Localhost").
 export type UiState = {
   tabs: Tab[];
   activeTabId: string | null;
-  uiTheme?: string;
   localName?: string;
 };
 
@@ -54,17 +52,10 @@ export type LayoutNode =
 export type LeafNode = Extract<LayoutNode, { type: 'leaf' }>;
 export type SplitNode = Extract<LayoutNode, { type: 'split' }>;
 
-// `title`, `termTheme` and `fontSize` are frontend-only extensions; the state
-// blob is backend-opaque and older blobs without them still parse fine.
+// `title` and `fontSize` are frontend-only extensions; the state blob is
+// backend-opaque and older blobs (incl. removed fields like termTheme) still parse.
 export type Block =
-  | {
-      kind: 'terminal';
-      target: string;
-      termId: string;
-      title?: string;
-      termTheme?: string;
-      fontSize?: number;
-    }
+  | { kind: 'terminal'; target: string; termId: string; title?: string; fontSize?: number }
   | { kind: 'files'; target: string; path: string; title?: string };
 
 export type TerminalBlockData = Extract<Block, { kind: 'terminal' }>;

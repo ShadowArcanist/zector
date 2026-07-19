@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Block, Tab, UiState } from '../api/types';
 import { getUiState } from '../api/state';
 import { killTerm } from '../api/term';
-import { applyUiTheme } from '../styles/uiThemes';
 import { pushToast } from './toast';
 import {
   collectTermIds,
@@ -34,7 +33,6 @@ type LayoutStore = UiState & {
   updateLeafBlock: (leafId: string, block: Block) => void;
   setSizes: (splitId: string, sizes: number[]) => void;
   setFocusedLeaf: (leafId: string | null) => void;
-  setUiTheme: (key: string) => void;
   setLocalName: (name: string) => void;
 };
 
@@ -66,7 +64,6 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
         ui = { tabs: [tab], activeTabId: tab.id };
       }
       const activeRoot = ui.tabs.find((t) => t.id === ui.activeTabId)?.root ?? null;
-      applyUiTheme(ui.uiTheme);
       set({ ...ui, loaded: true, focusedLeafId: firstLeafId(activeRoot) });
     },
 
@@ -172,12 +169,6 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
       })),
 
     setFocusedLeaf: (leafId) => set({ focusedLeafId: leafId }),
-
-    setUiTheme: (key) =>
-      mutate(() => {
-        applyUiTheme(key);
-        return { uiTheme: key };
-      }),
 
     setLocalName: (name) => mutate(() => ({ localName: name.trim() || undefined })),
   };

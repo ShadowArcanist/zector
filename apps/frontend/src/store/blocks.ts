@@ -24,13 +24,6 @@ export function renameBlock(leafId: string, title: string) {
   patch(leafId, { ...block, title: title.trim() || undefined });
 }
 
-/** Per-block terminal theme; undefined = app default. */
-export function setTermTheme(leafId: string, termTheme: string | undefined) {
-  const block = blockForLeaf(leafId);
-  if (block?.kind !== 'terminal') return;
-  patch(leafId, { ...block, termTheme });
-}
-
 /** Per-block terminal font size; undefined = default (13). */
 export function setTermFontSize(leafId: string, fontSize: number | undefined) {
   const block = blockForLeaf(leafId);
