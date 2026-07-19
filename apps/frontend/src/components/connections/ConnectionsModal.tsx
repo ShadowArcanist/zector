@@ -63,14 +63,14 @@ function LocalPane() {
 
   return (
     <>
-      <SettingsRow label="Name" description="Shown in block headers and pickers" htmlFor="local-name">
+      <SettingsRow label="Name" htmlFor="local-name">
         {editing ? (
           <input
             id="local-name"
             ref={inputRef}
             value={draft}
             placeholder="Localhost"
-            className="h-8 w-[200px] rounded-lg bg-black/25 px-3 text-right text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
+            className="h-8 w-[200px] rounded-lg bg-white/8 px-3 text-right text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commit}
             onKeyDown={(e) => {
@@ -93,7 +93,7 @@ function LocalPane() {
         )}
       </SettingsRow>
       <SettingsDivider />
-      <SettingsRow label="Target" description="Shell and files on the machine running Zector">
+      <SettingsRow label="Target">
         <span className="text-[13px] text-fg-faint">This machine</span>
       </SettingsRow>
     </>
@@ -116,7 +116,7 @@ export function ConnectionsModal() {
   return (
     <Modal onClose={closeConnections} width="w-[640px]">
       <div className="flex h-[540px] max-h-full min-h-0">
-        <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto bg-black/25 p-3">
+        <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto p-3">
           <SidebarItem
             icon={<LaptopIcon size={15} />}
             label={localName}
@@ -142,7 +142,7 @@ export function ConnectionsModal() {
             />
           </div>
         </aside>
-        <section className="flex min-w-0 flex-1 flex-col">
+        <section className="flex min-w-0 flex-1 flex-col bg-black/45">
           <SettingsTitle
             right={
               <IconButton onClick={closeConnections} aria-label="Close">
@@ -160,7 +160,8 @@ export function ConnectionsModal() {
               <ConnectionForm
                 key={editing?.id ?? 'new'}
                 existing={editing}
-                onDone={() => openConnections(null)}
+                onSaved={(id) => openConnections(id)}
+                onDeleted={() => openConnections(null)}
               />
             )}
           </div>

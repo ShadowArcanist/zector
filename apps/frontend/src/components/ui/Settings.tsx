@@ -40,32 +40,3 @@ export function SettingsDivider() {
   return <div className="mx-5 h-px shrink-0 bg-white/6" />;
 }
 
-/** iOS-style segmented pill select (e.g. password / key auth). */
-export function Segmented<T extends string>({
-  value,
-  options,
-  onChange,
-}: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="flex rounded-lg bg-black/25 p-0.5">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          className={`h-7 cursor-pointer rounded-[7px] px-3 text-[12px] font-medium transition-colors ${
-            value === opt.value
-              ? 'bg-white/12 text-fg shadow-[0_1px_2px_rgba(0,0,0,0.3)]'
-              : 'text-fg-faint hover:text-fg-dim'
-          }`}
-          onClick={() => onChange(opt.value)}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}

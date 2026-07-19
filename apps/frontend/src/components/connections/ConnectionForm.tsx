@@ -4,19 +4,24 @@ import { useConnectionsStore } from '../../store/connections';
 import { pushToast } from '../../store/toast';
 import { AlertIcon, CheckIcon } from '../ui/icons/general';
 import { Button } from '../ui/Button';
-import { Segmented, SettingsDivider, SettingsRow } from '../ui/Settings';
+import { Select } from '../ui/Select';
+import { SettingsDivider, SettingsRow } from '../ui/Settings';
 import { Spinner } from '../ui/Spinner';
 
 const field =
-  'h-8 w-[220px] rounded-lg bg-black/25 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
+  'h-8 w-[220px] rounded-lg bg-white/8 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
+
+type AuthType = 'password' | 'key';
 
 /** Editable settings rows for one SSH connection (also the new-connection pane). */
 export function ConnectionForm({
   existing,
-  onDone,
+  onSaved,
+  onDeleted,
 }: {
   existing: Connection | null;
-  onDone: () => void;
+  onSaved: (id: string) => void;
+  onDeleted: () => void;
 }) {
   const save = useConnectionsStore((s) => s.save);
   const remove = useConnectionsStore((s) => s.remove);
@@ -26,11 +31,26 @@ export function ConnectionForm({
   const [host, setHost] = useState(existing?.host ?? '');
   const [port, setPort] = useState(String(existing?.port ?? 22));
   const [username, setUsername] = useState(existing?.username ?? '');
-  const [authType, setAuthType] = useState<'password' | 'key'>(existing?.auth_type ?? 'password');
+  const [authType, setAuthType] = useState<AuthType>(existing?.auth_type ?? 'password');
   const [password, setPassword] = useState(existing?.password ?? '');
   const [keyPath, setKeyPath] = useState(existing?.key_path ?? '');
   const [passphrase, setPassphrase] = useState(existing?.key_passphrase ?? '');
   const [saving, setSaving] = useState(false);
+
+  // Save appears only when the form differs from the saved connection (or, for
+  // a new connection, from the blank defaults).
+  const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase];
+  const initial = [
+    existing?.name ?? '',
+    existing?.host ?? '',
+    String(existing?.port ?? 22),
+    existing?.username ?? '',
+    existing?.auth_type ?? 'password',
+    existing?.password ?? '',
+    existing?.key_path ?? '',
+    existing?.key_passphrase ?? '',
+  ];
+  const dirty = current.some((v, i) => v !== initial[i]);
 
   const submit = async () => {
     const portNum = Number.parseInt(port, 10);
@@ -53,9 +73,9 @@ export function ConnectionForm({
     };
     setSaving(true);
     try {
-      await save(input, existing?.id);
+      const saved = await save(input, existing?.id);
       pushToast('ok', existing ? 'Connection updated' : 'Connection saved');
-      onDone();
+      onSaved(saved.id);
     } catch (err) {
       pushToast('error', err instanceof Error ? err.message : 'Failed to save connection');
     } finally {
@@ -66,7 +86,7 @@ export function ConnectionForm({
   const onDelete = () => {
     if (!existing || !window.confirm(`Delete connection "${existing.name}"?`)) return;
     remove(existing.id)
-      .then(onDone)
+      .then(onDeleted)
       .catch((err) => pushToast('error', err instanceof Error ? err.message : 'Delete failed'));
   };
 
@@ -96,7 +116,7 @@ export function ConnectionForm({
         </SettingsRow>
         <SettingsDivider />
         <SettingsRow label="Authentication">
-          <Segmented
+          <Select
             value={authType}
             options={[
               { value: 'password', label: 'Password' },
@@ -112,55 +132,50 @@ export function ConnectionForm({
           </SettingsRow>
         ) : (
           <>
-            <SettingsRow
-              label="Private key path"
-              description="Path on the machine running Zector"
-              htmlFor="conn-key-path"
-            >
+            <SettingsRow label="Private key path" htmlFor="conn-key-path">
               <input id="conn-key-path" className={`${field} font-mono text-[12px]`} value={keyPath} onChange={(e) => setKeyPath(e.target.value)} placeholder="~/.ssh/id_ed25519" spellCheck={false} />
             </SettingsRow>
             <SettingsDivider />
-            <SettingsRow label="Passphrase" description="Optional" htmlFor="conn-phrase">
+            <SettingsRow label="Passphrase (optional)" htmlFor="conn-phrase">
               <input id="conn-phrase" type="password" className={field} value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
             </SettingsRow>
           </>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2 border-t border-white/6 px-5 py-3.5">
-        {existing && (
-          <>
-            <Button variant="ghost" onClick={() => void test(existing.id)} disabled={testState?.state === 'testing'}>
-              Test
+      {(existing || dirty) && (
+        <div className="flex shrink-0 items-center gap-2 border-t border-white/6 px-5 py-3.5">
+          {existing && (
+            <>
+              <Button variant="ghost" onClick={() => void test(existing.id)} disabled={testState?.state === 'testing'}>
+                Test
+              </Button>
+              <Button variant="danger" onClick={onDelete}>
+                Delete
+              </Button>
+              {testState?.state === 'testing' && <Spinner size={13} />}
+              {testState?.state === 'ok' && (
+                <span className="flex items-center gap-1 text-[12px] text-ok">
+                  <CheckIcon size={13} /> Connected
+                </span>
+              )}
+              {testState?.state === 'error' && (
+                <span
+                  className="flex min-w-0 items-center gap-1 truncate text-[12px] text-danger"
+                  title={testState.message}
+                >
+                  <AlertIcon size={13} className="shrink-0" /> {testState.message}
+                </span>
+              )}
+            </>
+          )}
+          {dirty && (
+            <Button variant="white" type="submit" disabled={saving} className="ml-auto">
+              {saving && <Spinner size={12} className="text-black" />}
+              Save
             </Button>
-            <Button variant="danger" onClick={onDelete}>
-              Delete
-            </Button>
-            {testState?.state === 'testing' && <Spinner size={13} />}
-            {testState?.state === 'ok' && (
-              <span className="flex items-center gap-1 text-[12px] text-ok">
-                <CheckIcon size={13} /> Connected
-              </span>
-            )}
-            {testState?.state === 'error' && (
-              <span
-                className="flex min-w-0 items-center gap-1 truncate text-[12px] text-danger"
-                title={testState.message}
-              >
-                <AlertIcon size={13} className="shrink-0" /> {testState.message}
-              </span>
-            )}
-          </>
-        )}
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <Button variant="ghost" onClick={onDone}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" disabled={saving}>
-            {saving && <Spinner size={12} className="text-bg0" />}
-            {existing ? 'Save changes' : 'Add connection'}
-          </Button>
+          )}
         </div>
-      </div>
+      )}
     </form>
   );
 }
