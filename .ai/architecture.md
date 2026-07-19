@@ -49,7 +49,8 @@ type Connection = {
   username: string;
   auth_type: 'password' | 'key';
   password: string | null;
-  private_key: string | null;   // PEM/OpenSSH text
+  private_key: string | null;   // pasted PEM/OpenSSH text (legacy fallback, used only when key_path empty)
+  key_path: string | null;      // path to a private key on the host running zector; ~ expanded server-side
   key_passphrase: string | null;
   created_at: string;
 };
@@ -80,7 +81,8 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 ## Frontend layout model (stored in the `/api/state` blob, backend-opaque)
 
 ```ts
-type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string };
+type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string; localName?: string };
+// localName = user-chosen display name for the local target (default "Localhost").
 // uiTheme = key into frontend styles/uiThemes.ts (app-shell theme presets, default "tokyonight");
 // it also picks the default terminal theme for blocks without an explicit termTheme.
 type Tab = { id: string; name: string; root: Node };

@@ -1,5 +1,12 @@
 # Build plan — Zector v1
 
+## Feature round (2026-07-19): drag-rearrange, fonts, local rename, key path, column resize — DONE
+Pointer-based block drag (grab header, 4-edge drop zones w/ accent half-overlay, moveLeafInTree keeps leaf id
+so terminal sessions survive; store/uiState.ts extracted from layout.ts). Terminal default font 13px/500 (bold 700).
+localName in state blob + pinned "Local machine" rename row in Connections modal. SSH keys referenced by
+key_path on the zector host (backend reads file, ~ expanded; pasted private_key kept as legacy fallback;
+additive ALTER TABLE migration). File table columns drag-resizable (widths in filesNav store, dbl-click reset).
+
 ## UI themes + focus ring removal (2026-07-19) — DONE
 App-shell theme presets in frontend styles/uiThemes.ts (8 themes mirroring the terminal presets; applied by
 overriding Tailwind @theme CSS vars inline on <html>; persisted as uiTheme in the state blob). Switcher:
