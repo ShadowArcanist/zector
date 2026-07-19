@@ -11,20 +11,13 @@ import {
 import type { Block, LeafNode } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
+import { useConnectionsStore, targetName } from '../../store/connections';
+import { useFilesNavStore } from '../../store/filesNav';
 import { renameBlock } from '../../store/blocks';
 import { openContextMenu } from '../../store/contextMenu';
 import { ConnectionButton } from '../connections/ConnectionButton';
-
-function basename(path: string): string {
-  const trimmed = path.replace(/\/+$/, '');
-  if (!trimmed) return '/';
-  return trimmed.slice(trimmed.lastIndexOf('/') + 1) || '/';
-}
-
-function defaultTitle(block: Block): string {
-  if (block.kind === 'terminal') return 'terminal';
-  return block.path ? basename(block.path) : 'files';
-}
+import { FilesNavButtons, FilesRefreshButton } from '../files/FilesHeaderNav';
+import { displayPath } from '../files/format';
 
 const END_ICON_CLASS =
   'flex w-6 shrink-0 cursor-pointer items-center justify-center px-1.5 py-1 text-fg opacity-70 transition-opacity hover:opacity-100';
@@ -33,12 +26,23 @@ const END_ICON_CLASS =
 export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const closeLeaf = useLayoutStore((s) => s.closeLeaf);
   const openPicker = useUiStore((s) => s.openPicker);
+  const connections = useConnectionsStore((s) => s.connections);
+  const { block } = leaf;
+  const home = useFilesNavStore((s) =>
+    block.kind === 'files' ? s.homes[block.target] : undefined,
+  );
   const [connOpen, setConnOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { block } = leaf;
+  // Terminal: "Localhost" / connection name (Wave wording). Files: the path.
+  const defaultTitle = (b: Block): string => {
+    if (b.kind === 'terminal') {
+      return b.target === 'local' ? 'Localhost' : targetName(b.target, connections);
+    }
+    return displayPath(b.path, home);
+  };
   const title = block.title ?? defaultTitle(block);
 
   useEffect(() => {
@@ -62,13 +66,13 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
 
   const headerMenu = (e: React.MouseEvent) =>
     openContextMenu(e, [
-      { label: 'Rename Block', icon: <Pencil size={13} />, onClick: startRename },
-      { label: 'Change Connection…', icon: <Server size={13} />, onClick: () => setConnOpen(true) },
+      { label: 'Rename Block', icon: <Pencil size={14} />, onClick: startRename },
+      { label: 'Change Connection…', icon: <Server size={14} />, onClick: () => setConnOpen(true) },
       'separator',
-      { label: 'Split Right', icon: <SquareSplitHorizontal size={13} />, onClick: splitRight },
-      { label: 'Split Down', icon: <SquareSplitVertical size={13} />, onClick: splitDown },
+      { label: 'Split Right', icon: <SquareSplitHorizontal size={14} />, onClick: splitRight },
+      { label: 'Split Down', icon: <SquareSplitVertical size={14} />, onClick: splitDown },
       'separator',
-      { label: 'Close Block', icon: <X size={13} />, onClick: () => closeLeaf(leaf.id) },
+      { label: 'Close Block', icon: <X size={14} />, onClick: () => closeLeaf(leaf.id) },
     ]);
 
   return (
@@ -76,6 +80,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
       className="flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-[7px] text-[11px] font-bold select-none"
       onContextMenu={headerMenu}
     >
+      {block.kind === 'files' && <FilesNavButtons leafId={leaf.id} target={block.target} />}
       <span className="flex w-4 shrink-0 justify-center opacity-50">
         {block.kind === 'terminal' ? <TerminalIcon size={14} /> : <Folder size={14} />}
       </span>
@@ -100,13 +105,16 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
         />
       ) : (
         <span
-          className="min-w-0 flex-1 truncate text-[11px] font-medium opacity-70"
+          className="min-w-0 flex-1 truncate text-[11px] font-medium text-fg opacity-80"
           onDoubleClick={startRename}
         >
           {title}
         </span>
       )}
       <div className="flex shrink-0 items-center">
+        {block.kind === 'files' && (
+          <FilesRefreshButton leafId={leaf.id} className={END_ICON_CLASS} />
+        )}
         <button type="button" title="Split right" aria-label="Split right" className={END_ICON_CLASS} onClick={splitRight}>
           <SquareSplitHorizontal size={13} />
         </button>

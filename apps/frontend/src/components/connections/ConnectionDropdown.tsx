@@ -118,7 +118,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
                   onMouseEnter={() => setHi(i)}
                   onClick={() => pick(opt)}
                 >
-                  <Plus size={13} className="shrink-0 text-fg-faint" />
+                  <Plus size={14} className="shrink-0 text-fg-faint" />
                   New connection…
                 </button>
               </div>
@@ -135,9 +135,9 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               onClick={() => pick(opt)}
             >
               {isLocal ? (
-                <Laptop size={13} className="shrink-0 text-fg-dim" />
+                <Laptop size={14} className="shrink-0 text-fg-dim" />
               ) : (
-                <ArrowRightLeft size={13} className="shrink-0" style={{ color: connColor(opt.id) }} />
+                <ArrowRightLeft size={14} className="shrink-0" style={{ color: connColor(opt.id) }} />
               )}
               <span className="truncate">{isLocal ? 'local' : opt.name}</span>
               {!isLocal && (

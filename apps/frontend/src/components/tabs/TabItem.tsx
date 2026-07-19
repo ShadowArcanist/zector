@@ -4,7 +4,15 @@ import type { Tab } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { openContextMenu } from '../../store/contextMenu';
 
-export function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
+export function TabItem({
+  tab,
+  active,
+  onHoverChange,
+}: {
+  tab: Tab;
+  active: boolean;
+  onHoverChange?: (hovered: boolean) => void;
+}) {
   const setActiveTab = useLayoutStore((s) => s.setActiveTab);
   const closeTab = useLayoutStore((s) => s.closeTab);
   const renameTab = useLayoutStore((s) => s.renameTab);
@@ -35,7 +43,9 @@ export function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
       role="tab"
       aria-selected={active}
       tabIndex={0}
-      className="group h-[27px] max-w-[130px] min-w-[100px] flex-[0_1_130px] cursor-pointer px-[3px] py-[1.5px] select-none"
+      className="group h-[27px] max-w-[130px] min-w-[100px] flex-[0_1_130px] cursor-pointer px-px py-[1.5px] select-none"
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
       onClick={() => setActiveTab(tab.id)}
       onDoubleClick={startRename}
       onAuxClick={(e) => {
@@ -46,9 +56,9 @@ export function TabItem({ tab, active }: { tab: Tab; active: boolean }) {
       }}
       onContextMenu={(e) =>
         openContextMenu(e, [
-          { label: 'Rename Tab', icon: <Pencil size={13} />, onClick: startRename },
+          { label: 'Rename Tab', icon: <Pencil size={14} />, onClick: startRename },
           'separator',
-          { label: 'Close Tab', icon: <X size={13} />, onClick: () => closeTab(tab.id) },
+          { label: 'Close Tab', icon: <X size={14} />, onClick: () => closeTab(tab.id) },
         ])
       }
     >

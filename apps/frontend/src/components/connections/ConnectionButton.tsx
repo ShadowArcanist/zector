@@ -28,15 +28,16 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
         ref={btnRef}
         type="button"
         title={conn ? `${conn.username}@${conn.host}` : 'local'}
-        className="flex max-w-40 shrink-0 cursor-pointer items-center gap-1.5 rounded-[2px] px-1 py-0.5 text-[11px] font-normal text-fg-dim transition-colors hover:bg-highlight"
+        className="flex max-w-40 shrink-0 cursor-pointer items-center gap-1.5 rounded-[2px] px-1 py-0.5 text-[11px] font-normal text-fg-faint transition-colors hover:bg-highlight hover:text-fg-dim"
         onClick={() => setOpen(!open)}
       >
         {conn ? (
           <ArrowRightLeft size={12} className="shrink-0" style={{ color: connColor(conn.id) }} />
         ) : (
-          <Laptop size={12} className="shrink-0 text-fg-dim" />
+          <Laptop size={12} className="shrink-0" />
         )}
-        <span className="truncate">{name}</span>
+        {/* Wave shows icon-only for the local target; name only for remotes */}
+        {conn && <span className="truncate">{name}</span>}
       </button>
       {open && (
         <ConnectionDropdown

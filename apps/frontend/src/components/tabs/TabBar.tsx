@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Plus, Server } from 'lucide-react';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
@@ -11,6 +11,10 @@ export function TabBar() {
   const addTab = useLayoutStore((s) => s.addTab);
   const openConnections = useUiStore((s) => s.openConnections);
   const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  // divider is invisible when it touches the active or hovered tab
+  const dividerHidden = (i: number) =>
+    i === activeIndex || i - 1 === activeIndex || i === hoverIndex || i - 1 === hoverIndex;
 
   return (
     <header
@@ -23,13 +27,13 @@ export function TabBar() {
         {tabs.map((tab, i) => (
           <Fragment key={tab.id}>
             {i > 0 && (
-              <div
-                className={`h-3.5 w-px shrink-0 bg-white/20 ${
-                  i === activeIndex || i - 1 === activeIndex ? 'opacity-0' : ''
-                }`}
-              />
+              <div className={`h-3.5 w-px shrink-0 bg-white/20 ${dividerHidden(i) ? 'opacity-0' : ''}`} />
             )}
-            <TabItem tab={tab} active={tab.id === activeTabId} />
+            <TabItem
+              tab={tab}
+              active={tab.id === activeTabId}
+              onHoverChange={(h) => setHoverIndex(h ? i : null)}
+            />
           </Fragment>
         ))}
         <button
