@@ -1,6 +1,10 @@
 version: '3'
 
 tasks:
+  dev:
+    desc: Run backend (:7887) and frontend (:5173) dev servers together
+    deps: [dev:backend, dev:frontend]
+
   dev:backend:
     dir: apps/backend
     cmds: [cargo run]
