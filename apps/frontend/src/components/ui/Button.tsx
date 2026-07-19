@@ -3,11 +3,9 @@ import type { ButtonHTMLAttributes } from 'react';
 type Variant = 'primary' | 'ghost' | 'danger' | 'subtle';
 
 const styles: Record<Variant, string> = {
-  primary:
-    'bg-accent-dim hover:bg-accent text-white border border-transparent',
-  ghost:
-    'bg-transparent hover:bg-bg3 text-fg-dim hover:text-fg border border-edge2',
-  subtle: 'bg-transparent hover:bg-bg3 text-fg-dim hover:text-fg border border-transparent',
+  primary: 'bg-accent-dim hover:bg-accent-dim/80 text-white border border-transparent',
+  ghost: 'bg-transparent hover:bg-hover text-fg-dim hover:text-fg border border-edge',
+  subtle: 'bg-transparent hover:bg-hover text-fg-dim hover:text-fg border border-transparent',
   danger: 'bg-transparent hover:bg-danger/15 text-danger border border-danger/40',
 };
 
@@ -27,7 +25,7 @@ export function Button({ variant = 'ghost', size = 'md', className = '', ...rest
   );
 }
 
-/** Tiny square icon button for block headers / toolbars. */
+/** Tiny square icon button for toolbars (Wave iconbutton: no bg, opacity ramp). */
 export function IconButton({
   className = '',
   danger = false,
@@ -36,8 +34,10 @@ export function IconButton({
   return (
     <button
       type="button"
-      className={`inline-flex h-5.5 w-5.5 shrink-0 cursor-pointer items-center justify-center rounded transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent ${
-        danger ? 'text-fg-faint hover:bg-danger/20 hover:text-danger' : 'text-fg-faint hover:bg-bg3 hover:text-fg'
+      className={`inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity outline-none focus-visible:ring-1 focus-visible:ring-accent ${
+        danger
+          ? 'text-fg-dim opacity-70 hover:text-danger hover:opacity-100'
+          : 'text-fg-dim opacity-70 hover:text-fg hover:opacity-100'
       } ${className}`}
       {...rest}
     />

@@ -1,30 +1,35 @@
 @import 'tailwindcss';
 
+/* Tokyo Night shell palette, Wave Terminal structure. */
 @theme {
   --color-*: initial;
-  --color-bg0: #0b0d10;
-  --color-bg1: #10141a;
-  --color-bg2: #171c24;
-  --color-bg3: #202733;
-  --color-edge: #232a35;
-  --color-edge2: #333d4d;
-  --color-fg: #dfe5ee;
-  --color-fg-dim: #94a0b3;
-  --color-fg-faint: #5b6779;
-  --color-accent: #58a6ff;
-  --color-accent-dim: #316dcb;
-  --color-ok: #4fc07e;
-  --color-warn: #d9a852;
-  --color-danger: #e5695f;
+  --color-bg0: #1a1b26; /* app background */
+  --color-bg1: #1f2335; /* panel / modal background */
+  --color-bg2: #24283b; /* raised surfaces (inputs, toasts) */
+  --color-bg3: #292e42; /* selected surfaces */
+  --color-block: rgba(0, 0, 0, 0.4); /* block background */
+  --color-edge: rgba(255, 255, 255, 0.14); /* general border */
+  --color-edge2: rgba(255, 255, 255, 0.12); /* modal / menu border */
+  --color-hover: rgba(255, 255, 255, 0.08);
+  --color-highlight: rgba(255, 255, 255, 0.16);
+  --color-fg: #c0caf5;
+  --color-fg-dim: #a9b1d6;
+  --color-fg-faint: #565f89;
+  --color-accent: #7aa2f7;
+  --color-accent-dim: #3d59a1;
+  --color-ok: #9ece6a;
+  --color-warn: #e0af68;
+  --color-danger: #f7768e;
   --color-black: #000;
   --color-white: #fff;
   --color-transparent: transparent;
 
-  --font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono:
     ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, 'Cascadia Mono',
     Consolas, 'Liberation Mono', monospace;
+
+  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.8);
 }
 
 html,
@@ -47,33 +52,36 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* thin dark native scrollbars */
+/* Wave-style minimal scrollbars: 4px, translucent thumb, no track */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333d4d transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #333d4d;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* react-resizable-panels separators: hairline with generous hit target */
+/* react-resizable-panels separators read as Wave's 3px block gap */
 [data-separator] {
-  background: var(--color-edge);
+  background: transparent;
   transition: background 120ms ease;
   z-index: 5;
 }
 [data-separator='hover'],
 [data-separator='active'],
 [data-separator='focus'] {
-  background: var(--color-accent-dim);
+  background: rgb(from var(--color-accent) r g b / 0.5);
 }
 [data-separator][aria-orientation='horizontal'] {
   height: 3px;

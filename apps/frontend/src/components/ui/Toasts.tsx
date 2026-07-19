@@ -16,7 +16,7 @@ export function Toasts() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto flex items-start gap-2 rounded-md border border-edge2 bg-bg2 px-3 py-2 text-[13px] text-fg shadow-lg shadow-black/50"
+          className="pointer-events-auto flex items-start gap-2 rounded-md border border-edge2 bg-bg1 px-3 py-2 text-[12px] text-fg shadow-modal"
         >
           {iconFor[t.kind]}
           <span className="min-w-0 flex-1 break-words">{t.message}</span>
