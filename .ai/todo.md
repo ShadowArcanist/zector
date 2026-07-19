@@ -3,8 +3,12 @@
 ## Tab background presets (2026-07-19) — DONE
 User's Wave bg@* presets ported to styles/bgPresets.ts (9 "Shadow's ..." gradients w/ opacity). Per-tab
 `bg` key on Tab (validated in uiState parse), applied as a fixed gradient layer behind tab bar + blocks
-(App WorkspaceBg). Picker: tab right-click → Background submenu. Limitation: terminal canvases are opaque
-(WebGL transparency is broken — see earlier note), so the gradient shows in chrome/gaps/files blocks only.
+(App WorkspaceBg). Picker: tab right-click → Background submenu.
+Follow-up fix: when the active tab has a bg preset, terminals switch to the DOM renderer (WebGL cannot do
+transparency) with xterm bg #00000000 + allowTransparency + a global `.xterm-viewport { background:
+transparent !important }` override (xterm ships a stock black viewport bg; Wave overrides it the same way).
+Renderer swap recreates the xterm instance; sessions survive via server-side scrollback replay. The files
+table sticky header is bg-black/40 + backdrop-blur (was opaque block-flat) so gradients show through.
 
 ## Feature round (2026-07-19): drag-rearrange, fonts, local rename, key path, column resize — DONE
 Pointer-based block drag (grab header, 4-edge drop zones w/ accent half-overlay, moveLeafInTree keeps leaf id
