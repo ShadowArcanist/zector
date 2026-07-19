@@ -58,7 +58,7 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 
 ### Files (`{target}` = `local` or connection id; `path` is absolute)
 - `GET /api/fs/{target}/home` → `{ "path": "/home/user" }`
-- `GET /api/fs/{target}/list?path=` → `{ path, entries: [{ name, path, is_dir, is_symlink, size, modified }] }` (modified = unix seconds or null; sorted dirs-first, name asc)
+- `GET /api/fs/{target}/list?path=` → `{ path, entries: [{ name, path, is_dir, is_symlink, size, modified, mode }] }` (modified = unix seconds or null; mode = raw unix mode bits or null, frontend renders rwx string; sorted dirs-first, name asc)
 - `GET /api/fs/{target}/read?path=` → raw bytes, guessed Content-Type; `&download=1` adds Content-Disposition attachment
 - `POST /api/fs/{target}/write?path=` raw request body → 204 (create or overwrite; used for uploads and editor saves)
 - `POST /api/fs/{target}/mkdir` body `{ path }` → 204

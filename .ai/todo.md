@@ -1,5 +1,12 @@
 # Build plan — Zector v1
 
+## Visual parity pass (2026-07-19, after user screenshot comparison) — DONE
+Files block rebuilt as Wave's directory preview: navigation (back/forward/refresh + ~-relative path) lives
+in the BLOCK HEADER (BlockHeader accepts view-specific content), toolbar row removed, real table with sortable
+Name/Perm/Last Modified/Size/Type columns (mode field added to backend fs list), ".." row, 24px rows,
+keyboard nav (arrows/Enter/Backspace). Terminal title "Localhost"/connection name (bright, not muted);
+local connection chip is icon-only. Tabs contiguous with dividers. New files nav store: store/filesNav.ts.
+
 ## UI rework (2026-07-19, after v1) — DONE
 Wave-Terminal-exact structure with Tokyo Night palette: brandless 33px tab bar, 30px block headers
 (icon + connection switcher + renameable title + split/close icons), 2px accent focus border, 3px block gaps,
