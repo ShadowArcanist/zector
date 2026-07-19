@@ -31,7 +31,8 @@ export type FsListing = { path: string; entries: FsEntry[] };
 
 // ---- UI state blob (backend-opaque, stored via /api/state) ----
 
-export type UiState = { tabs: Tab[]; activeTabId: string | null };
+// `uiTheme` is a key into styles/uiThemes.ts; absent in older blobs (defaults apply).
+export type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string };
 
 // Frontend extension over the architecture doc: `root` may be null for a
 // freshly-created empty tab (renders a centered block picker). The blob is

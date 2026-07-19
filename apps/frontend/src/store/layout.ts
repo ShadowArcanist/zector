@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Block, Tab, UiState } from '../api/types';
 import { getUiState, putUiState } from '../api/state';
 import { killTerm } from '../api/term';
+import { UI_THEMES, applyUiTheme } from '../styles/uiThemes';
 import { pushToast } from './toast';
 import {
   collectTermIds,
@@ -29,6 +30,7 @@ type LayoutStore = UiState & {
   updateLeafBlock: (leafId: string, block: Block) => void;
   setSizes: (splitId: string, sizes: number[]) => void;
   setFocusedLeaf: (leafId: string | null) => void;
+  setUiTheme: (key: string) => void;
 };
 
 function defaultTab(index: number): Tab {
@@ -52,9 +54,12 @@ function parseUiState(raw: unknown): UiState | null {
     tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root });
   }
   const active = typeof state.activeTabId === 'string' ? state.activeTabId : null;
+  const uiTheme =
+    typeof state.uiTheme === 'string' && state.uiTheme in UI_THEMES ? state.uiTheme : undefined;
   return {
     tabs,
     activeTabId: tabs.some((t) => t.id === active) ? active : tabs[0].id,
+    uiTheme,
   };
 }
 
@@ -62,8 +67,8 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined;
 function schedulePersist(get: () => LayoutStore) {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    const { tabs, activeTabId } = get();
-    putUiState({ tabs, activeTabId }).catch(() => {
+    const { tabs, activeTabId, uiTheme } = get();
+    putUiState({ tabs, activeTabId, uiTheme }).catch(() => {
       // quiet: layout persistence is best-effort while the backend is down
     });
   }, 500);
@@ -97,6 +102,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
         ui = { tabs: [tab], activeTabId: tab.id };
       }
       const activeRoot = ui.tabs.find((t) => t.id === ui.activeTabId)?.root ?? null;
+      applyUiTheme(ui.uiTheme);
       set({ ...ui, loaded: true, focusedLeafId: firstLeafId(activeRoot) });
     },
 
@@ -184,5 +190,11 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
       })),
 
     setFocusedLeaf: (leafId) => set({ focusedLeafId: leafId }),
+
+    setUiTheme: (key) =>
+      mutate(() => {
+        applyUiTheme(key);
+        return { uiTheme: key };
+      }),
   };
 });

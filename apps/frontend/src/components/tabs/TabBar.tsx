@@ -1,8 +1,9 @@
 import { Fragment, useState } from 'react';
-import { Plus, Server } from 'lucide-react';
+import { Palette, Plus, Server } from 'lucide-react';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
-import { openContextMenu } from '../../store/contextMenu';
+import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
+import { DEFAULT_UI_THEME, UI_THEMES } from '../../styles/uiThemes';
 import { TabItem } from './TabItem';
 
 export function TabBar() {
@@ -10,6 +11,13 @@ export function TabBar() {
   const activeTabId = useLayoutStore((s) => s.activeTabId);
   const addTab = useLayoutStore((s) => s.addTab);
   const openConnections = useUiStore((s) => s.openConnections);
+  const uiTheme = useLayoutStore((s) => s.uiTheme);
+  const setUiTheme = useLayoutStore((s) => s.setUiTheme);
+  const themeItems: MenuEntry[] = Object.entries(UI_THEMES).map(([key, t]) => ({
+    label: t.name,
+    checked: key === (uiTheme ?? DEFAULT_UI_THEME),
+    onClick: () => setUiTheme(key),
+  }));
   const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   // divider is invisible when it touches the active or hovered tab
@@ -20,7 +28,11 @@ export function TabBar() {
     <header
       className="flex h-[33px] shrink-0 items-center gap-1 bg-black/35 pt-[3px] pr-1 pl-1.5 backdrop-blur-[20px]"
       onContextMenu={(e) =>
-        openContextMenu(e, [{ label: 'New Tab', icon: <Plus size={13} />, onClick: addTab }])
+        openContextMenu(e, [
+          { label: 'New Tab', icon: <Plus size={13} />, onClick: addTab },
+          'separator',
+          { label: 'UI Theme', icon: <Palette size={13} />, submenu: themeItems },
+        ])
       }
     >
       <div role="tablist" className="flex h-[27px] min-w-0 flex-1 items-center overflow-x-auto">
@@ -45,6 +57,16 @@ export function TabBar() {
           <Plus size={12} />
         </button>
       </div>
+      <button
+        type="button"
+        title="UI theme"
+        aria-label="UI theme"
+        className="flex h-[24px] w-[24px] shrink-0 cursor-pointer items-center justify-center text-fg-dim opacity-70 transition-opacity hover:opacity-100"
+        onClick={(e) => openContextMenu(e, themeItems)}
+        onContextMenu={(e) => e.stopPropagation()}
+      >
+        <Palette size={14} />
+      </button>
       <button
         type="button"
         title="Connections"

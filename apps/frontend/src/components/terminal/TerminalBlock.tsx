@@ -8,10 +8,12 @@ import { Spinner } from '../ui/Spinner';
 import { useTermSession } from './useTermSession';
 import { buildTermMenu } from './termMenu';
 import { DEFAULT_TERM_FONT_SIZE, resolveTermTheme } from './themes';
+import { defaultTermThemeFor } from '../../styles/uiThemes';
 
 export function TerminalBlock({ leafId, block }: { leafId: string; block: TerminalBlockData }) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
-  const { theme } = resolveTermTheme(block.termTheme);
+  const uiTheme = useLayoutStore((s) => s.uiTheme);
+  const { theme } = resolveTermTheme(block.termTheme ?? defaultTermThemeFor(uiTheme));
   const fontSize = block.fontSize ?? DEFAULT_TERM_FONT_SIZE;
   const { containerRef, status, focus, retry, getTerm } = useTermSession(
     block.termId,
