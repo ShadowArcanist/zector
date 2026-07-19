@@ -26,7 +26,7 @@ export function TabBar() {
 
   return (
     <header
-      className="flex h-[33px] shrink-0 items-center gap-1 bg-black/35 pt-[3px] pr-1 pl-1.5 backdrop-blur-[20px]"
+      className="mx-[3px] mt-[3px] flex h-[33px] shrink-0 items-center gap-1 rounded-lg bg-black/35 pr-1 pl-1.5 backdrop-blur-[20px]"
       onContextMenu={(e) =>
         openContextMenu(e, [
           { label: 'New Tab', icon: <Plus size={13} />, onClick: addTab },
