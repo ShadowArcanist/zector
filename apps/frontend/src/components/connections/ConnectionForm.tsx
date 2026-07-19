@@ -23,7 +23,7 @@ export function ConnectionForm({
   const [username, setUsername] = useState(existing?.username ?? '');
   const [authType, setAuthType] = useState<'password' | 'key'>(existing?.auth_type ?? 'password');
   const [password, setPassword] = useState(existing?.password ?? '');
-  const [privateKey, setPrivateKey] = useState(existing?.private_key ?? '');
+  const [keyPath, setKeyPath] = useState(existing?.key_path ?? '');
   const [passphrase, setPassphrase] = useState(existing?.key_passphrase ?? '');
   const [saving, setSaving] = useState(false);
 
@@ -40,7 +40,10 @@ export function ConnectionForm({
       username: username.trim(),
       auth_type: authType,
       password: authType === 'password' ? password : null,
-      private_key: authType === 'key' ? privateKey : null,
+      // Pass any existing pasted key through unchanged (legacy fallback used by
+      // the backend only when key_path is empty); new forms only set key_path.
+      private_key: authType === 'key' ? (existing?.private_key ?? null) : null,
+      key_path: authType === 'key' && keyPath.trim() ? keyPath.trim() : null,
       key_passphrase: authType === 'key' && passphrase ? passphrase : null,
     };
     setSaving(true);
@@ -106,15 +109,16 @@ export function ConnectionForm({
       ) : (
         <>
           <div>
-            <label className={label} htmlFor="conn-key">Private key</label>
-            <textarea
-              id="conn-key"
-              className="h-28 w-full resize-y rounded-md border border-edge2 bg-black/20 p-2.5 font-mono text-[11px] text-fg outline-none placeholder:text-fg-faint focus:border-accent"
-              value={privateKey}
-              onChange={(e) => setPrivateKey(e.target.value)}
-              placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+            <label className={label} htmlFor="conn-key-path">Private key path</label>
+            <input
+              id="conn-key-path"
+              className={`${field} font-mono`}
+              value={keyPath}
+              onChange={(e) => setKeyPath(e.target.value)}
+              placeholder="~/.ssh/id_ed25519"
               spellCheck={false}
             />
+            <p className="mt-1 text-[11px] text-fg-faint">Path on the machine running zector</p>
           </div>
           <div>
             <label className={label} htmlFor="conn-phrase">Passphrase (optional)</label>

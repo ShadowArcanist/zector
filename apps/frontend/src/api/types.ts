@@ -8,7 +8,8 @@ export type Connection = {
   username: string;
   auth_type: 'password' | 'key';
   password: string | null;
-  private_key: string | null; // PEM/OpenSSH text
+  private_key: string | null; // PEM/OpenSSH text (legacy fallback when key_path is empty)
+  key_path: string | null; // path to a private key on the host running zector (~ expanded server-side)
   key_passphrase: string | null;
   created_at: string;
 };
@@ -32,7 +33,13 @@ export type FsListing = { path: string; entries: FsEntry[] };
 // ---- UI state blob (backend-opaque, stored via /api/state) ----
 
 // `uiTheme` is a key into styles/uiThemes.ts; absent in older blobs (defaults apply).
-export type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string };
+// `localName` is a user-chosen display name for the local target (default "Localhost").
+export type UiState = {
+  tabs: Tab[];
+  activeTabId: string | null;
+  uiTheme?: string;
+  localName?: string;
+};
 
 // Frontend extension over the architecture doc: `root` may be null for a
 // freshly-created empty tab (renders a centered block picker). The blob is

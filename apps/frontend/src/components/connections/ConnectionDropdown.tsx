@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 're
 import { createPortal } from 'react-dom';
 import { ArrowRightLeft, Laptop, Plus } from 'lucide-react';
 import { useConnectionsStore } from '../../store/connections';
+import { useLayoutStore } from '../../store/layout';
 import { connColor } from './colors';
 
 type Option =
@@ -22,6 +23,7 @@ const WIDTH = 280;
 /** Wave-style typeahead dropdown for picking a block's connection target. */
 export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClose }: Props) {
   const connections = useConnectionsStore((s) => s.connections);
+  const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [hi, setHi] = useState(0);
@@ -38,7 +40,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
 
   const q = query.trim().toLowerCase();
   const options: Option[] = [
-    ...(!q || 'local'.includes(q) ? [{ kind: 'local' } as const] : []),
+    ...(!q || `local ${localName}`.toLowerCase().includes(q) ? [{ kind: 'local' } as const] : []),
     ...connections
       .filter((c) => !q || `${c.name} ${c.username}@${c.host}`.toLowerCase().includes(q))
       .map((c) => ({
@@ -139,7 +141,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               ) : (
                 <ArrowRightLeft size={14} className="shrink-0" style={{ color: connColor(opt.id) }} />
               )}
-              <span className="truncate">{isLocal ? 'local' : opt.name}</span>
+              <span className="truncate">{isLocal ? localName : opt.name}</span>
               {!isLocal && (
                 <span className="ml-auto max-w-[45%] truncate font-mono text-[10px] text-fg-faint">
                   {opt.sub}

@@ -31,7 +31,7 @@ export function setTermTheme(leafId: string, termTheme: string | undefined) {
   patch(leafId, { ...block, termTheme });
 }
 
-/** Per-block terminal font size; undefined = default (12). */
+/** Per-block terminal font size; undefined = default (13). */
 export function setTermFontSize(leafId: string, fontSize: number | undefined) {
   const block = blockForLeaf(leafId);
   if (block?.kind !== 'terminal') return;

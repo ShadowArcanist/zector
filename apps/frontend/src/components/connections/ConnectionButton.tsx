@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { ArrowRightLeft, Laptop } from 'lucide-react';
 import { useConnectionsStore } from '../../store/connections';
+import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { switchBlockTarget } from '../../store/blocks';
 import { connColor } from './colors';
@@ -16,18 +17,19 @@ type Props = {
 /** Wave-style connection button shown in every block header. */
 export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
   const connections = useConnectionsStore((s) => s.connections);
+  const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const openConnections = useUiStore((s) => s.openConnections);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const conn = target === 'local' ? null : (connections.find((c) => c.id === target) ?? null);
-  const name = target === 'local' ? 'local' : (conn?.name ?? 'unknown host');
+  const name = target === 'local' ? localName : (conn?.name ?? 'unknown host');
 
   return (
     <>
       <button
         ref={btnRef}
         type="button"
-        title={conn ? `${conn.username}@${conn.host}` : 'local'}
+        title={conn ? `${conn.username}@${conn.host}` : name}
         className="flex max-w-40 shrink-0 cursor-pointer items-center gap-1.5 rounded-[2px] px-1 py-0.5 text-[11px] font-normal text-fg-faint transition-colors hover:bg-highlight hover:text-fg-dim"
         onClick={() => setOpen(!open)}
       >
