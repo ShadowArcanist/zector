@@ -4,9 +4,8 @@ import { TerminalBlock } from '../terminal/TerminalBlock';
 import { FilesBlock } from '../files/FilesBlock';
 import { BlockHeader } from './BlockHeader';
 
-/** Wave-style block: 8px radius, translucent bg, 2px accent border when focused. */
+/** Wave-style block: 8px radius, translucent bg. */
 export function BlockFrame({ leaf }: { leaf: LeafNode }) {
-  const focused = useLayoutStore((s) => s.focusedLeafId === leaf.id);
   const setFocusedLeaf = useLayoutStore((s) => s.setFocusedLeaf);
   const { block } = leaf;
 
@@ -23,13 +22,6 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
           <FilesBlock leafId={leaf.id} block={block} />
         )}
       </div>
-      {/* block-mask: focus ring drawn above content, never intercepts input */}
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-0 z-40 rounded-lg border-2 ${
-          focused ? 'border-accent' : 'border-transparent'
-        }`}
-      />
     </section>
   );
 }

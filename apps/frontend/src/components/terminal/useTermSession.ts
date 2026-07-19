@@ -17,8 +17,8 @@ export type TermStatus =
 
 const BACKOFF_MS = [500, 1000, 2000, 4000, 5000];
 
-/** Block content paints the theme bg; xterm itself stays transparent (Wave-style). */
-const transparent = (theme: ITheme): ITheme => ({ ...theme, background: '#00000000' });
+// The container div also paints theme.background, but xterm gets the real
+// color too: the WebGL renderer does not reliably honor a transparent bg.
 
 /**
  * Owns one xterm instance + WebSocket for a termId/target pair.
@@ -39,7 +39,7 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
     optsRef.current = { theme, fontSize };
     const term = termRef.current;
     if (!term) return;
-    term.options.theme = transparent(theme);
+    term.options.theme = theme;
     term.options.fontSize = fontSize;
     fitRef.current?.fit();
   }, [theme, fontSize]);
@@ -50,13 +50,12 @@ export function useTermSession(termId: string, target: string, theme: ITheme, fo
 
     const term = new Terminal({
       allowProposedApi: true,
-      allowTransparency: true,
       cursorBlink: true,
       fontFamily: TERM_FONT,
       fontSize: optsRef.current.fontSize,
       lineHeight: 1.15,
       scrollback: 5000,
-      theme: transparent(optsRef.current.theme),
+      theme: optsRef.current.theme,
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
