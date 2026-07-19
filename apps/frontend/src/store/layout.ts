@@ -1,20 +1,22 @@
 import { create } from 'zustand';
 import type { Block, Tab, UiState } from '../api/types';
-import { getUiState, putUiState } from '../api/state';
+import { getUiState } from '../api/state';
 import { killTerm } from '../api/term';
-import { UI_THEMES, applyUiTheme } from '../styles/uiThemes';
+import { applyUiTheme } from '../styles/uiThemes';
 import { pushToast } from './toast';
 import {
   collectTermIds,
   firstLeafId,
-  isValidNode,
   makeLeaf,
+  moveLeafInTree,
   removeLeafFromTree,
   setSizesInTree,
   splitLeafInTree,
   updateLeafBlockInTree,
   uuid,
+  type DropEdge,
 } from './tree';
+import { defaultTab, parseUiState, schedulePersist } from './uiState';
 
 type LayoutStore = UiState & {
   loaded: boolean;
@@ -26,53 +28,14 @@ type LayoutStore = UiState & {
   setActiveTab: (tabId: string) => void;
   setTabRoot: (tabId: string, block: Block) => void;
   splitLeaf: (leafId: string, dir: 'row' | 'col', newBlock: Block) => void;
+  moveLeaf: (srcLeafId: string, targetLeafId: string, edge: DropEdge) => void;
   closeLeaf: (leafId: string) => void;
   updateLeafBlock: (leafId: string, block: Block) => void;
   setSizes: (splitId: string, sizes: number[]) => void;
   setFocusedLeaf: (leafId: string | null) => void;
   setUiTheme: (key: string) => void;
+  setLocalName: (name: string) => void;
 };
-
-function defaultTab(index: number): Tab {
-  return {
-    id: uuid(),
-    name: `Tab ${index}`,
-    root: makeLeaf({ kind: 'terminal', target: 'local', termId: uuid() }),
-  };
-}
-
-function parseUiState(raw: unknown): UiState | null {
-  if (typeof raw !== 'object' || raw === null) return null;
-  const state = raw as Record<string, unknown>;
-  if (!Array.isArray(state.tabs) || state.tabs.length === 0) return null;
-  const tabs: Tab[] = [];
-  for (const t of state.tabs) {
-    const tab = t as Record<string, unknown>;
-    if (typeof tab.id !== 'string' || typeof tab.name !== 'string') return null;
-    const root = tab.root === null || tab.root === undefined ? null : tab.root;
-    if (root !== null && !isValidNode(root)) return null;
-    tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root });
-  }
-  const active = typeof state.activeTabId === 'string' ? state.activeTabId : null;
-  const uiTheme =
-    typeof state.uiTheme === 'string' && state.uiTheme in UI_THEMES ? state.uiTheme : undefined;
-  return {
-    tabs,
-    activeTabId: tabs.some((t) => t.id === active) ? active : tabs[0].id,
-    uiTheme,
-  };
-}
-
-let persistTimer: ReturnType<typeof setTimeout> | undefined;
-function schedulePersist(get: () => LayoutStore) {
-  clearTimeout(persistTimer);
-  persistTimer = setTimeout(() => {
-    const { tabs, activeTabId, uiTheme } = get();
-    putUiState({ tabs, activeTabId, uiTheme }).catch(() => {
-      // quiet: layout persistence is best-effort while the backend is down
-    });
-  }, 500);
-}
 
 function killTree(root: Tab['root']) {
   for (const id of collectTermIds(root)) killTerm(id).catch(() => {});
@@ -156,6 +119,19 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
         };
       }),
 
+    moveLeaf: (srcLeafId, targetLeafId, edge) =>
+      mutate((s) => {
+        let moved = false;
+        const tabs = s.tabs.map((t) => {
+          if (!t.root) return t;
+          const root = moveLeafInTree(t.root, srcLeafId, targetLeafId, edge);
+          if (root === t.root) return t;
+          moved = true;
+          return { ...t, root };
+        });
+        return moved ? { tabs, focusedLeafId: srcLeafId } : { tabs };
+      }),
+
     closeLeaf: (leafId) =>
       mutate((s) => {
         const tabs = s.tabs.map((t) => {
@@ -196,5 +172,7 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
         applyUiTheme(key);
         return { uiTheme: key };
       }),
+
+    setLocalName: (name) => mutate(() => ({ localName: name.trim() || undefined })),
   };
 });

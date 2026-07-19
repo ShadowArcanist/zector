@@ -47,6 +47,68 @@ export function removeLeafFromTree(node: LayoutNode, leafId: string): LayoutNode
   return { ...node, children, sizes };
 }
 
+export type DropEdge = 'left' | 'right' | 'top' | 'bottom';
+
+/**
+ * Insert `leaf` next to the leaf `targetLeafId` along `dir`. If the target's
+ * parent split already runs in `dir` the leaf becomes a sibling; otherwise the
+ * target leaf is replaced by a new 2-child split.
+ */
+function insertLeafNextTo(
+  node: LayoutNode,
+  targetLeafId: string,
+  dir: 'row' | 'col',
+  leaf: LeafNode,
+  before: boolean,
+): LayoutNode {
+  if (node.type === 'leaf') {
+    if (node.id !== targetLeafId) return node;
+    return {
+      type: 'split',
+      id: uuid(),
+      dir,
+      children: before ? [leaf, node] : [node, leaf],
+      sizes: [1, 1],
+    };
+  }
+  if (node.dir === dir) {
+    const idx = node.children.findIndex((c) => c.type === 'leaf' && c.id === targetLeafId);
+    if (idx !== -1) {
+      const children = [...node.children];
+      const sizes = [...node.sizes];
+      const at = before ? idx : idx + 1;
+      children.splice(at, 0, leaf);
+      sizes.splice(at, 0, node.sizes[idx] ?? 1);
+      return { ...node, children, sizes };
+    }
+  }
+  return {
+    ...node,
+    children: node.children.map((c) => insertLeafNextTo(c, targetLeafId, dir, leaf, before)),
+  };
+}
+
+/**
+ * Move the leaf `srcLeafId` next to `targetLeafId`: remove it (collapsing
+ * single-child splits), then re-insert the same leaf node on the given edge of
+ * the target. Returns the tree unchanged when the move is a no-op or invalid
+ * (src === target, either leaf missing, or src was the target's only sibling).
+ */
+export function moveLeafInTree(
+  root: LayoutNode,
+  srcLeafId: string,
+  targetLeafId: string,
+  edge: DropEdge,
+): LayoutNode {
+  if (srcLeafId === targetLeafId) return root;
+  const src = findLeaf(root, srcLeafId);
+  if (!src || !findLeaf(root, targetLeafId)) return root;
+  const without = removeLeafFromTree(root, srcLeafId);
+  if (!without || !findLeaf(without, targetLeafId)) return root;
+  const dir = edge === 'left' || edge === 'right' ? 'row' : 'col';
+  return insertLeafNextTo(without, targetLeafId, dir, src, edge === 'left' || edge === 'top');
+}
+
 export function updateLeafBlockInTree(node: LayoutNode, leafId: string, block: Block): LayoutNode {
   if (node.type === 'leaf') {
     return node.id === leafId ? { ...node, block } : node;

@@ -4,6 +4,7 @@ import { useConnectionsStore } from './store/connections';
 import { useUiStore } from './store/ui';
 import { TabBar } from './components/tabs/TabBar';
 import { NodeView } from './components/layout/NodeView';
+import { BlockDragGhost } from './components/layout/BlockDragGhost';
 import { BlockPickerList, BlockPickerModal } from './components/blockpicker/BlockPicker';
 import { ConnectionsModal } from './components/connections/ConnectionsModal';
 import { ContextMenuHost } from './components/ui/ContextMenu';
@@ -73,6 +74,7 @@ export default function App() {
       </main>
       {picker && <BlockPickerModal />}
       {connectionsOpen && <ConnectionsModal />}
+      <BlockDragGhost />
       <ContextMenuHost />
       <Toasts />
     </div>

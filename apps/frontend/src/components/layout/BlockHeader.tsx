@@ -18,6 +18,7 @@ import { openContextMenu } from '../../store/contextMenu';
 import { ConnectionButton } from '../connections/ConnectionButton';
 import { FilesNavButtons, FilesRefreshButton } from '../files/FilesHeaderNav';
 import { displayPath } from '../files/format';
+import { startBlockDrag } from './blockDrag';
 
 const END_ICON_CLASS =
   'flex w-6 shrink-0 cursor-pointer items-center justify-center px-1.5 py-1 text-fg opacity-70 transition-opacity hover:opacity-100';
@@ -25,6 +26,7 @@ const END_ICON_CLASS =
 /** Wave-exact 30px block header: view icon, connection button, title, end icons. */
 export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const closeLeaf = useLayoutStore((s) => s.closeLeaf);
+  const localName = useLayoutStore((s) => s.localName);
   const openPicker = useUiStore((s) => s.openPicker);
   const connections = useConnectionsStore((s) => s.connections);
   const { block } = leaf;
@@ -39,7 +41,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   // Terminal: "Localhost" / connection name (Wave wording). Files: the path.
   const defaultTitle = (b: Block): string => {
     if (b.kind === 'terminal') {
-      return b.target === 'local' ? 'Localhost' : targetName(b.target, connections);
+      return b.target === 'local' ? (localName ?? 'Localhost') : targetName(b.target, connections);
     }
     return displayPath(b.path, home);
   };
@@ -79,6 +81,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
     <div
       className="flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-[7px] text-[11px] font-bold select-none"
       onContextMenu={headerMenu}
+      onPointerDown={(e) => startBlockDrag(e, leaf.id, title)}
     >
       {block.kind === 'files' && <FilesNavButtons leafId={leaf.id} target={block.target} />}
       <span className="flex w-4 shrink-0 justify-center opacity-50">
