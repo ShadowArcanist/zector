@@ -30,7 +30,7 @@
     ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, 'Cascadia Mono',
     Consolas, 'Liberation Mono', monospace;
 
-  --shadow-modal: 0 8px 24px rgba(0, 0, 0, 0.8);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 html,

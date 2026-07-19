@@ -1,10 +1,10 @@
-import { Check, CircleAlert, Info, X } from 'lucide-react';
 import { useToastStore, type ToastKind } from '../../store/toast';
+import { AlertIcon, CheckIcon, CloseIcon, InfoIcon } from './icons/general';
 
 const iconFor: Record<ToastKind, React.ReactNode> = {
-  error: <CircleAlert size={14} className="shrink-0 text-danger" />,
-  ok: <Check size={14} className="shrink-0 text-ok" />,
-  info: <Info size={14} className="shrink-0 text-accent" />,
+  error: <AlertIcon size={14} className="shrink-0 text-danger" />,
+  ok: <CheckIcon size={14} className="shrink-0 text-ok" />,
+  info: <InfoIcon size={14} className="shrink-0 text-accent" />,
 };
 
 export function Toasts() {
@@ -16,7 +16,7 @@ export function Toasts() {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto flex items-start gap-2 rounded-md border border-edge2 bg-bg1 px-3 py-2 text-[12px] text-fg shadow-modal"
+          className="pointer-events-auto flex items-start gap-2 rounded-xl border border-white/6 bg-bg2 px-3.5 py-2.5 text-[12px] text-fg shadow-modal"
         >
           {iconFor[t.kind]}
           <span className="min-w-0 flex-1 break-words">{t.message}</span>
@@ -26,7 +26,7 @@ export function Toasts() {
             onClick={() => dismiss(t.id)}
             aria-label="Dismiss"
           >
-            <X size={13} />
+            <CloseIcon size={13} />
           </button>
         </div>
       ))}

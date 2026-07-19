@@ -2,13 +2,15 @@ import { useState } from 'react';
 import type { Connection, ConnectionInput } from '../../api/types';
 import { useConnectionsStore } from '../../store/connections';
 import { pushToast } from '../../store/toast';
+import { AlertIcon, CheckIcon } from '../ui/icons/general';
 import { Button } from '../ui/Button';
+import { Segmented, SettingsDivider, SettingsRow } from '../ui/Settings';
 import { Spinner } from '../ui/Spinner';
 
 const field =
-  'h-8 w-full rounded-md border border-edge2 bg-black/20 px-2.5 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:border-accent';
-const label = 'mb-1 block text-[11px] font-medium tracking-wide text-fg-faint uppercase';
+  'h-8 w-[220px] rounded-lg bg-black/25 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
 
+/** Editable settings rows for one SSH connection (also the new-connection pane). */
 export function ConnectionForm({
   existing,
   onDone,
@@ -17,6 +19,9 @@ export function ConnectionForm({
   onDone: () => void;
 }) {
   const save = useConnectionsStore((s) => s.save);
+  const remove = useConnectionsStore((s) => s.remove);
+  const test = useConnectionsStore((s) => s.test);
+  const testState = useConnectionsStore((s) => (existing ? s.testStates[existing.id] : undefined));
   const [name, setName] = useState(existing?.name ?? '');
   const [host, setHost] = useState(existing?.host ?? '');
   const [port, setPort] = useState(String(existing?.port ?? 22));
@@ -58,80 +63,103 @@ export function ConnectionForm({
     }
   };
 
+  const onDelete = () => {
+    if (!existing || !window.confirm(`Delete connection "${existing.name}"?`)) return;
+    remove(existing.id)
+      .then(onDone)
+      .catch((err) => pushToast('error', err instanceof Error ? err.message : 'Delete failed'));
+  };
+
   return (
     <form
-      className="flex flex-col gap-3 p-4"
+      className="flex min-h-0 flex-1 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
         void submit();
       }}
     >
-      <div>
-        <label className={label} htmlFor="conn-name">Name</label>
-        <input id="conn-name" className={field} value={name} onChange={(e) => setName(e.target.value)} placeholder="my server" autoFocus />
-      </div>
-      <div className="flex gap-3">
-        <div className="min-w-0 flex-1">
-          <label className={label} htmlFor="conn-host">Host</label>
+      <div className="min-h-0 flex-1 overflow-y-auto pb-2">
+        <SettingsRow label="Name" htmlFor="conn-name">
+          <input id="conn-name" className={field} value={name} onChange={(e) => setName(e.target.value)} placeholder="my server" autoFocus={!existing} />
+        </SettingsRow>
+        <SettingsDivider />
+        <SettingsRow label="Host" htmlFor="conn-host">
           <input id="conn-host" className={field} value={host} onChange={(e) => setHost(e.target.value)} placeholder="192.168.1.10" />
-        </div>
-        <div className="w-20">
-          <label className={label} htmlFor="conn-port">Port</label>
-          <input id="conn-port" className={field} value={port} onChange={(e) => setPort(e.target.value)} inputMode="numeric" />
-        </div>
-      </div>
-      <div>
-        <label className={label} htmlFor="conn-user">Username</label>
-        <input id="conn-user" className={field} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="root" />
-      </div>
-      <div>
-        <span className={label}>Authentication</span>
-        <div className="flex overflow-hidden rounded-md border border-edge2">
-          {(['password', 'key'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={`flex-1 cursor-pointer py-1.5 text-[12px] font-medium transition-colors ${
-                authType === t ? 'bg-highlight text-fg' : 'bg-black/20 text-fg-faint hover:text-fg-dim'
-              }`}
-              onClick={() => setAuthType(t)}
+        </SettingsRow>
+        <SettingsDivider />
+        <SettingsRow label="Port" htmlFor="conn-port">
+          <input id="conn-port" className={`${field} w-[80px]`} value={port} onChange={(e) => setPort(e.target.value)} inputMode="numeric" />
+        </SettingsRow>
+        <SettingsDivider />
+        <SettingsRow label="Username" htmlFor="conn-user">
+          <input id="conn-user" className={field} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="root" />
+        </SettingsRow>
+        <SettingsDivider />
+        <SettingsRow label="Authentication">
+          <Segmented
+            value={authType}
+            options={[
+              { value: 'password', label: 'Password' },
+              { value: 'key', label: 'Private key' },
+            ]}
+            onChange={setAuthType}
+          />
+        </SettingsRow>
+        <SettingsDivider />
+        {authType === 'password' ? (
+          <SettingsRow label="Password" htmlFor="conn-pass">
+            <input id="conn-pass" type="password" className={field} value={password} onChange={(e) => setPassword(e.target.value)} />
+          </SettingsRow>
+        ) : (
+          <>
+            <SettingsRow
+              label="Private key path"
+              description="Path on the machine running Zector"
+              htmlFor="conn-key-path"
             >
-              {t === 'password' ? 'Password' : 'Private key'}
-            </button>
-          ))}
-        </div>
+              <input id="conn-key-path" className={`${field} font-mono text-[12px]`} value={keyPath} onChange={(e) => setKeyPath(e.target.value)} placeholder="~/.ssh/id_ed25519" spellCheck={false} />
+            </SettingsRow>
+            <SettingsDivider />
+            <SettingsRow label="Passphrase" description="Optional" htmlFor="conn-phrase">
+              <input id="conn-phrase" type="password" className={field} value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
+            </SettingsRow>
+          </>
+        )}
       </div>
-      {authType === 'password' ? (
-        <div>
-          <label className={label} htmlFor="conn-pass">Password</label>
-          <input id="conn-pass" type="password" className={field} value={password} onChange={(e) => setPassword(e.target.value)} />
+      <div className="flex shrink-0 items-center gap-2 border-t border-white/6 px-5 py-3.5">
+        {existing && (
+          <>
+            <Button variant="ghost" onClick={() => void test(existing.id)} disabled={testState?.state === 'testing'}>
+              Test
+            </Button>
+            <Button variant="danger" onClick={onDelete}>
+              Delete
+            </Button>
+            {testState?.state === 'testing' && <Spinner size={13} />}
+            {testState?.state === 'ok' && (
+              <span className="flex items-center gap-1 text-[12px] text-ok">
+                <CheckIcon size={13} /> Connected
+              </span>
+            )}
+            {testState?.state === 'error' && (
+              <span
+                className="flex min-w-0 items-center gap-1 truncate text-[12px] text-danger"
+                title={testState.message}
+              >
+                <AlertIcon size={13} className="shrink-0" /> {testState.message}
+              </span>
+            )}
+          </>
+        )}
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Button variant="ghost" onClick={onDone}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" disabled={saving}>
+            {saving && <Spinner size={12} className="text-bg0" />}
+            {existing ? 'Save changes' : 'Add connection'}
+          </Button>
         </div>
-      ) : (
-        <>
-          <div>
-            <label className={label} htmlFor="conn-key-path">Private key path</label>
-            <input
-              id="conn-key-path"
-              className={`${field} font-mono`}
-              value={keyPath}
-              onChange={(e) => setKeyPath(e.target.value)}
-              placeholder="~/.ssh/id_ed25519"
-              spellCheck={false}
-            />
-            <p className="mt-1 text-[11px] text-fg-faint">Path on the machine running zector</p>
-          </div>
-          <div>
-            <label className={label} htmlFor="conn-phrase">Passphrase (optional)</label>
-            <input id="conn-phrase" type="password" className={field} value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
-          </div>
-        </>
-      )}
-      <div className="mt-1 flex justify-end gap-2">
-        <Button variant="subtle" onClick={onDone}>Cancel</Button>
-        <Button variant="primary" type="submit" disabled={saving}>
-          {saving && <Spinner size={12} className="text-white" />}
-          {existing ? 'Save changes' : 'Add connection'}
-        </Button>
       </div>
     </form>
   );

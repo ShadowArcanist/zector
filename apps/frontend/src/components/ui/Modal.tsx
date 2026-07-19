@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { X } from 'lucide-react';
+import { CloseIcon } from './icons/general';
 import { IconButton } from './Button';
 
 type Props = {
@@ -9,6 +9,7 @@ type Props = {
   width?: string; // tailwind width class
 };
 
+/** iOS-style dialog shell: large radius, soft shadow, hairline border. */
 export function Modal({ title, onClose, children, width = 'w-[440px]' }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -23,25 +24,25 @@ export function Modal({ title, onClose, children, width = 'w-[440px]' }: Props) 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[10vh] backdrop-blur-[3px]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`${width} max-h-[76vh] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-md border border-edge2 bg-bg1 shadow-modal`}
+        className={`${width} flex max-h-[78vh] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-white/6 bg-bg1 shadow-modal`}
         role="dialog"
         aria-modal="true"
       >
         {title !== undefined && (
-          <div className="flex h-10 items-center justify-between border-b border-white/8 px-3.5">
-            <span className="text-[13px] font-semibold text-fg">{title}</span>
+          <div className="flex shrink-0 items-center justify-between px-5 pt-4 pb-3">
+            <span className="text-[16px] font-semibold text-fg">{title}</span>
             <IconButton onClick={onClose} aria-label="Close">
-              <X size={14} />
+              <CloseIcon size={15} />
             </IconButton>
           </div>
         )}
-        {children}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -1,9 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Save, X } from 'lucide-react';
 import { fsReadUrl, fsWrite } from '../../api/fs';
 import { pushToast } from '../../store/toast';
-import { Button, IconButton } from '../ui/Button';
+import { CloseIcon } from '../ui/icons/general';
+import { SaveIcon } from '../ui/icons/files';
+import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
+
+/** Small circular pill icon button for overlay header bars. */
+function PillIconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/6 text-fg-dim transition-colors hover:bg-white/12 hover:text-fg"
+      {...props}
+    />
+  );
+}
 
 function useEscape(onClose: () => void) {
   useEffect(() => {
@@ -19,11 +31,11 @@ export function ImageOverlay({ target, path, onClose }: { target: string; path: 
   useEscape(onClose);
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-bg0/95">
-      <div className="flex h-8 shrink-0 items-center gap-2 border-b border-edge px-2">
+      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-white/6 px-3">
         <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-fg-dim">{path}</span>
-        <IconButton onClick={onClose} aria-label="Close preview">
-          <X size={14} />
-        </IconButton>
+        <PillIconButton onClick={onClose} aria-label="Close preview">
+          <CloseIcon size={13} />
+        </PillIconButton>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4">
         <img src={fsReadUrl(target, path)} alt={path} className="max-h-full max-w-full object-contain" />
@@ -73,18 +85,18 @@ export function EditorOverlay({ target, path, onClose }: { target: string; path:
 
   return (
     <div className="absolute inset-0 z-30 flex flex-col bg-bg0/97">
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-edge px-2">
+      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-white/6 px-3">
         <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-fg-dim">
           {path}
           {dirty && <span className="ml-1 text-warn">●</span>}
         </span>
         <Button size="sm" variant="primary" onClick={() => void save()} disabled={saving || text === null || !dirty}>
-          {saving ? <Spinner size={11} className="text-white" /> : <Save size={12} />}
+          {saving ? <Spinner size={11} className="text-bg0" /> : <SaveIcon size={12} />}
           Save
         </Button>
-        <IconButton onClick={onClose} aria-label="Close editor">
-          <X size={14} />
-        </IconButton>
+        <PillIconButton onClick={onClose} aria-label="Close editor">
+          <CloseIcon size={13} />
+        </PillIconButton>
       </div>
       {loadError ? (
         <p className="p-4 text-[13px] text-danger">{loadError}</p>

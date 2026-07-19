@@ -1,30 +1,38 @@
-import { Folder, Plus, Server, Terminal } from 'lucide-react';
 import type { Block } from '../../api/types';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
+import { PlusIcon } from '../ui/icons/general';
+import { FolderIcon } from '../ui/icons/files';
+import { SwapIcon, TerminalIcon } from '../ui/icons/terminal';
+import { connColor } from '../connections/colors';
 import { Modal } from '../ui/Modal';
 
-function PickRow({
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <p className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wide text-fg-faint uppercase">
+      {children}
+    </p>
+  );
+}
+
+function PickItem({
   icon,
   label,
-  hint,
   onPick,
 }: {
   icon: React.ReactNode;
   label: string;
-  hint?: string;
   onPick: () => void;
 }) {
   return (
     <button
       type="button"
-      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-left text-[12px] text-fg-dim transition-colors hover:bg-hover hover:text-fg"
+      className="flex h-10 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-left text-[13px] text-fg-dim transition-colors hover:bg-white/8 hover:text-fg"
       onClick={onPick}
     >
-      <span className="text-fg-faint">{icon}</span>
-      <span className="flex-1">{label}</span>
-      {hint && <span className="text-[11px] text-fg-faint">{hint}</span>}
+      <span className="flex w-4 shrink-0 justify-center text-fg-faint">{icon}</span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
     </button>
   );
 }
@@ -42,35 +50,39 @@ export function BlockPickerList({ onPick }: { onPick: (block: Block) => void }) 
   const files = (target: string): Block => ({ kind: 'files', target, path: '' });
 
   return (
-    <div className="flex flex-col gap-0.5 p-2">
-      <PickRow icon={<Terminal size={14} />} label="Terminal — Local" onPick={() => onPick(term('local'))} />
-      <PickRow icon={<Folder size={14} />} label="Files — Local" onPick={() => onPick(files('local'))} />
-      {connections.length > 0 && <div className="mx-2 my-1 h-px bg-white/8" />}
+    <div className="flex flex-col gap-0.5 px-2 pb-3">
+      <SectionLabel>Local</SectionLabel>
+      <PickItem icon={<TerminalIcon size={15} />} label="Terminal" onPick={() => onPick(term('local'))} />
+      <PickItem icon={<FolderIcon size={15} />} label="Files" onPick={() => onPick(files('local'))} />
+      {connections.length > 0 && <SectionLabel>Connections</SectionLabel>}
       {connections.map((c) => (
-        <div key={c.id} className="flex items-center gap-0.5">
-          <span className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-1 text-[12px] text-fg-dim">
-            <Server size={14} className="shrink-0 text-fg-faint" />
-            <span className="truncate">{c.name}</span>
+        <div
+          key={c.id}
+          className="flex h-10 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-white/5"
+        >
+          <span className="flex w-4 shrink-0 justify-center">
+            <SwapIcon size={14} style={{ color: connColor(c.id) }} />
           </span>
+          <span className="min-w-0 flex-1 truncate text-[13px] text-fg-dim">{c.name}</span>
           <button
             type="button"
-            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-hover hover:text-fg"
+            className="h-7 shrink-0 cursor-pointer rounded-lg bg-white/6 px-2.5 text-[12px] text-fg-dim transition-colors hover:bg-white/12 hover:text-fg"
             onClick={() => onPick(term(c.id))}
           >
             Terminal
           </button>
           <button
             type="button"
-            className="cursor-pointer rounded px-2 py-1 text-[12px] text-fg-faint transition-colors hover:bg-hover hover:text-fg"
+            className="h-7 shrink-0 cursor-pointer rounded-lg bg-white/6 px-2.5 text-[12px] text-fg-dim transition-colors hover:bg-white/12 hover:text-fg"
             onClick={() => onPick(files(c.id))}
           >
             Files
           </button>
         </div>
       ))}
-      <div className="mx-2 my-1 h-px bg-white/8" />
-      <PickRow
-        icon={<Plus size={14} />}
+      <div className="mx-1 my-1.5 h-px bg-white/6" />
+      <PickItem
+        icon={<PlusIcon size={15} />}
         label="New SSH connection…"
         onPick={() => openConnections('new')}
       />
@@ -94,7 +106,7 @@ export function BlockPickerModal() {
   };
 
   return (
-    <Modal title="Add block" onClose={closePicker} width="w-90">
+    <Modal title="Add block" onClose={closePicker} width="w-[380px]">
       <BlockPickerList onPick={handlePick} />
     </Modal>
   );
