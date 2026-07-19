@@ -8,6 +8,7 @@
   --color-bg2: #24283b; /* raised surfaces (inputs, toasts) */
   --color-bg3: #292e42; /* selected surfaces */
   --color-block: rgba(0, 0, 0, 0.4); /* block background */
+  --color-block-flat: #101017; /* --color-block composited over bg0 (sticky headers) */
   --color-edge: rgba(255, 255, 255, 0.14); /* general border */
   --color-edge2: rgba(255, 255, 255, 0.12); /* modal / menu border */
   --color-hover: rgba(255, 255, 255, 0.08);

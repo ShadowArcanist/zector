@@ -52,7 +52,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
   return [
     {
       label: 'Copy',
-      icon: <Copy size={13} />,
+      icon: <Copy size={14} />,
       disabled: !term?.hasSelection(),
       onClick: () => {
         const sel = term?.getSelection();
@@ -63,7 +63,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
     },
     {
       label: 'Paste',
-      icon: <Clipboard size={13} />,
+      icon: <Clipboard size={14} />,
       onClick: () => {
         navigator.clipboard
           .readText()
@@ -77,7 +77,7 @@ export function buildTermMenu({ leafId, block, term, restart }: Opts): MenuEntry
     { label: 'Themes', submenu: themes },
     { label: 'Font Size', submenu: sizes },
     'separator',
-    { label: 'Clear', icon: <Eraser size={13} />, onClick: () => term?.clear() },
-    { label: 'Restart Session', icon: <RotateCw size={13} />, onClick: restart },
+    { label: 'Clear', icon: <Eraser size={14} />, onClick: () => term?.clear() },
+    { label: 'Restart Session', icon: <RotateCw size={14} />, onClick: restart },
   ];
 }
