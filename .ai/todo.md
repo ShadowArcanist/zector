@@ -1,5 +1,12 @@
 # Build plan — Zector v1
 
+## Theme system removal (2026-07-19) — DONE
+Per user decision: no UI themes, no per-terminal theme presets — tab background presets are the ONLY
+visual customization. Deleted styles/uiThemes.ts; terminal/themes.ts is now a single fixed Tokyo Night
+ITheme + font constants. Removed: palette button, UI Theme submenu, terminal Themes submenu, setTermTheme,
+uiTheme/termTheme fields. Old state blobs with those fields still load (fields ignored).
+Auto-redactor idea parked in ideas.md.
+
 ## Tab background presets (2026-07-19) — DONE
 User's Wave bg@* presets ported to styles/bgPresets.ts (9 "Shadow's ..." gradients w/ opacity). Per-tab
 `bg` key on Tab (validated in uiState parse), applied as a fixed gradient layer behind tab bar + blocks

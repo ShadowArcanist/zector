@@ -81,18 +81,19 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 ## Frontend layout model (stored in the `/api/state` blob, backend-opaque)
 
 ```ts
-type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string; localName?: string };
+type UiState = { tabs: Tab[]; activeTabId: string | null; localName?: string };
 // localName = user-chosen display name for the local target (default "Localhost").
-// uiTheme = key into frontend styles/uiThemes.ts (app-shell theme presets, default "tokyonight");
-// it also picks the default terminal theme for blocks without an explicit termTheme.
-type Tab = { id: string; name: string; root: Node };
+// NOTE: theme system removed (2026-07-19) — shell + terminals are fixed Tokyo Night; per-tab
+// background presets (Tab.bg → styles/bgPresets.ts) are the only visual customization.
+// Old blobs may still contain uiTheme / Block.termTheme; both are ignored on load.
+type Tab = { id: string; name: string; root: Node; bg?: string };
 type Node =
   | { type: 'split'; id: string; dir: 'row' | 'col'; children: Node[]; sizes: number[] }
   | { type: 'leaf'; id: string; block: Block };
 type Block =
-  | { kind: 'terminal'; target: string; termId: string; title?: string; termTheme?: string; fontSize?: number }
+  | { kind: 'terminal'; target: string; termId: string; title?: string; fontSize?: number }
   | { kind: 'files'; target: string; path: string; title?: string };
-// title = user rename (block header); termTheme = key into terminal/themes.ts (default "tokyonight"); all optional for back-compat.
+// title = user rename (block header); fontSize = per-terminal override; all optional for back-compat.
 ```
 
 ## Runtime details
