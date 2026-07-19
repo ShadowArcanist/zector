@@ -1,0 +1,29 @@
+version: '3'
+
+tasks:
+  dev:backend:
+    dir: apps/backend
+    cmds: [cargo run]
+
+  dev:frontend:
+    dir: apps/frontend
+    cmds: [bun run dev]
+
+  build:
+    desc: Build the production binary (frontend embedded)
+    cmds:
+      - task: build:frontend
+      - task: build:backend
+
+  build:frontend:
+    dir: apps/frontend
+    cmds: [bun install, bun run build]
+
+  build:backend:
+    dir: apps/backend
+    cmds: [cargo build --release]
+
+  run:
+    desc: Run the release binary
+    dir: apps/backend
+    cmds: [./target/release/backend]
