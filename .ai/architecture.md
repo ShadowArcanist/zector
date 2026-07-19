@@ -80,7 +80,9 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 ## Frontend layout model (stored in the `/api/state` blob, backend-opaque)
 
 ```ts
-type UiState = { tabs: Tab[]; activeTabId: string | null };
+type UiState = { tabs: Tab[]; activeTabId: string | null; uiTheme?: string };
+// uiTheme = key into frontend styles/uiThemes.ts (app-shell theme presets, default "tokyonight");
+// it also picks the default terminal theme for blocks without an explicit termTheme.
 type Tab = { id: string; name: string; root: Node };
 type Node =
   | { type: 'split'; id: string; dir: 'row' | 'col'; children: Node[]; sizes: number[] }

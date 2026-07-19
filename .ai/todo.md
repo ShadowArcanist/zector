@@ -1,5 +1,12 @@
 # Build plan — Zector v1
 
+## UI themes + focus ring removal (2026-07-19) — DONE
+App-shell theme presets in frontend styles/uiThemes.ts (8 themes mirroring the terminal presets; applied by
+overriding Tailwind @theme CSS vars inline on <html>; persisted as uiTheme in the state blob). Switcher:
+palette icon in tab bar + "UI Theme" submenu on tab-bar right-click. UI theme also sets the DEFAULT terminal
+theme (per-block termTheme still overrides). Focused-block accent border removed (focus is still tracked,
+just not drawn). xterm now gets the real theme background — the transparent-bg trick broke under WebGL.
+
 ## Visual parity pass (2026-07-19, after user screenshot comparison) — DONE
 Files block rebuilt as Wave's directory preview: navigation (back/forward/refresh + ~-relative path) lives
 in the BLOCK HEADER (BlockHeader accepts view-specific content), toolbar row removed, real table with sortable
