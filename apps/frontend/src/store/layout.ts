@@ -25,6 +25,7 @@ type LayoutStore = UiState & {
   addTab: () => void;
   closeTab: (tabId: string) => void;
   renameTab: (tabId: string, name: string) => void;
+  setTabBg: (tabId: string, bg: string | undefined) => void;
   setActiveTab: (tabId: string) => void;
   setTabRoot: (tabId: string, block: Block) => void;
   splitLeaf: (leafId: string, dir: 'row' | 'col', newBlock: Block) => void;
@@ -91,6 +92,11 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
     renameTab: (tabId, name) =>
       mutate((s) => ({
         tabs: s.tabs.map((t) => (t.id === tabId ? { ...t, name: name || t.name } : t)),
+      })),
+
+    setTabBg: (tabId, bg) =>
+      mutate((s) => ({
+        tabs: s.tabs.map((t) => (t.id === tabId ? { ...t, bg } : t)),
       })),
 
     setActiveTab: (tabId) =>

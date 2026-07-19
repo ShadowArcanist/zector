@@ -12,6 +12,21 @@ import { Toasts } from './components/ui/Toasts';
 import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { Plus } from 'lucide-react';
+import { BG_PRESETS } from './styles/bgPresets';
+
+/** Active tab's Wave-style background preset, behind the tab bar and blocks. */
+function WorkspaceBg() {
+  const bgKey = useLayoutStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.bg);
+  const preset = bgKey ? BG_PRESETS[bgKey] : undefined;
+  if (!preset) return null;
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{ background: preset.bg, opacity: preset.opacity }}
+    />
+  );
+}
 
 function EmptyTabPicker({ tabId }: { tabId: string }) {
   const setTabRoot = useLayoutStore((s) => s.setTabRoot);
@@ -66,7 +81,8 @@ export default function App() {
   }, [init, loadConnections]);
 
   return (
-    <div className="flex h-full flex-col bg-bg0 text-fg">
+    <div className="relative flex h-full flex-col bg-bg0 text-fg">
+      <WorkspaceBg />
       <TabBar />
       {/* Wave-style 3px gap around blocks */}
       <main className="relative min-h-0 flex-1 p-[3px]">

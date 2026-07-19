@@ -44,7 +44,8 @@ export type UiState = {
 // Frontend extension over the architecture doc: `root` may be null for a
 // freshly-created empty tab (renders a centered block picker). The blob is
 // opaque to the backend so this is safe.
-export type Tab = { id: string; name: string; root: LayoutNode | null };
+// `bg` is a key into styles/bgPresets.ts (per-tab workspace background).
+export type Tab = { id: string; name: string; root: LayoutNode | null; bg?: string };
 
 export type LayoutNode =
   | { type: 'split'; id: string; dir: 'row' | 'col'; children: LayoutNode[]; sizes: number[] }

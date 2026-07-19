@@ -1,5 +1,6 @@
 import type { Tab, UiState } from '../api/types';
 import { putUiState } from '../api/state';
+import { BG_PRESETS } from '../styles/bgPresets';
 import { UI_THEMES } from '../styles/uiThemes';
 import { isValidNode, makeLeaf, uuid } from './tree';
 
@@ -23,7 +24,8 @@ export function parseUiState(raw: unknown): UiState | null {
     if (typeof tab.id !== 'string' || typeof tab.name !== 'string') return null;
     const root = tab.root === null || tab.root === undefined ? null : tab.root;
     if (root !== null && !isValidNode(root)) return null;
-    tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root });
+    const bg = typeof tab.bg === 'string' && tab.bg in BG_PRESETS ? tab.bg : undefined;
+    tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root, bg });
   }
   const active = typeof state.activeTabId === 'string' ? state.activeTabId : null;
   const uiTheme =

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pencil, X } from 'lucide-react';
+import { Pencil, Wallpaper, X } from 'lucide-react';
 import type { Tab } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
-import { openContextMenu } from '../../store/contextMenu';
+import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
+import { BG_PRESET_KEYS, BG_PRESETS } from '../../styles/bgPresets';
 
 export function TabItem({
   tab,
@@ -16,6 +17,16 @@ export function TabItem({
   const setActiveTab = useLayoutStore((s) => s.setActiveTab);
   const closeTab = useLayoutStore((s) => s.closeTab);
   const renameTab = useLayoutStore((s) => s.renameTab);
+  const setTabBg = useLayoutStore((s) => s.setTabBg);
+  const bgItems: MenuEntry[] = [
+    { label: 'Default', checked: !tab.bg, onClick: () => setTabBg(tab.id, undefined) },
+    'separator',
+    ...BG_PRESET_KEYS.map((key) => ({
+      label: BG_PRESETS[key].name,
+      checked: tab.bg === key,
+      onClick: () => setTabBg(tab.id, key),
+    })),
+  ];
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(tab.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +68,7 @@ export function TabItem({
       onContextMenu={(e) =>
         openContextMenu(e, [
           { label: 'Rename Tab', icon: <Pencil size={14} />, onClick: startRename },
+          { label: 'Background', icon: <Wallpaper size={14} />, submenu: bgItems },
           'separator',
           { label: 'Close Tab', icon: <X size={14} />, onClick: () => closeTab(tab.id) },
         ])
