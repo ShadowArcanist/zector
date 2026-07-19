@@ -1,122 +1,77 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from 'react';
+import { useLayoutStore } from './store/layout';
+import { useConnectionsStore } from './store/connections';
+import { useUiStore } from './store/ui';
+import { TabBar } from './components/tabs/TabBar';
+import { NodeView } from './components/layout/NodeView';
+import { BlockPickerList, BlockPickerModal } from './components/blockpicker/BlockPicker';
+import { ConnectionsModal } from './components/connections/ConnectionsModal';
+import { Toasts } from './components/ui/Toasts';
+import { Spinner } from './components/ui/Spinner';
+import { Button } from './components/ui/Button';
+import { Plus } from 'lucide-react';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function EmptyTabPicker({ tabId }: { tabId: string }) {
+  const setTabRoot = useLayoutStore((s) => s.setTabRoot);
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    <div className="flex h-full items-center justify-center">
+      <div className="w-90 rounded-lg border border-edge2 bg-bg1 shadow-xl shadow-black/40">
+        <p className="border-b border-edge px-4 py-2.5 text-[13px] font-semibold text-fg">
+          Add a block
+        </p>
+        <BlockPickerList onPick={(block) => setTabRoot(tabId, block)} />
+      </div>
+    </div>
+  );
 }
 
-export default App
+function Workspace() {
+  const loaded = useLayoutStore((s) => s.loaded);
+  const activeTab = useLayoutStore((s) => s.tabs.find((t) => t.id === s.activeTabId) ?? null);
+  const addTab = useLayoutStore((s) => s.addTab);
+
+  if (!loaded) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size={20} />
+      </div>
+    );
+  }
+  if (!activeTab) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <p className="text-[13px] text-fg-faint">No tabs open</p>
+        <Button variant="primary" onClick={addTab}>
+          <Plus size={14} />
+          New tab
+        </Button>
+      </div>
+    );
+  }
+  if (!activeTab.root) return <EmptyTabPicker tabId={activeTab.id} />;
+  return <NodeView node={activeTab.root} />;
+}
+
+export default function App() {
+  const init = useLayoutStore((s) => s.init);
+  const loadConnections = useConnectionsStore((s) => s.load);
+  const picker = useUiStore((s) => s.picker);
+  const connectionsOpen = useUiStore((s) => s.connectionsOpen);
+
+  useEffect(() => {
+    void init();
+    void loadConnections();
+  }, [init, loadConnections]);
+
+  return (
+    <div className="flex h-full flex-col bg-bg0 text-fg">
+      <TabBar />
+      <main className="relative min-h-0 flex-1">
+        <Workspace />
+      </main>
+      {picker && <BlockPickerModal />}
+      {connectionsOpen && <ConnectionsModal />}
+      <Toasts />
+    </div>
+  );
+}

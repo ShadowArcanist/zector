@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-*: initial;
+  --color-bg0: #0b0d10;
+  --color-bg1: #10141a;
+  --color-bg2: #171c24;
+  --color-bg3: #202733;
+  --color-edge: #232a35;
+  --color-edge2: #333d4d;
+  --color-fg: #dfe5ee;
+  --color-fg-dim: #94a0b3;
+  --color-fg-faint: #5b6779;
+  --color-accent: #58a6ff;
+  --color-accent-dim: #316dcb;
+  --color-ok: #4fc07e;
+  --color-warn: #d9a852;
+  --color-danger: #e5695f;
+  --color-black: #000;
+  --color-white: #fff;
+  --color-transparent: transparent;
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, 'Cascadia Mono',
+    Consolas, 'Liberation Mono', monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  overscroll-behavior: none;
+  background: var(--color-bg0);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* thin dark native scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333d4d transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #333d4d;
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* react-resizable-panels separators: hairline with generous hit target */
+[data-separator] {
+  background: var(--color-edge);
+  transition: background 120ms ease;
+  z-index: 5;
+}
+[data-separator='hover'],
+[data-separator='active'],
+[data-separator='focus'] {
+  background: var(--color-accent-dim);
+}
+[data-separator][aria-orientation='horizontal'] {
+  height: 3px;
+  width: 100%;
+}
+[data-separator][aria-orientation='vertical'] {
+  width: 3px;
+  height: 100%;
+}
+
+/* xterm container should never show its own scroll chrome oddly */
+.xterm .xterm-viewport {
+  scrollbar-width: thin;
+}
