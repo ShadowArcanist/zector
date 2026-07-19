@@ -48,11 +48,8 @@ pub async fn connect(conn: &SshConnection) -> anyhow::Result<SshHandle> {
                 .context("password authentication failed")?
         }
         "key" => {
-            let key_text = conn
-                .private_key
-                .as_deref()
-                .context("connection has auth_type 'key' but no private key saved")?;
-            let key = decode_secret_key(key_text, conn.key_passphrase.as_deref())
+            let key_text = load_key_text(conn).await?;
+            let key = decode_secret_key(&key_text, conn.key_passphrase.as_deref())
                 .context("failed to decode private key")?;
             let hash_alg = if key.algorithm().is_rsa() {
                 handle
@@ -78,4 +75,28 @@ pub async fn connect(conn: &SshConnection) -> anyhow::Result<SshHandle> {
         bail!("authentication rejected by server");
     }
     Ok(handle)
+}
+
+/// Key material comes from a file path on the zector host (preferred) or a
+/// pasted key kept for older saved connections.
+async fn load_key_text(conn: &SshConnection) -> anyhow::Result<String> {
+    if let Some(path) = conn.key_path.as_deref().filter(|p| !p.trim().is_empty()) {
+        let expanded = expand_home(path.trim());
+        return tokio::fs::read_to_string(&expanded)
+            .await
+            .with_context(|| format!("failed to read key file {expanded}"));
+    }
+    conn.private_key
+        .clone()
+        .filter(|k| !k.trim().is_empty())
+        .context("connection has auth_type 'key' but no key path saved")
+}
+
+fn expand_home(path: &str) -> String {
+    if let Some(rest) = path.strip_prefix("~/")
+        && let Some(home) = dirs::home_dir()
+    {
+        return home.join(rest).to_string_lossy().into_owned();
+    }
+    path.to_string()
 }

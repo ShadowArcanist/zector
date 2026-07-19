@@ -31,6 +31,8 @@ pub fn init(path: &Path) -> anyhow::Result<Db> {
             json TEXT NOT NULL
         );",
     )?;
+    // Additive migration; fails harmlessly once the column exists.
+    let _ = conn.execute("ALTER TABLE connections ADD COLUMN key_path TEXT", []);
     Ok(Arc::new(Mutex::new(conn)))
 }
 
