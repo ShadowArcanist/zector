@@ -99,15 +99,17 @@ export function ViewerHeader({
       <div className="ml-auto flex shrink-0 items-center gap-1">
         {children}
         {dirty && onSave && (
-          <HeaderIconButton
+          <button
+            type="button"
             disabled={saving}
             onClick={onSave}
             aria-label="Save file"
             title="Save"
-            className="bg-[#4d55cc] text-white hover:bg-[#5a63e0] hover:text-white"
+            className="flex h-5 shrink-0 cursor-pointer items-center gap-1 rounded-sm bg-accent px-1.5 text-[10px] font-medium text-bg0 transition-opacity hover:opacity-85 disabled:cursor-default disabled:opacity-50"
           >
-            <SaveIcon size={11} />
-          </HeaderIconButton>
+            <SaveIcon size={10} />
+            Save
+          </button>
         )}
         {copyText != null && (
           <HeaderIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
