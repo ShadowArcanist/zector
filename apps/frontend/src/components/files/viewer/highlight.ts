@@ -16,13 +16,35 @@ type Loaded = { shiki: Shiki; highlighter: Highlighter };
 const THEME = 'github-dark-default';
 
 let singleton: Promise<Loaded> | null = null;
+let loaded: Loaded | null = null;
 
 function getHighlighter(): Promise<Loaded> {
-  singleton ??= import('shiki').then(async (shiki) => ({
-    shiki,
-    highlighter: await shiki.createHighlighter({ themes: [THEME], langs: [] }),
-  }));
+  singleton ??= import('shiki').then(async (shiki) => {
+    loaded = {
+      shiki,
+      highlighter: await shiki.createHighlighter({ themes: [THEME], langs: [] }),
+    };
+    return loaded;
+  });
   return singleton;
+}
+
+function toHtml({ highlighter }: Loaded, code: string, lang: string) {
+  return highlighter.codeToHtml(code, {
+    lang,
+    theme: THEME,
+    colorReplacements: { '#0d1117': 'transparent' },
+  });
+}
+
+/** Re-highlight immediately while typing once the file's grammar is loaded. */
+export function highlightCodeSync(code: string, lang: string): string | null {
+  if (!loaded) return null;
+  const effectiveLang = lang in loaded.shiki.bundledLanguages ? lang : 'text';
+  if (effectiveLang !== 'text' && !loaded.highlighter.getLoadedLanguages().includes(effectiveLang)) {
+    return null;
+  }
+  return toHtml(loaded, code, effectiveLang);
 }
 
 const htmlCache = new Map<string, Promise<string>>();
@@ -38,11 +60,7 @@ export function highlightCode(code: string, lang: string): Promise<string> {
     if (effectiveLang !== 'text' && !highlighter.getLoadedLanguages().includes(effectiveLang)) {
       await highlighter.loadLanguage(effectiveLang);
     }
-    return highlighter.codeToHtml(code, {
-      lang: effectiveLang,
-      theme: THEME,
-      colorReplacements: { '#0d1117': 'transparent' },
-    });
+    return toHtml({ shiki, highlighter }, code, effectiveLang);
   });
   htmlCache.set(key, promise);
   return promise;

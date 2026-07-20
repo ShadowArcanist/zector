@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { highlightCode } from './highlight';
+import { highlightCode, highlightCodeSync } from './highlight';
 
 /**
  * Editable code surface: a transparent-text <textarea> exactly overlaying the
@@ -7,9 +7,9 @@ import { highlightCode } from './highlight';
  * One scroll container holds a sticky line-number gutter plus a wrapper sized
  * by an invisible <pre> containing the CURRENT text, so the absolutely
  * stacked highlight layer and textarea always fit without internal scrolling.
- * Shiki is async: the first highlight runs immediately (plain text-colored
- * fallback until it lands, no flicker), edits re-highlight debounced ~120ms
- * while the last good highlight stays visible.
+ * Shiki loads asynchronously for the first paint. Once its grammar is ready,
+ * edits re-highlight synchronously so typed text never drops to plain white;
+ * the debounced effect remains as a fallback for newly loaded languages.
  */
 
 const FONT = 'font-mono text-[12px] leading-5';
@@ -71,12 +71,18 @@ export function CodeEditor({
     };
   }, [value, lang]);
 
+  const applyChange = (next: string) => {
+    const markup = highlightCodeSync(next, lang);
+    if (markup !== null) setHtml({ source: next, lang, markup });
+    onChange(next);
+  };
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab' && !readOnly) {
       e.preventDefault();
       const ta = e.currentTarget;
       ta.setRangeText('  ', ta.selectionStart, ta.selectionEnd, 'end');
-      onChange(ta.value);
+      applyChange(ta.value);
     }
   };
 
@@ -116,7 +122,7 @@ export function CodeEditor({
           )}
           <textarea
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => applyChange(e.target.value)}
             onKeyDown={onKeyDown}
             readOnly={readOnly}
             spellCheck={false}
