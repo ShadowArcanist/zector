@@ -3,6 +3,7 @@ use std::time::Duration;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use serde::Deserialize;
 use serde_json::json;
 
 use crate::db::connections::{self, ConnectionInput, SshConnection};
@@ -45,6 +46,21 @@ pub async fn delete(
     // Evict the pooled connection; its terminals die naturally when it drops.
     state.ssh.evict(&id).await;
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Deserialize)]
+pub struct ReorderInput {
+    ids: Vec<String>,
+}
+
+pub async fn reorder(
+    State(state): State<AppState>,
+    Json(input): Json<ReorderInput>,
+) -> ApiResult<Json<Vec<SshConnection>>> {
+    let reordered = connections::reorder(&state.db, &input.ids)?.ok_or_else(|| {
+        ApiError::bad_request("connection order must contain every connection exactly once")
+    })?;
+    Ok(Json(reordered))
 }
 
 pub async fn test(

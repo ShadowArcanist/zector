@@ -45,7 +45,7 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
         {/* Name is tinted with the target's icon color (remote connection color,
             or the local color when the user picked one). */}
         <span
-          className="truncate"
+          className="truncate font-medium"
           style={
             conn
               ? { color: connColor(conn) }

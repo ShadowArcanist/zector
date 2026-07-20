@@ -31,6 +31,7 @@ pub fn router() -> Router<AppState> {
             "/connections",
             get(connections::list).post(connections::create),
         )
+        .route("/connections/reorder", put(connections::reorder))
         .route(
             "/connections/{id}",
             put(connections::update).delete(connections::delete),

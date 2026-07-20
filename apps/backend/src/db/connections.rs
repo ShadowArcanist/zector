@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
@@ -117,4 +118,76 @@ pub fn delete(db: &Db, id: &str) -> anyhow::Result<bool> {
         db.save_connections(&data)?;
     }
     Ok(changed)
+}
+
+fn reordered_connections(current: &[SshConnection], ids: &[String]) -> Option<Vec<SshConnection>> {
+    if ids.len() != current.len() {
+        return None;
+    }
+
+    let mut by_id: HashMap<_, _> = current
+        .iter()
+        .cloned()
+        .map(|connection| (connection.id.clone(), connection))
+        .collect();
+    let mut reordered = Vec::with_capacity(current.len());
+    for id in ids {
+        reordered.push(by_id.remove(id)?);
+    }
+    by_id.is_empty().then_some(reordered)
+}
+
+pub fn reorder(db: &Db, ids: &[String]) -> anyhow::Result<Option<Vec<SshConnection>>> {
+    let mut data = db.lock_connections()?;
+    let Some(reordered) = reordered_connections(&data, ids) else {
+        return Ok(None);
+    };
+    *data = reordered.clone();
+    db.save_connections(&data)?;
+    Ok(Some(reordered))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn connection(id: &str) -> SshConnection {
+        SshConnection {
+            id: id.to_string(),
+            name: id.to_string(),
+            host: "example.com".to_string(),
+            port: 22,
+            username: "user".to_string(),
+            auth_type: "key".to_string(),
+            password: None,
+            private_key: None,
+            key_path: None,
+            key_passphrase: None,
+            icon_color: None,
+            icon: None,
+            created_at: String::new(),
+        }
+    }
+
+    #[test]
+    fn reordered_connections_requires_an_exact_permutation() {
+        let current = vec![connection("one"), connection("two"), connection("three")];
+
+        let reordered =
+            reordered_connections(&current, &["three".into(), "one".into(), "two".into()])
+                .expect("valid order");
+        assert_eq!(
+            reordered
+                .iter()
+                .map(|connection| connection.id.as_str())
+                .collect::<Vec<_>>(),
+            ["three", "one", "two"]
+        );
+
+        assert!(reordered_connections(&current, &["one".into(), "two".into()]).is_none());
+        assert!(
+            reordered_connections(&current, &["one".into(), "one".into(), "three".into()])
+                .is_none()
+        );
+    }
 }

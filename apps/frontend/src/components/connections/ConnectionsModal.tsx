@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type DragEvent, type ReactNode } from 'react';
 import { getLocalMachineInfo } from '../../api/localInfo';
 import type { LocalMachineInfo } from '../../api/types';
 import { useConnectionsStore } from '../../store/connections';
@@ -15,6 +15,7 @@ import { ColorSelect } from './ColorSelect';
 import { IconSelect } from './IconSelect';
 import { ConnectionForm } from './ConnectionForm';
 import { CONNECTION_FIELD_CLASS } from './formStyles';
+import { moveConnectionId } from './reorder';
 
 /** Neutral tint shown for the local icon when no color is picked. */
 const LOCAL_AUTO_COLOR = '#b4b4b8';
@@ -24,21 +25,38 @@ function SidebarItem({
   label,
   active,
   onClick,
+  draggable,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: {
   icon: ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
+  draggable?: boolean;
+  onDragStart?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragOver?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDrop?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragEnd?: () => void;
 }) {
   return (
     <button
       type="button"
-      className={`flex h-10 w-full shrink-0 cursor-pointer items-center gap-2.5 rounded-xl px-3 text-left text-[13px] transition-colors ${
+      draggable={draggable}
+      className={`flex h-10 w-full shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-[13px] transition-colors ${
+        draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+      } ${
         active
           ? 'bg-white/10 font-medium text-fg shadow-[0_2px_8px_rgba(0,0,0,0.35)]'
           : 'text-fg-dim hover:bg-white/5 hover:text-fg'
       }`}
       onClick={onClick}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
     >
       <span className="flex w-4 shrink-0 justify-center">{icon}</span>
       <span className="min-w-0 truncate">{label}</span>
@@ -128,12 +146,30 @@ function LocalPane() {
 /** Settings-style connections dialog: sidebar of targets + editable pane. */
 export function ConnectionsModal() {
   const connections = useConnectionsStore((s) => s.connections);
+  const reordering = useConnectionsStore((s) => s.reordering);
+  const reorderConnections = useConnectionsStore((s) => s.reorder);
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const localIconKey = useLayoutStore((s) => s.localIcon);
   const localColor = useLayoutStore((s) => s.localColor);
   const view = useUiStore((s) => s.connectionsView); // null = local, 'new', or conn id
   const openConnections = useUiStore((s) => s.openConnections);
   const closeConnections = useUiStore((s) => s.closeConnections);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null);
+
+  const clearDrag = () => {
+    setDraggedId(null);
+    setDropTarget(null);
+  };
+
+  const dropConnection = (event: DragEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!draggedId || !dropTarget) return clearDrag();
+    const current = connections.map((connection) => connection.id);
+    const next = moveConnectionId(current, draggedId, dropTarget.id, dropTarget.after);
+    clearDrag();
+    if (next !== current) void reorderConnections(next);
+  };
 
   const editing =
     view && view !== 'new' ? (connections.find((c) => c.id === view) ?? null) : null;
@@ -156,13 +192,38 @@ export function ConnectionsModal() {
           {connections.map((c) => {
             const Icon = connIcon(c);
             return (
-              <SidebarItem
-                key={c.id}
-                icon={<Icon size={14} style={{ color: connColor(c) }} />}
-                label={c.name}
-                active={pane === 'edit' && editing?.id === c.id}
-                onClick={() => openConnections(c.id)}
-              />
+              <div key={c.id} className="relative">
+                {dropTarget?.id === c.id && draggedId !== c.id && (
+                  <span
+                    className={`pointer-events-none absolute inset-x-2 z-10 h-0.5 rounded-full bg-accent ${
+                      dropTarget.after ? '-bottom-[3px]' : '-top-[3px]'
+                    }`}
+                  />
+                )}
+                <SidebarItem
+                  icon={<Icon size={14} style={{ color: connColor(c) }} />}
+                  label={c.name}
+                  active={pane === 'edit' && editing?.id === c.id}
+                  onClick={() => openConnections(c.id)}
+                  draggable={!reordering}
+                  onDragStart={(event) => {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', c.id);
+                    setDraggedId(c.id);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'move';
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    setDropTarget({
+                      id: c.id,
+                      after: event.clientY >= bounds.top + bounds.height / 2,
+                    });
+                  }}
+                  onDrop={dropConnection}
+                  onDragEnd={clearDrag}
+                />
+              </div>
             );
           })}
           <div className="mt-auto pt-2">

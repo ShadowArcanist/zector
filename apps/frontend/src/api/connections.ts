@@ -17,6 +17,10 @@ export function deleteConnection(id: string): Promise<void> {
   return apiJson('DELETE', `/api/connections/${id}`);
 }
 
+export function reorderConnections(ids: string[]): Promise<Connection[]> {
+  return apiJson('PUT', '/api/connections/reorder', { ids });
+}
+
 export function testConnection(id: string): Promise<TestResult> {
   return apiJson('POST', `/api/connections/${id}/test`);
 }

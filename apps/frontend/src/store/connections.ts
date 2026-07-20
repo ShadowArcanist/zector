@@ -8,16 +8,19 @@ export type TestState = { state: 'testing' } | { state: 'ok' } | { state: 'error
 type ConnectionsStore = {
   connections: Connection[];
   loaded: boolean;
+  reordering: boolean;
   testStates: Record<string, TestState | undefined>;
   load: () => Promise<void>;
   save: (input: ConnectionInput, id?: string) => Promise<Connection>;
   remove: (id: string) => Promise<void>;
+  reorder: (ids: string[]) => Promise<void>;
   test: (id: string) => Promise<void>;
 };
 
-export const useConnectionsStore = create<ConnectionsStore>((set) => ({
+export const useConnectionsStore = create<ConnectionsStore>((set, get) => ({
   connections: [],
   loaded: false,
+  reordering: false,
   testStates: {},
 
   load: async () => {
@@ -43,6 +46,29 @@ export const useConnectionsStore = create<ConnectionsStore>((set) => ({
   remove: async (id) => {
     await api.deleteConnection(id);
     set((s) => ({ connections: s.connections.filter((c) => c.id !== id) }));
+  },
+
+  reorder: async (ids) => {
+    if (get().reordering) return;
+
+    const previous = get().connections;
+    const byId = new Map(previous.map((connection) => [connection.id, connection]));
+    const optimistic = ids.flatMap((id) => {
+      const connection = byId.get(id);
+      return connection ? [connection] : [];
+    });
+    if (optimistic.length !== previous.length) return;
+
+    set({ connections: optimistic, reordering: true });
+    try {
+      const connections = await api.reorderConnections(ids);
+      set({ connections });
+    } catch {
+      set({ connections: previous });
+      pushToast('error', 'Could not reorder connections');
+    } finally {
+      set({ reordering: false });
+    }
   },
 
   test: async (id) => {
