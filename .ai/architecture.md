@@ -52,6 +52,8 @@ type Connection = {
   private_key: string | null;   // pasted PEM/OpenSSH text (legacy fallback, used only when key_path empty)
   key_path: string | null;      // path to a private key on the host running zector; ~ expanded server-side
   key_passphrase: string | null;
+  icon_color: string | null;    // hex from connections/colors.ts; null = auto (hash-picked)
+  icon: string | null;          // key into connections/icons.ts; null = default transfer icon
   created_at: string;
 };
 type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
@@ -100,6 +102,6 @@ type Block =
 ## Runtime details
 
 - Backend listens on `0.0.0.0:7app` — port 7887 by default, override with `ZECTOR_PORT`.
-- SQLite DB at `ZECTOR_DATA_DIR` (default: OS data dir, e.g. `~/Library/Application Support/zector` or `~/.local/share/zector`) as `zector.db`.
+- Config is JSON files in `ZECTOR_CONFIG_DIR` (default `~/.config/zector`): `connections.json` (incl. secrets, icon, icon_color) and `state.json` (UI layout blob). Human-editable, atomic tmp+rename writes. On first start, a legacy SQLite `zector.db` (from `ZECTOR_DATA_DIR`) is imported once and renamed `.db.bak`; rusqlite remains a dependency only for that migration.
 - In release the frontend `dist/` is embedded via rust-embed and served at `/` with SPA fallback to `index.html`.
 - In dev: run `cargo run` (backend on :7887) and `bun run dev` (Vite on :5173, proxies `/api` to :7887 including WS).

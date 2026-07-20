@@ -27,7 +27,7 @@ cd ../backend && cargo build --release
 ./target/release/backend
 ```
 
-Environment: `ZECTOR_PORT` (default `7887`), `ZECTOR_DATA_DIR` (default: OS data dir, holds `zector.db`).
+Environment: `ZECTOR_PORT` (default `7887`), `ZECTOR_CONFIG_DIR` (default `~/.config/zector` — holds `connections.json` and `state.json`, easy to back up or share).
 
 ## Development
 

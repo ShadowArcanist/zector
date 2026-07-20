@@ -1,5 +1,15 @@
 # Build plan — Zector v1
 
+## Round (2026-07-20): icons, json configs, no-flash moves — DONE
+Per-connection icon picker (connections/icons.ts registry + IconSelect grid; `icon` field end-to-end).
+Backend storage moved from SQLite to JSON files in ~/.config/zector (connections.json, state.json;
+atomic writes; one-time sqlite import then .db.bak; see db/ module). Dynamic tab widths. Lighter blocks
+(rgba(0,0,0,0.25)) + brighter file table text/header. Block headers: no view icon, title only when
+user-renamed, remote chip name tinted with connColor. NO-FLASH MOVES: terminal xterm+WS live in a
+module registry (terminal/termSessions.ts) keyed by termId — components adopt/release (5s park timer,
+killTerm hook disposes); files listings cached per leafId in filesNav store. Only remaining flash:
+toggling tab background (WebGL<->DOM renderer swap).
+
 ## Theme system removal (2026-07-19) — DONE
 Per user decision: no UI themes, no per-terminal theme presets — tab background presets are the ONLY
 visual customization. Deleted styles/uiThemes.ts; terminal/themes.ts is now a single fixed ITheme + font
