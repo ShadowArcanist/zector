@@ -1,5 +1,12 @@
 # Build plan — Zector v1
 
+## Round (2026-07-20, part 3) — DONE
+File explorer uses material-icon-theme (npm dep; lookup adapted from reference/gitbase in files/fileIcons.ts;
+vite assetsInlineLimit 0 so ~1250 svgs are separate on-demand assets, also embedded by rust-embed).
+Header right-click toggles column visibility (Perm/Last Modified/Size/Type; persisted as
+UiState.hiddenFileColumns). ConnectionButton: dangling targets (deleted connections) now still show a
+fallback name instead of looking like an icon-only local chip.
+
 ## Round (2026-07-20, part 2): wave-style config files — DONE
 UI layout state moved OUT of ~/.config/zector back into sqlite (data dir zector.db; state.json auto-imported
 then deleted — configs are for sharing, layout is not). New user-editable configs seeded on first run:
