@@ -9,6 +9,7 @@ import { SettingsDivider, SettingsRow } from '../ui/Settings';
 import { Spinner } from '../ui/Spinner';
 import { ColorSelect } from './ColorSelect';
 import { CONN_COLORS, connColor } from './colors';
+import { IconSelect } from './IconSelect';
 
 const field =
   'h-8 w-[220px] rounded-lg bg-white/5 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
@@ -38,21 +39,16 @@ export function ConnectionForm({
   const [keyPath, setKeyPath] = useState(existing?.key_path ?? '');
   const [passphrase, setPassphrase] = useState(existing?.key_passphrase ?? '');
   const [iconColor, setIconColor] = useState(existing?.icon_color ?? null);
+  const [icon, setIcon] = useState(existing?.icon ?? null);
   const [saving, setSaving] = useState(false);
 
-  // Save appears only when the form differs from the saved connection (or, for
-  // a new connection, from the blank defaults).
-  const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase, iconColor];
+  // Save appears only when the form differs from the saved connection (or blank defaults).
+  const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase, iconColor, icon];
   const initial = [
-    existing?.name ?? '',
-    existing?.host ?? '',
-    String(existing?.port ?? 22),
-    existing?.username ?? '',
-    existing?.auth_type ?? 'password',
-    existing?.password ?? '',
-    existing?.key_path ?? '',
-    existing?.key_passphrase ?? '',
-    existing?.icon_color ?? null,
+    existing?.name ?? '', existing?.host ?? '', String(existing?.port ?? 22),
+    existing?.username ?? '', existing?.auth_type ?? 'password', existing?.password ?? '',
+    existing?.key_path ?? '', existing?.key_passphrase ?? '',
+    existing?.icon_color ?? null, existing?.icon ?? null,
   ];
   const dirty = current.some((v, i) => v !== initial[i]);
 
@@ -75,6 +71,7 @@ export function ConnectionForm({
       key_path: authType === 'key' && keyPath.trim() ? keyPath.trim() : null,
       key_passphrase: authType === 'key' && passphrase ? passphrase : null,
       icon_color: iconColor,
+      icon,
     };
     setSaving(true);
     try {
@@ -118,6 +115,10 @@ export function ConnectionForm({
         <SettingsDivider />
         <SettingsRow label="Username" htmlFor="conn-user">
           <input id="conn-user" className={field} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="root" />
+        </SettingsRow>
+        <SettingsDivider />
+        <SettingsRow label="Icon">
+          <IconSelect value={icon} onChange={setIcon} />
         </SettingsRow>
         <SettingsDivider />
         <SettingsRow label="Icon color">

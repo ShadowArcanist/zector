@@ -1,14 +1,22 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusIcon } from '../ui/icons/general';
-import { LaptopIcon, SwapIcon } from '../ui/icons/terminal';
+import { LaptopIcon } from '../ui/icons/terminal';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { connColor } from './colors';
+import { connIcon } from './icons';
 
 type Option =
   | { kind: 'local' }
-  | { kind: 'conn'; id: string; name: string; sub: string; icon_color: string | null }
+  | {
+      kind: 'conn';
+      id: string;
+      name: string;
+      sub: string;
+      icon_color: string | null;
+      icon: string | null;
+    }
   | { kind: 'new' };
 
 type Props = {
@@ -50,6 +58,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
         name: c.name,
         sub: `${c.username}@${c.host}`,
         icon_color: c.icon_color,
+        icon: c.icon,
       })),
     { kind: 'new' },
   ];
@@ -130,6 +139,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
           }
           const isLocal = opt.kind === 'local';
           const isCurrent = isLocal ? current === 'local' : current === opt.id;
+          const Icon = opt.kind === 'conn' ? connIcon(opt) : LaptopIcon;
           return (
             <button
               key={isLocal ? 'local' : opt.id}
@@ -141,7 +151,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               {isLocal ? (
                 <LaptopIcon size={14} className="shrink-0 text-fg-dim" />
               ) : (
-                <SwapIcon size={14} className="shrink-0" style={{ color: connColor(opt) }} />
+                <Icon size={14} className="shrink-0" style={{ color: connColor(opt) }} />
               )}
               <span className="truncate">{isLocal ? localName : opt.name}</span>
               {!isLocal && (

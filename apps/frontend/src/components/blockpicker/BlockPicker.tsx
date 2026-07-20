@@ -4,8 +4,9 @@ import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { PlusIcon } from '../ui/icons/general';
 import { FolderIcon } from '../ui/icons/files';
-import { SwapIcon, TerminalIcon } from '../ui/icons/terminal';
+import { TerminalIcon } from '../ui/icons/terminal';
 import { connColor } from '../connections/colors';
+import { connIcon } from '../connections/icons';
 import { Modal } from '../ui/Modal';
 
 function SectionLabel({ children }: { children: string }) {
@@ -55,13 +56,15 @@ export function BlockPickerList({ onPick }: { onPick: (block: Block) => void }) 
       <PickItem icon={<TerminalIcon size={15} />} label="Terminal" onPick={() => onPick(term('local'))} />
       <PickItem icon={<FolderIcon size={15} />} label="Files" onPick={() => onPick(files('local'))} />
       {connections.length > 0 && <SectionLabel>Connections</SectionLabel>}
-      {connections.map((c) => (
+      {connections.map((c) => {
+        const Icon = connIcon(c);
+        return (
         <div
           key={c.id}
           className="flex h-10 items-center gap-3 rounded-xl px-3 transition-colors hover:bg-white/5"
         >
           <span className="flex w-4 shrink-0 justify-center">
-            <SwapIcon size={14} style={{ color: connColor(c) }} />
+            <Icon size={14} style={{ color: connColor(c) }} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[13px] text-fg-dim">{c.name}</span>
           <button
@@ -79,7 +82,8 @@ export function BlockPickerList({ onPick }: { onPick: (block: Block) => void }) 
             Files
           </button>
         </div>
-      ))}
+        );
+      })}
       <div className="mx-1 my-1.5 h-px bg-white/6" />
       <PickItem
         icon={<PlusIcon size={15} />}

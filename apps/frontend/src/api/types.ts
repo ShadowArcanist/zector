@@ -12,6 +12,7 @@ export type Connection = {
   key_path: string | null; // path to a private key on the host running zector (~ expanded server-side)
   key_passphrase: string | null;
   icon_color: string | null; // hex from connections/colors.ts; null = auto (hash-picked)
+  icon: string | null; // key into connections/icons.ts; null = default (SwapIcon)
   created_at: string;
 };
 

@@ -1,10 +1,11 @@
 import { useRef } from 'react';
-import { LaptopIcon, SwapIcon } from '../ui/icons/terminal';
+import { LaptopIcon } from '../ui/icons/terminal';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { switchBlockTarget } from '../../store/blocks';
 import { connColor } from './colors';
+import { connGlyph } from './icons';
 import { ConnectionDropdown } from './ConnectionDropdown';
 
 type Props = {
@@ -34,12 +35,17 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
         onClick={() => setOpen(!open)}
       >
         {conn ? (
-          <SwapIcon size={12} className="shrink-0" style={{ color: connColor(conn) }} />
+          connGlyph(conn, { size: 12, className: 'shrink-0', style: { color: connColor(conn) } })
         ) : (
           <LaptopIcon size={12} className="shrink-0" />
         )}
-        {/* Wave shows icon-only for the local target; name only for remotes */}
-        {conn && <span className="truncate">{name}</span>}
+        {/* Wave shows icon-only for the local target; name only for remotes.
+            The remote name is tinted with the connection's icon color. */}
+        {conn && (
+          <span className="truncate" style={{ color: connColor(conn) }}>
+            {name}
+          </span>
+        )}
       </button>
       {open && (
         <ConnectionDropdown

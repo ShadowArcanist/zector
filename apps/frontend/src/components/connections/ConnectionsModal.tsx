@@ -3,11 +3,12 @@ import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { CloseIcon, EditIcon, PlusIcon } from '../ui/icons/general';
-import { LaptopIcon, SwapIcon } from '../ui/icons/terminal';
+import { LaptopIcon } from '../ui/icons/terminal';
 import { IconButton } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { SettingsDivider, SettingsRow, SettingsTitle } from '../ui/Settings';
 import { connColor } from './colors';
+import { connIcon } from './icons';
 import { ConnectionForm } from './ConnectionForm';
 
 function SidebarItem({
@@ -123,15 +124,18 @@ export function ConnectionsModal() {
             active={pane === 'local'}
             onClick={() => openConnections(null)}
           />
-          {connections.map((c) => (
-            <SidebarItem
-              key={c.id}
-              icon={<SwapIcon size={14} style={{ color: connColor(c) }} />}
-              label={c.name}
-              active={pane === 'edit' && editing?.id === c.id}
-              onClick={() => openConnections(c.id)}
-            />
-          ))}
+          {connections.map((c) => {
+            const Icon = connIcon(c);
+            return (
+              <SidebarItem
+                key={c.id}
+                icon={<Icon size={14} style={{ color: connColor(c) }} />}
+                label={c.name}
+                active={pane === 'edit' && editing?.id === c.id}
+                onClick={() => openConnections(c.id)}
+              />
+            );
+          })}
           <div className="mt-auto pt-2">
             <SidebarItem
               icon={<PlusIcon size={15} />}
