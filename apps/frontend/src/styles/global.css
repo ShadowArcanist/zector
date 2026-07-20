@@ -117,3 +117,28 @@ body.col-resizing * {
   scrollbar-width: thin;
   background-color: transparent !important;
 }
+
+/* Wrapped editor lines keep logical line numbers aligned with visual wraps. */
+.code-editor-wrap pre,
+pre.code-editor-wrap {
+  margin: 0;
+  padding: 6px 12px 6px 56px !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+  counter-reset: editor-line;
+}
+.code-editor-wrap .line {
+  position: relative;
+  display: block;
+  min-height: 20px;
+}
+.code-editor-wrap .line::before {
+  position: absolute;
+  left: -44px;
+  width: 32px;
+  color: var(--color-fg-faint);
+  text-align: right;
+  content: counter(editor-line);
+  counter-increment: editor-line;
+  user-select: none;
+}

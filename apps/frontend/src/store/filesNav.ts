@@ -1,23 +1,21 @@
 import { create } from 'zustand';
-import type { FsEntry } from '../api/types';
+import type { FsEntry, OpenFileData } from '../api/types';
 import { fsHome } from '../api/fs';
 import { useLayoutStore } from './layout';
 import { blockForLeaf } from './blocks';
 
 /**
- * Ephemeral (never persisted) navigation state for files blocks: per-leaf
- * back/forward history, a per-target home directory cache (for `~` display),
- * a refresh nonce the block header's refresh button can bump, and the last
- * successful listing per leaf (rendered instantly on remount, e.g. after a
- * block move re-nests the panel tree, while a background refresh runs), and
- * the per-leaf open editor file (so the block header/back button see it).
+ * Runtime navigation state for files blocks: per-leaf back/forward history,
+ * home/listing caches, refresh nonces, column widths, and editor dirty state.
+ * The open file metadata is also mirrored into the persisted files block so
+ * refreshing the app reopens the same file; unsaved draft text stays ephemeral.
  */
 type NavStacks = { target: string; back: string[]; forward: string[] };
 
 export type CachedListing = { key: string; entries: FsEntry[] };
 
 /** File currently open in a files block's editor overlay. */
-export type OpenFile = { target: string; path: string; name: string; size: number };
+export type OpenFile = OpenFileData;
 
 type OpenFileState = { file: OpenFile; dirty: boolean; confirmingClose: boolean };
 
@@ -31,6 +29,7 @@ type FilesNavStore = {
   /** Per-block (leafId) file-table column width overrides, colKey → px. */
   colWidths: Record<string, Record<string, number> | undefined>;
   openFile: (leafId: string, file: OpenFile) => void;
+  restoreOpenFile: (leafId: string, file: OpenFile) => void;
   closeFile: (leafId: string) => void;
   setFileDirty: (leafId: string, dirty: boolean) => void;
   /** Close the leaf's open file, but ask for confirmation first when dirty. */
@@ -53,6 +52,12 @@ function filesBlockFor(leafId: string) {
   return block?.kind === 'files' ? block : null;
 }
 
+function persistOpenFile(leafId: string, file?: OpenFile) {
+  const block = filesBlockFor(leafId);
+  if (!block) return;
+  useLayoutStore.getState().updateLeafBlock(leafId, { ...block, openFile: file });
+}
+
 export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
   nav: {},
   homes: {},
@@ -61,17 +66,26 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
   openFiles: {},
   colWidths: {},
 
-  openFile: (leafId, file) =>
+  openFile: (leafId, file) => {
+    set((s) => ({
+      openFiles: { ...s.openFiles, [leafId]: { file, dirty: false, confirmingClose: false } },
+    }));
+    persistOpenFile(leafId, file);
+  },
+
+  restoreOpenFile: (leafId, file) =>
     set((s) => ({
       openFiles: { ...s.openFiles, [leafId]: { file, dirty: false, confirmingClose: false } },
     })),
 
-  closeFile: (leafId) =>
+  closeFile: (leafId) => {
     set((s) => {
       const openFiles = { ...s.openFiles };
       delete openFiles[leafId];
       return { openFiles };
-    }),
+    });
+    persistOpenFile(leafId);
+  },
 
   setFileDirty: (leafId, dirty) =>
     set((s) => {

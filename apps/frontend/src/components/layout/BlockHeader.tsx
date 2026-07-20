@@ -46,7 +46,8 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   // Title text renders only when the user renamed the block; a files block
   // additionally shows its ~path (that display is the files nav, not a title).
   const title =
-    block.title ?? (block.kind === 'files' ? displayPath(openFilePath ?? block.path, home) : '');
+    block.title ??
+    (block.kind === 'files' ? displayPath(openFilePath ?? block.openFile?.path ?? block.path, home) : '');
 
   useEffect(() => {
     if (editing) {

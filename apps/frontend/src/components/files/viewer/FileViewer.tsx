@@ -41,6 +41,7 @@ export function FileViewer({ leafId, file }: { leafId: string; file: OpenFile })
   const themeBg = theme.background ?? '#141414';
 
   const [svgMode, setSvgMode] = useState<'preview' | 'code'>('preview');
+  const [wordWrap, setWordWrap] = useState(false);
   const isSvg = file.name.toLowerCase().endsWith('.svg');
   const isImage = isImageFile(file.name) && !isSvg;
   const isText = isSvg || isTextName(file.name);
@@ -127,7 +128,8 @@ export function FileViewer({ leafId, file }: { leafId: string; file: OpenFile })
         onChange={(next) => setDraft({ key, value: next })}
         readOnly={isSvg}
         caretColor={theme.foreground ?? '#d4d4d4'}
-        selectionBackground={theme.selectionBackground}
+        selectionBackground="color-mix(in srgb, var(--color-accent) 32%, transparent)"
+        wordWrap={wordWrap}
       />
     );
   }
@@ -145,6 +147,8 @@ export function FileViewer({ leafId, file }: { leafId: string; file: OpenFile })
         dirty={dirty && !isSvg}
         saving={saving}
         onSave={() => void save()}
+        wordWrap={wordWrap}
+        onToggleWordWrap={showsCode ? () => setWordWrap((enabled) => !enabled) : undefined}
         onDownload={download}
         onClose={() => requestCloseFile(leafId)}
       >

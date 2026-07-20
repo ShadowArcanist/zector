@@ -3,6 +3,7 @@ import { CheckIcon, CloseIcon } from '../../ui/icons/general';
 import { CopyIcon, DownloadIcon, SaveIcon } from '../../ui/icons/files';
 import { fileIconUrl } from '../fileIcons';
 import { humanSize } from '../format';
+import { WordWrapIcon } from './icons';
 
 /** Square icon button for the viewer header bar. */
 function HeaderIconButton({ className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -49,6 +50,8 @@ export function ViewerHeader({
   dirty = false,
   saving = false,
   onSave,
+  wordWrap = false,
+  onToggleWordWrap,
   onDownload,
   onClose,
   children,
@@ -60,6 +63,8 @@ export function ViewerHeader({
   dirty?: boolean;
   saving?: boolean;
   onSave?: () => void;
+  wordWrap?: boolean;
+  onToggleWordWrap?: () => void;
   onDownload: () => void;
   onClose: () => void;
   children?: React.ReactNode;
@@ -77,8 +82,8 @@ export function ViewerHeader({
   };
 
   return (
-    <div className="flex h-10 shrink-0 items-center gap-2 border-b border-white/6 px-3">
-      <img src={fileIconUrl(name, false)} alt="" aria-hidden draggable={false} className="h-4 w-4 shrink-0 select-none" />
+    <div className="flex h-8 shrink-0 items-center gap-1.5 border-b border-white/6 px-2.5">
+      <img src={fileIconUrl(name, false)} alt="" aria-hidden draggable={false} className="h-3.5 w-3.5 shrink-0 select-none" />
       <span className="min-w-0 truncate text-[12px] font-medium text-fg">{name}</span>
       {lineCount != null && (
         <span className="shrink-0 text-[11px] text-fg-faint">
@@ -107,6 +112,17 @@ export function ViewerHeader({
         {copyText != null && (
           <HeaderIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
             {copied ? <CheckIcon size={11} className="text-ok" /> : <CopyIcon size={11} />}
+          </HeaderIconButton>
+        )}
+        {onToggleWordWrap && (
+          <HeaderIconButton
+            onClick={onToggleWordWrap}
+            aria-label="Toggle word wrap"
+            aria-pressed={wordWrap}
+            title={wordWrap ? 'Disable word wrap' : 'Enable word wrap'}
+            className={wordWrap ? 'bg-accent/20 text-accent hover:bg-accent/25 hover:text-accent' : ''}
+          >
+            <WordWrapIcon size={11} />
           </HeaderIconButton>
         )}
         <HeaderIconButton onClick={onDownload} aria-label="Download file" title="Download">

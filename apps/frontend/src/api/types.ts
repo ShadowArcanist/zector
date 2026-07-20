@@ -32,6 +32,8 @@ export type FsEntry = {
 
 export type FsListing = { path: string; entries: FsEntry[] };
 
+export type OpenFileData = { target: string; path: string; name: string; size: number };
+
 // ---- UI state blob (backend-opaque, stored via /api/state) ----
 
 // `localName` is a user-chosen display name for the local target (default "Localhost");
@@ -71,7 +73,7 @@ export type Block =
       fontSize?: number;
       termTheme?: string;
     }
-  | { kind: 'files'; target: string; path: string; title?: string };
+  | { kind: 'files'; target: string; path: string; title?: string; openFile?: OpenFileData };
 
 export type TerminalBlockData = Extract<Block, { kind: 'terminal' }>;
 export type FilesBlockData = Extract<Block, { kind: 'files' }>;

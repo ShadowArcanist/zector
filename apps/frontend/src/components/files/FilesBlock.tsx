@@ -28,17 +28,23 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Open-file state lives in the filesNav store so the block header sees it.
+  // Runtime editor state lives in filesNav; block.openFile restores it after reload.
   const openFile = useFilesNavStore((s) => s.openFiles[leafId]?.file ?? null);
   const openFileInEditor = useFilesNavStore((s) => s.openFile);
+  const restoreOpenFile = useFilesNavStore((s) => s.restoreOpenFile);
   const closeFile = useFilesNavStore((s) => s.closeFile);
+
+  useEffect(() => {
+    if (!openFile && block.openFile) restoreOpenFile(leafId, block.openFile);
+  }, [openFile, block.openFile, leafId, restoreOpenFile]);
 
   // Switching the block's connection while a file is open closes the editor
   // (its buffer belongs to the previous target).
   useEffect(() => {
     if (openFile && openFile.target !== block.target) closeFile(leafId);
   }, [openFile, block.target, leafId, closeFile]);
-  const viewing = openFile !== null && openFile.target === block.target;
+  const restoredFile = openFile ?? block.openFile ?? null;
+  const viewing = restoredFile !== null && restoredFile.target === block.target;
 
   const open = (entry: FsEntry) => {
     if (entry.is_dir) {
@@ -124,7 +130,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       {/* the table unmounts while a file is open so a transparent editor
           surface shows the tab background, not the listing beneath */}
       {viewing ? (
-        <FileViewer leafId={leafId} file={openFile} />
+        <FileViewer leafId={leafId} file={restoredFile!} />
       ) : error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-8">
           <p className="text-center text-[12px] text-danger">{error}</p>

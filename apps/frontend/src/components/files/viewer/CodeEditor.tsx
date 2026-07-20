@@ -36,6 +36,7 @@ export function CodeEditor({
   readOnly = false,
   caretColor,
   selectionBackground,
+  wordWrap,
 }: {
   value: string;
   lang: string;
@@ -43,6 +44,7 @@ export function CodeEditor({
   readOnly?: boolean;
   caretColor: string;
   selectionBackground?: string;
+  wordWrap: boolean;
 }) {
   const [html, setHtml] = useState<{ source: string; lang: string; markup: string } | null>(null);
   const highlightStarted = useRef(false);
@@ -80,22 +82,37 @@ export function CodeEditor({
 
   return (
     <div className={`min-h-0 flex-1 overflow-auto ${FONT}`}>
-      <div className="flex min-w-fit">
-        <LineNumbers count={value.split('\n').length} />
-        <div className="relative flex-1">
+      <div className={`flex ${wordWrap ? 'w-full min-w-0' : 'min-w-fit'}`}>
+        {!wordWrap && <LineNumbers count={value.split('\n').length} />}
+        <div className={`relative flex-1 ${wordWrap ? 'min-w-0' : ''}`}>
           {/* invisible sizer: current text (+1 char of caret room) sets the layer size */}
-          <pre aria-hidden className={`invisible ${PAD} ${FONT} whitespace-pre`}>{`${value} `}</pre>
+          <pre
+            aria-hidden
+            className={`invisible ${wordWrap ? 'py-1.5 pr-3 pl-14 whitespace-pre-wrap wrap-anywhere' : `${PAD} whitespace-pre`} ${FONT}`}
+          >
+            {`${value} `}
+          </pre>
           {html?.source === value && html.lang === lang ? (
             <div
               aria-hidden
-              className={`pointer-events-none absolute inset-0 overflow-hidden ${HIGHLIGHT_PRE}`}
+              className={`pointer-events-none absolute inset-0 overflow-hidden ${wordWrap ? 'code-editor-wrap' : HIGHLIGHT_PRE}`}
               // shiki output is trusted (generated locally from file text)
               dangerouslySetInnerHTML={{ __html: html.markup }}
             />
           ) : (
-            <pre aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${PAD} ${FONT} whitespace-pre text-fg`}>
-              {value}
-            </pre>
+            wordWrap ? (
+              <pre aria-hidden className={`code-editor-wrap pointer-events-none absolute inset-0 overflow-hidden ${FONT} text-fg`}>
+                <code>
+                  {value.split('\n').map((line, index) => (
+                    <span className="line" key={index}>{line || '\u200b'}</span>
+                  ))}
+                </code>
+              </pre>
+            ) : (
+              <pre aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${PAD} ${FONT} whitespace-pre text-fg`}>
+                {value}
+              </pre>
+            )
           )}
           <textarea
             value={value}
@@ -106,10 +123,10 @@ export function CodeEditor({
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
-            wrap="off"
+            wrap={wordWrap ? 'soft' : 'off'}
             aria-label="File contents"
             style={{ caretColor, '--sel': selectionBackground ?? 'rgb(61 64 67)' } as React.CSSProperties}
-            className={`absolute inset-0 resize-none overflow-hidden bg-transparent ${PAD} ${FONT} whitespace-pre text-transparent outline-none selection:bg-(--sel)`}
+            className={`absolute inset-0 resize-none overflow-hidden bg-transparent ${wordWrap ? 'py-1.5 pr-3 pl-14 whitespace-pre-wrap wrap-anywhere' : `${PAD} whitespace-pre`} ${FONT} text-transparent outline-none selection:bg-(--sel)`}
           />
         </div>
       </div>
