@@ -2,19 +2,22 @@ import { AlertIcon, RestartIcon } from '../ui/icons/general';
 import type { TerminalBlockData } from '../../api/types';
 import { killTerm } from '../../api/term';
 import { useLayoutStore } from '../../store/layout';
+import { resolveTermTheme, useConfigStore } from '../../store/config';
 import { openContextMenu } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
 import { useTermSession } from './useTermSession';
 import { buildTermMenu } from './termMenu';
-import { DEFAULT_TERM_FONT_SIZE, TERM_THEME } from './themes';
 
 export function TerminalBlock({ leafId, block }: { leafId: string; block: TerminalBlockData }) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
   // Tab background preset showing? Terminals go transparent so it shines through.
   const transparent = useLayoutStore((s) => !!s.tabs.find((t) => t.id === s.activeTabId)?.bg);
-  const theme = TERM_THEME;
-  const fontSize = block.fontSize ?? DEFAULT_TERM_FONT_SIZE;
+  // Config defaults; per-block termTheme/fontSize override them.
+  const settings = useConfigStore((s) => s.settings);
+  const termThemes = useConfigStore((s) => s.termThemes);
+  const theme = resolveTermTheme(termThemes, block.termTheme ?? settings.termTheme);
+  const fontSize = block.fontSize ?? settings.termFontSize;
   const { containerRef, status, focus, retry, getTerm } = useTermSession(
     block.termId,
     block.target,

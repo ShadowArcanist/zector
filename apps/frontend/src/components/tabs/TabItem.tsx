@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CloseIcon, EditIcon, WallpaperIcon } from '../ui/icons/general';
 import type { Tab } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
+import { useConfigStore } from '../../store/config';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
-import { BG_PRESET_KEYS, BG_PRESETS } from '../../styles/bgPresets';
 
 export function TabItem({
   tab,
@@ -18,13 +18,14 @@ export function TabItem({
   const closeTab = useLayoutStore((s) => s.closeTab);
   const renameTab = useLayoutStore((s) => s.renameTab);
   const setTabBg = useLayoutStore((s) => s.setTabBg);
+  const backgrounds = useConfigStore((s) => s.backgrounds);
   const bgItems: MenuEntry[] = [
     { label: 'Default', checked: !tab.bg, onClick: () => setTabBg(tab.id, undefined) },
     'separator',
-    ...BG_PRESET_KEYS.map((key) => ({
-      label: BG_PRESETS[key].name,
-      checked: tab.bg === key,
-      onClick: () => setTabBg(tab.id, key),
+    ...backgrounds.map((b) => ({
+      label: b.name,
+      checked: tab.bg === b.key,
+      onClick: () => setTabBg(tab.id, b.key),
     })),
   ];
   const [editing, setEditing] = useState(false);

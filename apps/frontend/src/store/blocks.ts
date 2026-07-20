@@ -24,11 +24,18 @@ export function renameBlock(leafId: string, title: string) {
   patch(leafId, { ...block, title: title.trim() || undefined });
 }
 
-/** Per-block terminal font size; undefined = default (13). */
+/** Per-block terminal font size; undefined = config default (settings.termFontSize). */
 export function setTermFontSize(leafId: string, fontSize: number | undefined) {
   const block = blockForLeaf(leafId);
   if (block?.kind !== 'terminal') return;
   patch(leafId, { ...block, fontSize });
+}
+
+/** Per-block terminal theme key; undefined = config default (settings.termTheme). */
+export function setTermTheme(leafId: string, termTheme: string | undefined) {
+  const block = blockForLeaf(leafId);
+  if (block?.kind !== 'terminal') return;
+  patch(leafId, { ...block, termTheme });
 }
 
 /**

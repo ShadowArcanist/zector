@@ -1,8 +1,8 @@
 import type { ITheme } from '@xterm/xterm';
 
-/** Fixed terminal look: neutral graphite. Tab backgrounds are the only visual customization. */
+/** Built-in "default" terminal theme (neutral graphite); the config registry
+ *  in store/config.ts layers user themes from terminal-themes.json on top. */
 
-export const DEFAULT_TERM_FONT_SIZE = 13;
 export const TERM_FONT_WEIGHT = 500;
 export const TERM_FONT_WEIGHT_BOLD = 700;
 

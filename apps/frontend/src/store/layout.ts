@@ -15,6 +15,7 @@ import {
   uuid,
   type DropEdge,
 } from './tree';
+import { loadConfig, useConfigStore } from './config';
 import { defaultTab, parseUiState, schedulePersist } from './uiState';
 
 type LayoutStore = UiState & {
@@ -34,6 +35,8 @@ type LayoutStore = UiState & {
   setSizes: (splitId: string, sizes: number[]) => void;
   setFocusedLeaf: (leafId: string | null) => void;
   setLocalName: (name: string) => void;
+  setLocalIcon: (icon: string | null) => void;
+  setLocalColor: (color: string | null) => void;
 };
 
 function killTree(root: Tab['root']) {
@@ -55,10 +58,13 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
     init: async () => {
       let ui: UiState | null = null;
       try {
-        ui = parseUiState(await getUiState());
+        // config loads in parallel; parseUiState validates tab.bg against its registry
+        const [raw] = await Promise.all([getUiState(), loadConfig()]);
+        ui = parseUiState(raw);
       } catch {
         pushToast('error', 'Could not load saved layout — backend unreachable');
       }
+      await loadConfig(); // settled already on the happy path; defaultTab reads tabPreset
       if (!ui) {
         const tab = defaultTab(1);
         ui = { tabs: [tab], activeTabId: tab.id };
@@ -69,7 +75,12 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
 
     addTab: () =>
       mutate((s) => {
-        const tab: Tab = { id: uuid(), name: `Tab ${s.tabs.length + 1}`, root: null };
+        const tab: Tab = {
+          id: uuid(),
+          name: `Tab ${s.tabs.length + 1}`,
+          root: null,
+          bg: useConfigStore.getState().settings.tabPreset ?? undefined,
+        };
         return { tabs: [...s.tabs, tab], activeTabId: tab.id, focusedLeafId: null };
       }),
 
@@ -171,5 +182,9 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
     setFocusedLeaf: (leafId) => set({ focusedLeafId: leafId }),
 
     setLocalName: (name) => mutate(() => ({ localName: name.trim() || undefined })),
+
+    setLocalIcon: (icon) => mutate(() => ({ localIcon: icon ?? undefined })),
+
+    setLocalColor: (color) => mutate(() => ({ localColor: color ?? undefined })),
   };
 });

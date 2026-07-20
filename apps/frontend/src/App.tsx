@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLayoutStore } from './store/layout';
+import { loadConfig, useConfigStore } from './store/config';
 import { useConnectionsStore } from './store/connections';
 import { useUiStore } from './store/ui';
 import { TabBar } from './components/tabs/TabBar';
@@ -12,12 +13,14 @@ import { Toasts } from './components/ui/Toasts';
 import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { PlusIcon } from './components/ui/icons/general';
-import { BG_PRESETS } from './styles/bgPresets';
 
 /** Active tab's Wave-style background preset, behind the tab bar and blocks. */
 function WorkspaceBg() {
   const bgKey = useLayoutStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.bg);
-  const preset = bgKey ? BG_PRESETS[bgKey] : undefined;
+  // unknown key (e.g. removed from the config file): render no background
+  const preset = useConfigStore((s) =>
+    bgKey ? s.backgrounds.find((b) => b.key === bgKey) : undefined,
+  );
   if (!preset) return null;
   return (
     <div
@@ -74,6 +77,7 @@ export default function App() {
   const connectionsOpen = useUiStore((s) => s.connectionsOpen);
 
   useEffect(() => {
+    void loadConfig(); // parallel with init; init joins it before parsing
     void init();
     void loadConnections();
   }, [init, loadConnections]);

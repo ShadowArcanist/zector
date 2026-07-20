@@ -1,6 +1,6 @@
 import type { Tab, UiState } from '../api/types';
 import { putUiState } from '../api/state';
-import { BG_PRESETS } from '../styles/bgPresets';
+import { useConfigStore } from './config';
 import { isValidNode, makeLeaf, uuid } from './tree';
 
 /** Persistence helpers for the layout store (parse + debounced save). */
@@ -10,6 +10,7 @@ export function defaultTab(index: number): Tab {
     id: uuid(),
     name: `Tab ${index}`,
     root: makeLeaf({ kind: 'terminal', target: 'local', termId: uuid() }),
+    bg: useConfigStore.getState().settings.tabPreset ?? undefined,
   };
 }
 
@@ -17,13 +18,17 @@ export function parseUiState(raw: unknown): UiState | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const state = raw as Record<string, unknown>;
   if (!Array.isArray(state.tabs) || state.tabs.length === 0) return null;
+  const backgrounds = useConfigStore.getState().backgrounds;
   const tabs: Tab[] = [];
   for (const t of state.tabs) {
     const tab = t as Record<string, unknown>;
     if (typeof tab.id !== 'string' || typeof tab.name !== 'string') return null;
     const root = tab.root === null || tab.root === undefined ? null : tab.root;
     if (root !== null && !isValidNode(root)) return null;
-    const bg = typeof tab.bg === 'string' && tab.bg in BG_PRESETS ? tab.bg : undefined;
+    const bg =
+      typeof tab.bg === 'string' && backgrounds.some((b) => b.key === tab.bg)
+        ? tab.bg
+        : undefined;
     tabs.push({ id: tab.id, name: tab.name, root: root === null ? null : root, bg });
   }
   const active = typeof state.activeTabId === 'string' ? state.activeTabId : null;
@@ -31,10 +36,14 @@ export function parseUiState(raw: unknown): UiState | null {
     typeof state.localName === 'string' && state.localName.trim()
       ? state.localName
       : undefined;
+  const localIcon = typeof state.localIcon === 'string' ? state.localIcon : undefined;
+  const localColor = typeof state.localColor === 'string' ? state.localColor : undefined;
   return {
     tabs,
     activeTabId: tabs.some((t) => t.id === active) ? active : tabs[0].id,
     localName,
+    localIcon,
+    localColor,
   };
 }
 
@@ -43,8 +52,8 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined;
 export function schedulePersist(get: () => UiState) {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    const { tabs, activeTabId, localName } = get();
-    putUiState({ tabs, activeTabId, localName }).catch(() => {
+    const { tabs, activeTabId, localName, localIcon, localColor } = get();
+    putUiState({ tabs, activeTabId, localName, localIcon, localColor }).catch(() => {
       // quiet: layout persistence is best-effort while the backend is down
     });
   }, 500);

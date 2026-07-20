@@ -24,7 +24,7 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
   return (
     <section
       data-leaf-id={leaf.id}
-      className={`group/block relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-lg bg-block transition-opacity ${
+      className={`group/block relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-lg bg-block transition-opacity [backdrop-filter:var(--block-blur)] ${
         isDragSrc ? 'opacity-50' : ''
       }`}
       onMouseDownCapture={() => setFocusedLeaf(leaf.id)}
