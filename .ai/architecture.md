@@ -18,9 +18,12 @@ No app authentication (LAN-only by design). Dark theme only.
 - SSH auth: password + private key (pasted key text, optional passphrase). No agent forwarding in v1.
 - Credentials stored in plaintext in SQLite (accepted risk; LAN-only, no app auth).
 - File manager v1: browse local + SFTP, upload/download, rename, move, delete, mkdir. Opening a file shows a
-  READ-ONLY gitbase-style viewer (files/viewer/: shiki syntax highlighting loaded lazily, line numbers,
-  image preview, SVG preview/code toggle, binary/too-large → download). The old textarea editor was removed
-  at the user's request (2026-07-20). No chmod.
+  gitbase-style EDITOR (files/viewer/): shiki highlighting (lazy) under a transparent-textarea overlay
+  (CodeEditor.tsx — 120ms re-highlight debounce, Tab inserts spaces, Cmd/Ctrl+S or dirty-only Save button →
+  fs write), line numbers, image preview, SVG preview/code toggle (code read-only), binary/too-large →
+  download. Open-file state lives in filesNav.openFiles[leafId] (BlockHeader titles with the file path;
+  header back button closes the file, ConfirmModal guards unsaved edits). Editor bg follows terminal
+  behavior: default term theme bg, transparent under tab background presets. No chmod.
 - Local terminal (shell on the host running Zector) is a first-class target alongside SSH.
 - Tabs + resizable split blocks (Wave Terminal style). Layout persists in SQLite across restarts.
 
