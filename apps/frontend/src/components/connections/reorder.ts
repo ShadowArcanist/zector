@@ -12,3 +12,11 @@ export function moveConnectionId(
   next.splice(targetIndex + (after ? 1 : 0), 0, draggedId);
   return next;
 }
+
+/** Insert the local machine into the persisted SSH order at its saved UI position. */
+export function insertLocalConnection(ids: string[], index: number | undefined): string[] {
+  const position = Math.min(Math.max(Math.trunc(index ?? 0), 0), ids.length);
+  const ordered = [...ids];
+  ordered.splice(position, 0, 'local');
+  return ordered;
+}

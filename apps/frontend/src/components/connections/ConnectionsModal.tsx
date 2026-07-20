@@ -10,12 +10,12 @@ import { IconButton } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { SettingsDivider, SettingsRow, SettingsTitle } from '../ui/Settings';
 import { connColor } from './colors';
-import { connIcon, localGlyph } from './icons';
+import { connGlyph, localGlyph } from './icons';
 import { ColorSelect } from './ColorSelect';
 import { IconSelect } from './IconSelect';
 import { ConnectionForm } from './ConnectionForm';
 import { CONNECTION_FIELD_CLASS } from './formStyles';
-import { moveConnectionId } from './reorder';
+import { insertLocalConnection, moveConnectionId } from './reorder';
 
 /** Neutral tint shown for the local icon when no color is picked. */
 const LOCAL_AUTO_COLOR = '#b4b4b8';
@@ -151,11 +151,17 @@ export function ConnectionsModal() {
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const localIconKey = useLayoutStore((s) => s.localIcon);
   const localColor = useLayoutStore((s) => s.localColor);
+  const localConnectionIndex = useLayoutStore((s) => s.localConnectionIndex);
+  const setLocalConnectionIndex = useLayoutStore((s) => s.setLocalConnectionIndex);
   const view = useUiStore((s) => s.connectionsView); // null = local, 'new', or conn id
   const openConnections = useUiStore((s) => s.openConnections);
   const closeConnections = useUiStore((s) => s.closeConnections);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null);
+  const orderedIds = insertLocalConnection(
+    connections.map((connection) => connection.id),
+    localConnectionIndex,
+  );
 
   const clearDrag = () => {
     setDraggedId(null);
@@ -165,11 +171,37 @@ export function ConnectionsModal() {
   const dropConnection = (event: DragEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (!draggedId || !dropTarget) return clearDrag();
-    const current = connections.map((connection) => connection.id);
+    const current = orderedIds;
     const next = moveConnectionId(current, draggedId, dropTarget.id, dropTarget.after);
     clearDrag();
-    if (next !== current) void reorderConnections(next);
+    if (next === current) return;
+
+    setLocalConnectionIndex(next.indexOf('local'));
+    const nextConnections = next.filter((id) => id !== 'local');
+    if (nextConnections.some((id, index) => id !== connections[index]?.id)) {
+      void reorderConnections(nextConnections);
+    }
   };
+
+  const dragProps = (id: string) => ({
+    draggable: !reordering,
+    onDragStart: (event: DragEvent<HTMLButtonElement>) => {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', id);
+      setDraggedId(id);
+    },
+    onDragOver: (event: DragEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      const bounds = event.currentTarget.getBoundingClientRect();
+      setDropTarget({
+        id,
+        after: event.clientY >= bounds.top + bounds.height / 2,
+      });
+    },
+    onDrop: dropConnection,
+    onDragEnd: clearDrag,
+  });
 
   const editing =
     view && view !== 'new' ? (connections.find((c) => c.id === view) ?? null) : null;
@@ -180,20 +212,11 @@ export function ConnectionsModal() {
     <Modal onClose={closeConnections} width="w-[640px]">
       <div className="flex h-[540px] max-h-full min-h-0">
         <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto bg-black/20 p-3">
-          <SidebarItem
-            icon={localGlyph(localIconKey, {
-              size: 15,
-              style: localColor ? { color: localColor } : undefined,
-            })}
-            label={localName}
-            active={pane === 'local'}
-            onClick={() => openConnections(null)}
-          />
-          {connections.map((c) => {
-            const Icon = connIcon(c);
+          {orderedIds.map((id) => {
+            const connection = connections.find((candidate) => candidate.id === id);
             return (
-              <div key={c.id} className="relative">
-                {dropTarget?.id === c.id && draggedId !== c.id && (
+              <div key={id} className="relative">
+                {dropTarget?.id === id && draggedId !== id && (
                   <span
                     className={`pointer-events-none absolute inset-x-2 z-10 h-0.5 rounded-full bg-accent ${
                       dropTarget.after ? '-bottom-[3px]' : '-top-[3px]'
@@ -201,27 +224,21 @@ export function ConnectionsModal() {
                   />
                 )}
                 <SidebarItem
-                  icon={<Icon size={14} style={{ color: connColor(c) }} />}
-                  label={c.name}
-                  active={pane === 'edit' && editing?.id === c.id}
-                  onClick={() => openConnections(c.id)}
-                  draggable={!reordering}
-                  onDragStart={(event) => {
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', c.id);
-                    setDraggedId(c.id);
-                  }}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                    const bounds = event.currentTarget.getBoundingClientRect();
-                    setDropTarget({
-                      id: c.id,
-                      after: event.clientY >= bounds.top + bounds.height / 2,
-                    });
-                  }}
-                  onDrop={dropConnection}
-                  onDragEnd={clearDrag}
+                  icon={
+                    connection
+                      ? connGlyph(connection, {
+                          size: 14,
+                          style: { color: connColor(connection) },
+                        })
+                      : localGlyph(localIconKey, {
+                          size: 15,
+                          style: localColor ? { color: localColor } : undefined,
+                        })
+                  }
+                  label={connection?.name ?? localName}
+                  active={connection ? pane === 'edit' && editing?.id === id : pane === 'local'}
+                  onClick={() => openConnections(connection?.id ?? null)}
+                  {...dragProps(id)}
                 />
               </div>
             );

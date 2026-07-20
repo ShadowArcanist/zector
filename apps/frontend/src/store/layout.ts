@@ -38,6 +38,7 @@ type LayoutStore = UiState & {
   setLocalName: (name: string) => void;
   setLocalIcon: (icon: string | null) => void;
   setLocalColor: (color: string | null) => void;
+  setLocalConnectionIndex: (index: number) => void;
   toggleFileColumn: (key: string) => void;
 };
 
@@ -200,6 +201,9 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
     setLocalIcon: (icon) => mutate(() => ({ localIcon: icon ?? undefined })),
 
     setLocalColor: (color) => mutate(() => ({ localColor: color ?? undefined })),
+
+    setLocalConnectionIndex: (index) =>
+      mutate(() => ({ localConnectionIndex: index > 0 ? Math.floor(index) : undefined })),
 
     toggleFileColumn: (key) =>
       mutate((s) => {

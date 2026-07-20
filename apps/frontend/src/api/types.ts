@@ -47,6 +47,7 @@ export type UiState = {
   localName?: string;
   localIcon?: string;
   localColor?: string;
+  localConnectionIndex?: number;
   hiddenFileColumns?: string[]; // file-explorer columns the user hid (perm/modified/size/type)
 };
 

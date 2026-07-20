@@ -38,6 +38,12 @@ export function parseUiState(raw: unknown): UiState | null {
       : undefined;
   const localIcon = typeof state.localIcon === 'string' ? state.localIcon : undefined;
   const localColor = typeof state.localColor === 'string' ? state.localColor : undefined;
+  const localConnectionIndex =
+    typeof state.localConnectionIndex === 'number' &&
+    Number.isInteger(state.localConnectionIndex) &&
+    state.localConnectionIndex >= 0
+      ? state.localConnectionIndex
+      : undefined;
   const hiddenFileColumns = Array.isArray(state.hiddenFileColumns)
     ? state.hiddenFileColumns.filter((c): c is string => typeof c === 'string')
     : undefined;
@@ -47,6 +53,7 @@ export function parseUiState(raw: unknown): UiState | null {
     localName,
     localIcon,
     localColor,
+    localConnectionIndex,
     hiddenFileColumns,
   };
 }
@@ -56,8 +63,24 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined;
 export function schedulePersist(get: () => UiState) {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    const { tabs, activeTabId, localName, localIcon, localColor, hiddenFileColumns } = get();
-    putUiState({ tabs, activeTabId, localName, localIcon, localColor, hiddenFileColumns }).catch(() => {
+    const {
+      tabs,
+      activeTabId,
+      localName,
+      localIcon,
+      localColor,
+      localConnectionIndex,
+      hiddenFileColumns,
+    } = get();
+    putUiState({
+      tabs,
+      activeTabId,
+      localName,
+      localIcon,
+      localColor,
+      localConnectionIndex,
+      hiddenFileColumns,
+    }).catch(() => {
       // quiet: layout persistence is best-effort while the backend is down
     });
   }, 500);
