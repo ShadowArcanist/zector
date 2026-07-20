@@ -13,13 +13,14 @@ import { highlightCode } from './highlight';
  */
 
 const FONT = 'font-mono text-[12px] leading-5';
-const HIGHLIGHT_PRE = '[&_code]:text-[12px] [&_pre]:p-3 [&_pre]:leading-5 [&_pre]:whitespace-pre';
+const PAD = 'px-3 py-1.5';
+const HIGHLIGHT_PRE =
+  '[&_code]:text-[12px] [&_pre]:px-3 [&_pre]:py-1.5 [&_pre]:leading-5 [&_pre]:whitespace-pre';
 
-function LineNumbers({ count, background }: { count: number; background: string }) {
+function LineNumbers({ count }: { count: number }) {
   return (
     <div
-      style={{ background }}
-      className={`sticky left-0 z-10 flex w-11 shrink-0 flex-col items-end border-r border-white/6 px-2 py-3 ${FONT} text-fg-faint tabular-nums select-none`}
+      className={`sticky left-0 z-10 flex w-11 shrink-0 flex-col items-end border-r border-white/6 px-2 py-1.5 ${FONT} text-fg-faint tabular-nums select-none`}
     >
       {Array.from({ length: count }, (_, i) => (
         <span key={i}>{i + 1}</span>
@@ -35,7 +36,6 @@ export function CodeEditor({
   readOnly = false,
   caretColor,
   selectionBackground,
-  gutterBackground,
 }: {
   value: string;
   lang: string;
@@ -43,7 +43,6 @@ export function CodeEditor({
   readOnly?: boolean;
   caretColor: string;
   selectionBackground?: string;
-  gutterBackground: string;
 }) {
   const [html, setHtml] = useState<string | null>(null);
   const highlightedOnce = useRef(false);
@@ -82,10 +81,10 @@ export function CodeEditor({
   return (
     <div className={`min-h-0 flex-1 overflow-auto ${FONT}`}>
       <div className="flex min-w-fit">
-        <LineNumbers count={value.split('\n').length} background={gutterBackground} />
+        <LineNumbers count={value.split('\n').length} />
         <div className="relative flex-1">
           {/* invisible sizer: current text (+1 char of caret room) sets the layer size */}
-          <pre aria-hidden className={`invisible p-3 ${FONT} whitespace-pre`}>{`${value} `}</pre>
+          <pre aria-hidden className={`invisible ${PAD} ${FONT} whitespace-pre`}>{`${value} `}</pre>
           {html !== null ? (
             <div
               aria-hidden
@@ -94,7 +93,7 @@ export function CodeEditor({
               dangerouslySetInnerHTML={{ __html: html }}
             />
           ) : (
-            <pre aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden p-3 ${FONT} whitespace-pre text-fg`}>
+            <pre aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${PAD} ${FONT} whitespace-pre text-fg`}>
               {value}
             </pre>
           )}
@@ -110,7 +109,7 @@ export function CodeEditor({
             wrap="off"
             aria-label="File contents"
             style={{ caretColor, '--sel': selectionBackground ?? 'rgb(61 64 67)' } as React.CSSProperties}
-            className={`absolute inset-0 resize-none overflow-hidden bg-transparent p-3 ${FONT} whitespace-pre text-transparent outline-none selection:bg-(--sel)`}
+            className={`absolute inset-0 resize-none overflow-hidden bg-transparent ${PAD} ${FONT} whitespace-pre text-transparent outline-none selection:bg-(--sel)`}
           />
         </div>
       </div>

@@ -128,7 +128,6 @@ export function FileViewer({ leafId, file }: { leafId: string; file: OpenFile })
         readOnly={isSvg}
         caretColor={theme.foreground ?? '#d4d4d4'}
         selectionBackground={theme.selectionBackground}
-        gutterBackground={transparent ? 'rgb(0 0 0 / 0.4)' : themeBg}
       />
     );
   }

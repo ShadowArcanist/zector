@@ -10,7 +10,7 @@ function HeaderIconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) 
   return (
     <button
       type="button"
-      className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-white/8 text-fg-dim transition-colors hover:bg-white/14 hover:text-fg"
+      className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md bg-white/8 text-fg-dim transition-colors hover:bg-white/14 hover:text-fg"
       {...props}
     />
   );
@@ -95,20 +95,25 @@ export function ViewerHeader({
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {children}
         {dirty && onSave && (
-          <Button variant="blurple" size="sm" disabled={saving} onClick={onSave}>
+          <Button
+            variant="blurple"
+            disabled={saving}
+            onClick={onSave}
+            className="h-6 px-2.5 text-[12px]"
+          >
             Save
           </Button>
         )}
         {copyText != null && (
           <HeaderIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
-            {copied ? <CheckIcon size={14} className="text-ok" /> : <CopyIcon size={14} />}
+            {copied ? <CheckIcon size={13} className="text-ok" /> : <CopyIcon size={13} />}
           </HeaderIconButton>
         )}
         <HeaderIconButton onClick={onDownload} aria-label="Download file" title="Download">
-          <DownloadIcon size={14} />
+          <DownloadIcon size={13} />
         </HeaderIconButton>
         <HeaderIconButton onClick={onClose} aria-label="Close editor" title="Close">
-          <CloseIcon size={14} />
+          <CloseIcon size={13} />
         </HeaderIconButton>
       </div>
     </div>
