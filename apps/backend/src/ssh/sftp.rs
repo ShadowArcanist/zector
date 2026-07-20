@@ -47,6 +47,23 @@ pub async fn list(sftp: &SftpSession, path: &str) -> anyhow::Result<Vec<FsEntry>
     Ok(entries)
 }
 
+pub async fn stat(sftp: &SftpSession, path: &str) -> anyhow::Result<FsEntry> {
+    let meta = sftp.symlink_metadata(path).await?;
+    Ok(FsEntry {
+        name: path
+            .rsplit('/')
+            .find(|part| !part.is_empty())
+            .unwrap_or("/")
+            .to_owned(),
+        path: path.to_owned(),
+        is_dir: meta.is_dir(),
+        is_symlink: meta.is_symlink(),
+        size: meta.size.unwrap_or(0),
+        modified: meta.mtime.map(u64::from),
+        mode: meta.permissions,
+    })
+}
+
 pub async fn read(sftp: &SftpSession, path: &str) -> anyhow::Result<Vec<u8>> {
     Ok(sftp.read(path).await?)
 }

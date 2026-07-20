@@ -85,6 +85,20 @@ pub async fn list(
     }))
 }
 
+pub async fn stat(
+    State(state): State<AppState>,
+    Path(target): Path<String>,
+    Query(query): Query<PathQuery>,
+) -> ApiResult<Json<FsEntry>> {
+    let entry = if target == "local" {
+        local::stat(&query.path).await?
+    } else {
+        let sftp = sftp::open(&state.ssh, &state.db, &target).await?;
+        sftp::stat(&sftp, &query.path).await?
+    };
+    Ok(Json(entry))
+}
+
 pub async fn read(
     State(state): State<AppState>,
     Path(target): Path<String>,

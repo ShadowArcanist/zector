@@ -24,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .route("/connections/{id}/test", post(connections::test))
         .route("/fs/{target}/home", get(fs::home))
         .route("/fs/{target}/list", get(fs::list))
+        .route("/fs/{target}/stat", get(fs::stat))
         .route("/fs/{target}/read", get(fs::read))
         .route("/fs/{target}/write", post(fs::write))
         .route("/fs/{target}/mkdir", post(fs::mkdir))

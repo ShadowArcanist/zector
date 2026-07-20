@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { CloseIcon, EditIcon } from '../ui/icons/general';
 import { ServerIcon, SplitDownIcon, SplitRightIcon } from '../ui/icons/terminal';
-import type { Block, LeafNode } from '../../api/types';
+import type { Block, FsEntry, LeafNode } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
 import { useConnectionsStore, targetName } from '../../store/connections';
 import { useFilesNavStore } from '../../store/filesNav';
-import { renameBlock } from '../../store/blocks';
+import { blockForLeaf, renameBlock } from '../../store/blocks';
 import { openContextMenu } from '../../store/contextMenu';
 import { ConnectionButton } from '../connections/ConnectionButton';
 import { FilesNavButtons, FilesRefreshButton } from '../files/FilesHeaderNav';
+import { FilePathControl } from '../files/FilePathControl';
 import { displayPath } from '../files/format';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { startBlockDrag } from './blockDrag';
 
 const END_ICON_CLASS =
@@ -31,9 +33,16 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const openFilePath = useFilesNavStore((s) =>
     block.kind === 'files' ? s.openFiles[leaf.id]?.file.path : undefined,
   );
+  const fileDirty = useFilesNavStore((s) => !!s.openFiles[leaf.id]?.dirty);
+  const openFile = useFilesNavStore((s) => s.openFile);
+  const closeFile = useFilesNavStore((s) => s.closeFile);
+  const recordVisit = useFilesNavStore((s) => s.recordVisit);
+  const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
   const [connOpen, setConnOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [pathOpen, setPathOpen] = useState(false);
+  const [pendingPath, setPendingPath] = useState<FsEntry | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Drag-ghost label: custom title, else target name / path.
@@ -45,9 +54,10 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   };
   // Title text renders only when the user renamed the block; a files block
   // additionally shows its ~path (that display is the files nav, not a title).
-  const title =
-    block.title ??
-    (block.kind === 'files' ? displayPath(openFilePath ?? block.openFile?.path ?? block.path, home) : '');
+  const filePath =
+    block.kind === 'files'
+      ? displayPath(openFilePath ?? block.openFile?.path ?? block.path, home)
+      : '';
 
   useEffect(() => {
     if (editing) {
@@ -68,6 +78,28 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const splitRight = () => openPicker({ mode: 'split', leafId: leaf.id, dir: 'row' });
   const splitDown = () => openPicker({ mode: 'split', leafId: leaf.id, dir: 'col' });
 
+  const openPath = (entry: FsEntry) => {
+    const current = blockForLeaf(leaf.id);
+    if (current?.kind !== 'files') return;
+    if (entry.is_dir) {
+      if (useFilesNavStore.getState().openFiles[leaf.id]) closeFile(leaf.id);
+      if (entry.path !== current.path) recordVisit(leaf.id, current.target, current.path);
+      updateLeafBlock(leaf.id, { ...current, path: entry.path, openFile: undefined });
+    } else {
+      openFile(leaf.id, {
+        target: current.target,
+        path: entry.path,
+        name: entry.name,
+        size: entry.size,
+      });
+    }
+  };
+
+  const requestOpenPath = (entry: FsEntry) => {
+    if (fileDirty) setPendingPath(entry);
+    else openPath(entry);
+  };
+
   const headerMenu = (e: React.MouseEvent) =>
     openContextMenu(e, [
       { label: 'Rename Block', icon: <EditIcon size={14} />, onClick: startRename },
@@ -81,11 +113,13 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
 
   return (
     <div
-      className="group/header flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-2.5 text-[11px] font-bold select-none"
+      className="group/header relative flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-2.5 text-[11px] font-bold select-none"
       onContextMenu={headerMenu}
       onPointerDown={(e) => startBlockDrag(e, leaf.id, block.title ?? defaultTitle(block))}
     >
-      {block.kind === 'files' && <FilesNavButtons leafId={leaf.id} target={block.target} />}
+      {block.kind === 'files' && (
+        <FilesNavButtons leafId={leaf.id} path={block.path} restoredFile={!!block.openFile} />
+      )}
       <ConnectionButton
         leafId={leaf.id}
         target={block.target}
@@ -108,13 +142,27 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
       ) : (
         // Fills the header even when empty so the blank area double-clicks to rename
         <span
-          className="flex min-w-0 flex-1 items-center self-stretch"
+          className="flex min-w-0 flex-1 items-center gap-2 self-stretch"
           onDoubleClick={startRename}
         >
-          {title && (
+          {block.title && (
             <span className="min-w-0 truncate text-[11px] font-medium text-fg opacity-80">
-              {title}
+              {block.title}
             </span>
+          )}
+          {block.kind === 'files' && (
+            <button
+              type="button"
+              className="min-w-0 cursor-text truncate text-left text-[11px] font-medium text-fg opacity-80 hover:opacity-100"
+              title="Open file or directory"
+              onClick={(event) => {
+                event.stopPropagation();
+                setPathOpen((open) => !open);
+              }}
+              onDoubleClick={(event) => event.stopPropagation()}
+            >
+              {filePath}
+            </button>
           )}
         </span>
       )}
@@ -133,6 +181,29 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           <CloseIcon size={13} />
         </button>
       </div>
+      {pathOpen && block.kind === 'files' && (
+        <FilePathControl
+          target={block.target}
+          cwd={block.path}
+          home={home}
+          onOpen={requestOpenPath}
+          onClose={() => setPathOpen(false)}
+        />
+      )}
+      {pendingPath && (
+        <ConfirmModal
+          title="Discard changes?"
+          body="You have unsaved edits. Discard them and open the selected path?"
+          confirmLabel="Discard"
+          onCancel={() => setPendingPath(null)}
+          onConfirm={() => {
+            const entry = pendingPath;
+            setPendingPath(null);
+            closeFile(leaf.id);
+            openPath(entry);
+          }}
+        />
+      )}
     </div>
   );
 }

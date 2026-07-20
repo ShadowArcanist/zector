@@ -1,5 +1,5 @@
 import { apiGet, apiJson, apiRaw } from './http';
-import type { FsListing } from './types';
+import type { FsEntry, FsListing } from './types';
 
 const base = (target: string) => `/api/fs/${encodeURIComponent(target)}`;
 
@@ -9,6 +9,10 @@ export function fsHome(target: string): Promise<{ path: string }> {
 
 export function fsList(target: string, path: string): Promise<FsListing> {
   return apiGet(`${base(target)}/list?path=${encodeURIComponent(path)}`);
+}
+
+export function fsStat(target: string, path: string): Promise<FsEntry> {
+  return apiGet(`${base(target)}/stat?path=${encodeURIComponent(path)}`);
 }
 
 /** URL for raw file content (image preview, editor fetch, downloads). */

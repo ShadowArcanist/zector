@@ -1,4 +1,5 @@
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use std::time::UNIX_EPOCH;
 
 use anyhow::Context;
@@ -44,6 +45,35 @@ pub async fn list(path: &str) -> anyhow::Result<Vec<FsEntry>> {
     Ok(entries)
 }
 
+pub async fn stat(path: &str) -> anyhow::Result<FsEntry> {
+    let link_meta = tokio::fs::symlink_metadata(path)
+        .await
+        .with_context(|| format!("failed to stat {path}"))?;
+    let is_symlink = link_meta.file_type().is_symlink();
+    let meta = if is_symlink {
+        tokio::fs::metadata(path).await.unwrap_or(link_meta)
+    } else {
+        link_meta
+    };
+    let name = Path::new(path)
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| path.to_owned());
+    Ok(FsEntry {
+        name,
+        path: path.to_owned(),
+        is_dir: meta.is_dir(),
+        is_symlink,
+        size: meta.len(),
+        modified: meta
+            .modified()
+            .ok()
+            .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+            .map(|duration| duration.as_secs()),
+        mode: Some(meta.permissions().mode()),
+    })
+}
+
 pub async fn read(path: &str) -> anyhow::Result<Vec<u8>> {
     tokio::fs::read(path)
         .await
@@ -80,5 +110,28 @@ pub async fn delete(path: &str) -> anyhow::Result<()> {
         tokio::fs::remove_file(path)
             .await
             .with_context(|| format!("failed to delete {path}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn stat_reports_files_and_directories() {
+        let root = std::env::temp_dir().join(format!("zector-stat-{}", uuid::Uuid::new_v4()));
+        let file = root.join("example.txt");
+        tokio::fs::create_dir_all(&root).await.unwrap();
+        tokio::fs::write(&file, b"hello").await.unwrap();
+
+        let dir_entry = stat(root.to_str().unwrap()).await.unwrap();
+        let file_entry = stat(file.to_str().unwrap()).await.unwrap();
+
+        assert!(dir_entry.is_dir);
+        assert_eq!(file_entry.name, "example.txt");
+        assert_eq!(file_entry.size, 5);
+        assert!(!file_entry.is_dir);
+
+        tokio::fs::remove_dir_all(root).await.unwrap();
     }
 }

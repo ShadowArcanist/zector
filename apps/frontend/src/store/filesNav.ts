@@ -3,6 +3,7 @@ import type { FsEntry, OpenFileData } from '../api/types';
 import { fsHome } from '../api/fs';
 import { useLayoutStore } from './layout';
 import { blockForLeaf } from './blocks';
+import { parentPath } from '../components/files/format';
 
 /**
  * Runtime navigation state for files blocks: per-leaf back/forward history,
@@ -36,6 +37,7 @@ type FilesNavStore = {
   requestCloseFile: (leafId: string) => void;
   cancelCloseFile: (leafId: string) => void;
   recordVisit: (leafId: string, target: string, fromPath: string) => void;
+  goParent: (leafId: string) => void;
   goBack: (leafId: string) => void;
   goForward: (leafId: string) => void;
   bumpRefresh: (leafId: string) => void;
@@ -119,9 +121,26 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
       const cur = s.nav[leafId];
       const stacks = cur && cur.target === target ? cur : emptyNav(target);
       return {
-        nav: { ...s.nav, [leafId]: { target, back: [...stacks.back, fromPath], forward: [] } },
+        nav: { ...s.nav, [leafId]: { target, back: [...stacks.back, fromPath].slice(-20), forward: [] } },
       };
     }),
+
+  goParent: (leafId) => {
+    const block = filesBlockFor(leafId);
+    if (!block) return;
+    if (get().openFiles[leafId]) {
+      get().requestCloseFile(leafId);
+      return;
+    }
+    if (block.openFile) {
+      get().closeFile(leafId);
+      return;
+    }
+    const parent = parentPath(block.path);
+    if (parent === block.path) return;
+    get().recordVisit(leafId, block.target, block.path);
+    useLayoutStore.getState().updateLeafBlock(leafId, { ...block, path: parent });
+  },
 
   goBack: (leafId) => {
     const block = filesBlockFor(leafId);
