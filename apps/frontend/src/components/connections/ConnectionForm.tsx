@@ -10,9 +10,7 @@ import { Spinner } from '../ui/Spinner';
 import { ColorSelect } from './ColorSelect';
 import { CONN_COLORS, connColor } from './colors';
 import { IconSelect } from './IconSelect';
-
-const field =
-  'h-8 w-[220px] rounded-lg bg-white/5 px-3 text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent';
+import { CONNECTION_FIELD_CLASS as field } from './formStyles';
 
 type AuthType = 'password' | 'key';
 

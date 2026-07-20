@@ -10,6 +10,10 @@ export const CONN_COLORS = [
   { value: '#ffa24e', name: 'Orange' },
   { value: '#dbde52', name: 'Yellow' },
   { value: '#58c142', name: 'Green' },
+  { value: '#14b8a6', name: 'Teal' },
+  { value: '#6366f1', name: 'Indigo' },
+  { value: '#84cc16', name: 'Lime' },
+  { value: '#94a3b8', name: 'Slate' },
 ];
 
 /** Chosen icon color, else a stable hash-picked one ("Auto"). */

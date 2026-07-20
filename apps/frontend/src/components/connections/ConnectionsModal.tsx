@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { getLocalMachineInfo } from '../../api/localInfo';
+import type { LocalMachineInfo } from '../../api/types';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
-import { CloseIcon, EditIcon, PlusIcon } from '../ui/icons/general';
+import { CloseIcon, PlusIcon } from '../ui/icons/general';
 import { LaptopIcon } from '../ui/icons/terminal';
 import { IconButton } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -12,6 +14,7 @@ import { connIcon, localGlyph } from './icons';
 import { ColorSelect } from './ColorSelect';
 import { IconSelect } from './IconSelect';
 import { ConnectionForm } from './ConnectionForm';
+import { CONNECTION_FIELD_CLASS } from './formStyles';
 
 /** Neutral tint shown for the local icon when no color is picked. */
 const LOCAL_AUTO_COLOR = '#b4b4b8';
@@ -51,56 +54,64 @@ function LocalPane() {
   const setLocalIcon = useLayoutStore((s) => s.setLocalIcon);
   const localColor = useLayoutStore((s) => s.localColor) ?? null;
   const setLocalColor = useLayoutStore((s) => s.setLocalColor);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState(localName);
+  const [info, setInfo] = useState<LocalMachineInfo | null>(null);
 
   useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [editing]);
+    let active = true;
+    getLocalMachineInfo()
+      .then((next) => {
+        if (active) setInfo(next);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const startEdit = () => {
-    setDraft(localName);
-    setEditing(true);
-  };
   const commit = () => {
-    setEditing(false);
     setLocalName(draft);
+    if (!draft.trim()) setDraft('Localhost');
   };
 
   return (
     <>
       <SettingsRow label="Name" htmlFor="local-name">
-        {editing ? (
-          <input
-            id="local-name"
-            ref={inputRef}
-            value={draft}
-            placeholder="Localhost"
-            className="h-8 w-[200px] rounded-lg bg-white/5 px-3 text-right text-[13px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') commit();
-              if (e.key === 'Escape') {
-                e.stopPropagation();
-                setEditing(false);
-              }
-            }}
-          />
-        ) : (
-          <>
-            <span className="text-[13px] text-fg-dim" onDoubleClick={startEdit}>
-              {localName}
-            </span>
-            <IconButton title="Rename" aria-label="Rename local machine" onClick={startEdit}>
-              <EditIcon size={13} />
-            </IconButton>
-          </>
-        )}
+        <input
+          id="local-name"
+          value={draft}
+          placeholder="Localhost"
+          className={CONNECTION_FIELD_CLASS}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') event.currentTarget.blur();
+            if (event.key === 'Escape') {
+              event.stopPropagation();
+              setDraft(localName);
+            }
+          }}
+        />
+      </SettingsRow>
+      <SettingsDivider />
+      <SettingsRow label="Host" htmlFor="local-host">
+        <input
+          id="local-host"
+          value={info?.ip ?? ''}
+          placeholder="Detecting local IP…"
+          className={`${CONNECTION_FIELD_CLASS} cursor-default text-fg-dim`}
+          readOnly
+        />
+      </SettingsRow>
+      <SettingsDivider />
+      <SettingsRow label="Username" htmlFor="local-username">
+        <input
+          id="local-username"
+          value={info?.username ?? ''}
+          placeholder="Detecting username…"
+          className={`${CONNECTION_FIELD_CLASS} cursor-default text-fg-dim`}
+          readOnly
+        />
       </SettingsRow>
       <SettingsDivider />
       <SettingsRow label="Icon">
@@ -109,10 +120,6 @@ function LocalPane() {
       <SettingsDivider />
       <SettingsRow label="Icon color">
         <ColorSelect value={localColor} autoColor={LOCAL_AUTO_COLOR} onChange={setLocalColor} />
-      </SettingsRow>
-      <SettingsDivider />
-      <SettingsRow label="Target">
-        <span className="text-[13px] text-fg-faint">This machine</span>
       </SettingsRow>
     </>
   );

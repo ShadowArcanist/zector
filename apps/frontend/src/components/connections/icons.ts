@@ -13,7 +13,8 @@ import {
   RouterIcon,
   ShieldIcon,
 } from '../ui/icons/connections';
-import { LaptopIcon, ServerIcon, SwapIcon } from '../ui/icons/terminal';
+import { FolderIcon, LinkIcon } from '../ui/icons/files';
+import { LaptopIcon, ServerIcon, SwapIcon, TerminalIcon } from '../ui/icons/terminal';
 
 export type ConnIconDef = { key: string; name: string; Icon: ComponentType<IconProps> };
 
@@ -31,6 +32,9 @@ export const CONN_ICONS: ConnIconDef[] = [
   { key: 'home', name: 'Home', Icon: HomeIcon },
   { key: 'router', name: 'Router', Icon: RouterIcon },
   { key: 'gamepad', name: 'Gamepad', Icon: GamepadIcon },
+  { key: 'terminal', name: 'Terminal', Icon: TerminalIcon },
+  { key: 'link', name: 'Link', Icon: LinkIcon },
+  { key: 'folder', name: 'Folder', Icon: FolderIcon },
 ];
 
 /** Chosen icon component for a connection; SwapIcon when unset/unknown. */

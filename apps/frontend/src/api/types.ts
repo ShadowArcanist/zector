@@ -20,6 +20,8 @@ export type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 
 export type TestResult = { ok: true } | { ok: false; error: string };
 
+export type LocalMachineInfo = { ip: string; username: string };
+
 export type FsEntry = {
   name: string;
   path: string;
