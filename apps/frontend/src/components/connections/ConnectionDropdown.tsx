@@ -5,6 +5,7 @@ import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { connColor } from './colors';
 import { connGlyph, localGlyph } from './icons';
+import { insertLocalConnection } from './reorder';
 
 type Option =
   | { kind: 'local' }
@@ -33,6 +34,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const localIconKey = useLayoutStore((s) => s.localIcon);
   const localColor = useLayoutStore((s) => s.localColor);
+  const localConnectionIndex = useLayoutStore((s) => s.localConnectionIndex);
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [hi, setHi] = useState(0);
@@ -48,19 +50,32 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
   }, [anchorRef]);
 
   const q = query.trim().toLowerCase();
-  const options: Option[] = [
-    ...(!q || `local ${localName}`.toLowerCase().includes(q) ? [{ kind: 'local' } as const] : []),
-    ...connections
-      .filter((c) => !q || `${c.name} ${c.username}@${c.host}`.toLowerCase().includes(q))
-      .map((c) => ({
-        kind: 'conn' as const,
-        id: c.id,
-        name: c.name,
-        icon_color: c.icon_color,
-        icon: c.icon,
-      })),
-    { kind: 'new' },
-  ];
+  const connectionById = new Map(connections.map((connection) => [connection.id, connection]));
+  const orderedOptions = insertLocalConnection(
+    connections.map((connection) => connection.id),
+    localConnectionIndex,
+  ).flatMap<Option>((id) => {
+    if (id === 'local') {
+      return !q || `local ${localName}`.toLowerCase().includes(q) ? [{ kind: 'local' }] : [];
+    }
+    const connection = connectionById.get(id);
+    if (
+      !connection ||
+      (q && !`${connection.name} ${connection.username}@${connection.host}`.toLowerCase().includes(q))
+    ) {
+      return [];
+    }
+    return [
+      {
+        kind: 'conn',
+        id: connection.id,
+        name: connection.name,
+        icon_color: connection.icon_color,
+        icon: connection.icon,
+      },
+    ];
+  });
+  const options: Option[] = [...orderedOptions, { kind: 'new' }];
   const highlight = Math.min(hi, options.length - 1);
 
   const pick = (opt: Option) => {

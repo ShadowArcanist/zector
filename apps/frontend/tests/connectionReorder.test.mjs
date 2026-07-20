@@ -51,3 +51,13 @@ test('connections modal supports dragging every connection into a persisted orde
   assert.match(layout, /setLocalConnectionIndex/);
   assert.match(uiState, /localConnectionIndex/);
 });
+
+test('block connection switcher follows the saved localhost position', async () => {
+  const source = await readFile(
+    new URL('../src/components/connections/ConnectionDropdown.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /localConnectionIndex/);
+  assert.match(source, /insertLocalConnection/);
+});
