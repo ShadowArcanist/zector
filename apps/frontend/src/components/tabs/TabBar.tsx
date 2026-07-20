@@ -11,6 +11,7 @@ export function TabBar() {
   const activeTabId = useLayoutStore((s) => s.activeTabId);
   const addTab = useLayoutStore((s) => s.addTab);
   const openConnections = useUiStore((s) => s.openConnections);
+  const openCommandPalette = useUiStore((s) => s.openCommandPalette);
   const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   // divider is invisible when it touches the active or hovered tab
@@ -46,6 +47,16 @@ export function TabBar() {
           <PlusIcon size={12} />
         </button>
       </div>
+      <button
+        type="button"
+        title="Command palette (⌘K)"
+        aria-label="Open command palette"
+        className="flex h-[22px] shrink-0 cursor-pointer items-center rounded-md px-1.5 font-mono text-[10px] text-fg-faint transition-colors hover:bg-hover hover:text-fg"
+        onClick={openCommandPalette}
+        onContextMenu={(event) => event.stopPropagation()}
+      >
+        ⌘K
+      </button>
       <button
         type="button"
         title="Connections"

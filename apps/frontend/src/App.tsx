@@ -13,6 +13,7 @@ import { Toasts } from './components/ui/Toasts';
 import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { PlusIcon } from './components/ui/icons/general';
+import { CommandPalette } from './components/command/CommandPalette';
 
 /** Fallback accent when the active tab has no background (matches global.css). */
 const DEFAULT_ACCENT = '#4c8dff';
@@ -84,12 +85,25 @@ export default function App() {
   const loadConnections = useConnectionsStore((s) => s.load);
   const picker = useUiStore((s) => s.picker);
   const connectionsOpen = useUiStore((s) => s.connectionsOpen);
+  const commandPaletteOpen = useUiStore((s) => s.commandPaletteOpen);
+  const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
 
   useEffect(() => {
     void loadConfig(); // parallel with init; init joins it before parsing
     void init();
     void loadConnections();
   }, [init, loadConnections]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        toggleCommandPalette();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toggleCommandPalette]);
 
   return (
     <div className="relative flex h-full flex-col bg-bg0 text-fg">
@@ -101,6 +115,7 @@ export default function App() {
       </main>
       {picker && <BlockPickerModal />}
       {connectionsOpen && <ConnectionsModal />}
+      {commandPaletteOpen && <CommandPalette />}
       <BlockDragGhost />
       <ContextMenuHost />
       <Toasts />

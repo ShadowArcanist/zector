@@ -23,6 +23,7 @@ type LayoutStore = UiState & {
   focusedLeafId: string | null;
   init: () => Promise<void>;
   addTab: () => void;
+  addTabWithBlock: (block: Block) => void;
   closeTab: (tabId: string) => void;
   renameTab: (tabId: string, name: string) => void;
   setTabBg: (tabId: string, bg: string | undefined) => void;
@@ -83,6 +84,18 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
           bg: useConfigStore.getState().settings.tabPreset ?? undefined,
         };
         return { tabs: [...s.tabs, tab], activeTabId: tab.id, focusedLeafId: null };
+      }),
+
+    addTabWithBlock: (block) =>
+      mutate((s) => {
+        const leaf = makeLeaf(block);
+        const tab: Tab = {
+          id: uuid(),
+          name: `Tab ${s.tabs.length + 1}`,
+          root: leaf,
+          bg: useConfigStore.getState().settings.tabPreset ?? undefined,
+        };
+        return { tabs: [...s.tabs, tab], activeTabId: tab.id, focusedLeafId: leaf.id };
       }),
 
     closeTab: (tabId) =>

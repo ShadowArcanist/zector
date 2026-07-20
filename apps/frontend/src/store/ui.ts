@@ -14,6 +14,10 @@ type UiStore = {
   connectionsView: string | null;
   openConnections: (view?: string | null) => void;
   closeConnections: () => void;
+  commandPaletteOpen: boolean;
+  openCommandPalette: () => void;
+  closeCommandPalette: () => void;
+  toggleCommandPalette: () => void;
 };
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -24,4 +28,8 @@ export const useUiStore = create<UiStore>((set) => ({
   connectionsView: null,
   openConnections: (view = null) => set({ connectionsOpen: true, connectionsView: view }),
   closeConnections: () => set({ connectionsOpen: false, connectionsView: null }),
+  commandPaletteOpen: false,
+  openCommandPalette: () => set({ commandPaletteOpen: true }),
+  closeCommandPalette: () => set({ commandPaletteOpen: false }),
+  toggleCommandPalette: () => set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
 }));
