@@ -54,7 +54,7 @@ export function TabItem({
       role="tab"
       aria-selected={active}
       tabIndex={0}
-      className="group h-[27px] max-w-[130px] min-w-[100px] flex-[0_1_130px] cursor-pointer px-px py-[1.5px] select-none"
+      className="group h-[27px] w-fit max-w-[220px] min-w-[60px] flex-none cursor-pointer px-px py-[1.5px] select-none"
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => onHoverChange?.(false)}
       onClick={() => setActiveTab(tab.id)}
@@ -74,8 +74,9 @@ export function TabItem({
         ])
       }
     >
+      {/* px matches the hover-only close button so it never covers the name */}
       <div
-        className={`relative flex h-6 w-full items-center justify-center rounded-md transition-colors ${
+        className={`relative flex h-6 w-full items-center justify-center rounded-md px-[18px] transition-colors ${
           active ? 'bg-white/10' : 'group-hover:bg-white/10'
         }`}
       >
@@ -94,11 +95,11 @@ export function TabItem({
                 setEditing(false);
               }
             }}
-            className="w-[calc(100%-14px)] rounded-[2px] border border-white/18 bg-transparent px-1.5 py-0.5 text-center text-[11px] font-medium text-fg outline-none"
+            className="w-[110px] rounded-[2px] border border-white/18 bg-transparent px-1.5 py-0.5 text-center text-[11px] font-medium text-fg outline-none"
           />
         ) : (
           <span
-            className={`max-w-[calc(100%-10px)] truncate px-1 text-center text-[11px] ${
+            className={`min-w-0 truncate text-center text-[11px] whitespace-nowrap ${
               active ? 'font-semibold text-white' : 'font-medium text-fg-dim'
             }`}
           >
@@ -108,7 +109,7 @@ export function TabItem({
         <button
           type="button"
           aria-label={`Close ${tab.name}`}
-          className="invisible absolute top-1/2 right-1 flex h-5 w-5 shrink-0 -translate-y-1/2 cursor-pointer items-center justify-center text-fg-faint hover:text-fg group-hover:visible"
+          className="invisible absolute top-1/2 right-0.5 flex h-5 w-4 shrink-0 -translate-y-1/2 cursor-pointer items-center justify-center text-fg-faint hover:text-fg group-hover:visible"
           onClick={(e) => {
             e.stopPropagation();
             closeTab(tab.id);
