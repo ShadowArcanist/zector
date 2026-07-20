@@ -1,5 +1,14 @@
 # Build plan — Zector v1
 
+## Round (2026-07-20, part 2): wave-style config files — DONE
+UI layout state moved OUT of ~/.config/zector back into sqlite (data dir zector.db; state.json auto-imported
+then deleted — configs are for sharing, layout is not). New user-editable configs seeded on first run:
+settings.json / terminal-themes.json / backgrounds.json (Wave formats; GET /api/config parses fresh so hand
+edits apply on page refresh; frontend store/config.ts + api/config.ts). Resolution: per-tab bg and per-block
+fontSize/termTheme override settings defaults; block:bgcolor/opacity/blur are global (CSS vars --color-block,
+--block-blur). Terminal Themes submenu is back, fed by the registry (built-in "Graphite" + user themes).
+Localhost got icon/color customization (localIcon/localColor in state blob, rows in LocalPane).
+
 ## Round (2026-07-20): icons, json configs, no-flash moves — DONE
 Per-connection icon picker (connections/icons.ts registry + IconSelect grid; `icon` field end-to-end).
 Backend storage moved from SQLite to JSON files in ~/.config/zector (connections.json, state.json;

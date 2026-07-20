@@ -83,8 +83,10 @@ type ConnectionInput = Omit<Connection, 'id' | 'created_at'>;
 ## Frontend layout model (stored in the `/api/state` blob, backend-opaque)
 
 ```ts
-type UiState = { tabs: Tab[]; activeTabId: string | null; localName?: string };
-// localName = user-chosen display name for the local target (default "Localhost").
+type UiState = {
+  tabs: Tab[]; activeTabId: string | null;
+  localName?: string; localIcon?: string; localColor?: string; // local target display (name/icon/color)
+};
 // NOTE: theme system removed (2026-07-19) — shell + terminals are fixed "neutral graphite"
 // (near-black grays, #4c8dff accent; tokens in styles/global.css, terminal in terminal/themes.ts); per-tab
 // background presets (Tab.bg → styles/bgPresets.ts) are the only visual customization.
@@ -102,6 +104,12 @@ type Block =
 ## Runtime details
 
 - Backend listens on `0.0.0.0:7app` — port 7887 by default, override with `ZECTOR_PORT`.
-- Config is JSON files in `ZECTOR_CONFIG_DIR` (default `~/.config/zector`): `connections.json` (incl. secrets, icon, icon_color) and `state.json` (UI layout blob). Human-editable, atomic tmp+rename writes. On first start, a legacy SQLite `zector.db` (from `ZECTOR_DATA_DIR`) is imported once and renamed `.db.bak`; rusqlite remains a dependency only for that migration.
+- Storage split:
+  - `ZECTOR_CONFIG_DIR` (default `~/.config/zector`), user-editable JSON, seeded on first run, parsed fresh per request via `GET /api/config`:
+    - `connections.json` — saved servers (incl. secrets, icon, icon_color); written by the app.
+    - `settings.json` — defaults + global block chrome: `tab:preset` (bg key for new tabs), `term:fontsize`, `term:theme` (defaults; per-tab bg / per-block fontSize/termTheme override), `block:bgcolor` / `block:opacity` / `block:blur` (apply to ALL blocks via CSS vars).
+    - `terminal-themes.json` — Wave-format named terminal themes (display:name/order + ANSI colors); merged after the built-in "default" (graphite).
+    - `backgrounds.json` — Wave-format `bg@<key>` background presets (bg css + bg:opacity); the `bg@` prefix is stripped internally.
+  - `ZECTOR_DATA_DIR`/zector.db (SQLite, default OS data dir): internal UI layout state only — deliberately NOT in the shareable config folder. A pre-JSON sqlite `connections` table and an interim `state.json` are both auto-imported on startup.
 - In release the frontend `dist/` is embedded via rust-embed and served at `/` with SPA fallback to `index.html`.
 - In dev: run `cargo run` (backend on :7887) and `bun run dev` (Vite on :5173, proxies `/api` to :7887 including WS).
