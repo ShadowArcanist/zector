@@ -33,8 +33,11 @@ export const isImageFile = (name: string) => IMAGE_EXTS.has(extOf(name));
 /** Extension looks like text, regardless of size (used for the Type column). */
 export const isTextName = (name: string) => TEXT_EXTS.has(extOf(name));
 
+/** Max file size the viewer will fetch as text; larger files show "File too large." */
+export const MAX_TEXT_VIEW_SIZE = 1024 * 1024;
+
 export const isTextFile = (name: string, size: number) =>
-  size < 1024 * 1024 && isTextName(name);
+  size < MAX_TEXT_VIEW_SIZE && isTextName(name);
 
 export function joinPath(dir: string, name: string): string {
   return dir.endsWith('/') ? `${dir}${name}` : `${dir}/${name}`;

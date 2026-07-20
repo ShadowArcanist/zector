@@ -7,12 +7,10 @@ import { pushToast } from '../../store/toast';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
-import { EditorOverlay, ImageOverlay } from './FileOverlays';
 import { FileTable } from './FileTable';
-import { isImageFile, isTextFile } from './format';
+import { isImageFile, isTextName } from './format';
 import { useFiles } from './useFiles';
-
-type Overlay = { kind: 'image' | 'editor'; path: string } | null;
+import { FileViewer, type ViewerFile } from './viewer/FileViewer';
 
 function download(target: string, path: string) {
   const a = document.createElement('a');
@@ -27,7 +25,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [creatingFolder, setCreatingFolder] = useState(false);
-  const [overlay, setOverlay] = useState<Overlay>(null);
+  const [overlay, setOverlay] = useState<ViewerFile | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,10 +33,9 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     if (entry.is_dir) {
       setSelected(null);
       navigate(entry.path);
-    } else if (isImageFile(entry.name)) {
-      setOverlay({ kind: 'image', path: entry.path });
-    } else if (isTextFile(entry.name, entry.size)) {
-      setOverlay({ kind: 'editor', path: entry.path });
+    } else if (isImageFile(entry.name) || isTextName(entry.name)) {
+      // read-only viewer; it handles the too-large fallback itself
+      setOverlay({ path: entry.path, name: entry.name, size: entry.size });
     } else {
       download(block.target, entry.path);
     }
@@ -166,12 +163,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
           </span>
         </div>
       )}
-      {overlay?.kind === 'image' && (
-        <ImageOverlay target={block.target} path={overlay.path} onClose={() => setOverlay(null)} />
-      )}
-      {overlay?.kind === 'editor' && (
-        <EditorOverlay target={block.target} path={overlay.path} onClose={() => setOverlay(null)} />
-      )}
+      {overlay && <FileViewer target={block.target} file={overlay} onClose={() => setOverlay(null)} />}
     </div>
   );
 }
