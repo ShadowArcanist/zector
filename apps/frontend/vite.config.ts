@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // keep file-type icon svgs as separate assets (fetched on demand)
+  build: { assetsInlineLimit: 0 },
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] }),
