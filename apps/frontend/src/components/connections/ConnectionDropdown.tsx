@@ -84,22 +84,22 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
   }, [onClose, anchorRef]);
 
   const rowClass = (active: boolean, isCurrent: boolean) =>
-    `flex h-[30px] w-full cursor-pointer items-center gap-2 px-2.5 text-left text-[12px] ${
-      active ? 'bg-hover text-fg' : isCurrent ? 'text-fg' : 'text-fg-dim'
+    `flex h-8 w-full cursor-pointer items-center gap-2 px-3 text-left text-[12px] ${
+      active ? 'bg-white/8 text-fg' : isCurrent ? 'text-fg' : 'text-fg-dim'
     }`;
 
   return createPortal(
     <div
       ref={panelRef}
-      className="fixed z-[70] rounded-md border border-edge2 bg-bg1 shadow-modal"
+      className="fixed z-[70] rounded-xl border border-white/6 bg-bg2 shadow-modal"
       style={{ width: WIDTH, visibility: 'hidden' }}
     >
-      <div className="border-b border-white/8 p-1.5">
+      <div className="border-b border-white/6 p-1.5">
         <input
           autoFocus
           value={query}
           placeholder="Filter connections…"
-          className="h-7 w-full rounded-[4px] border border-edge2 bg-black/20 px-2 text-[12px] text-fg outline-none placeholder:text-fg-faint focus:border-accent"
+          className="h-7 w-full rounded-lg bg-white/5 px-2.5 text-[12px] text-fg outline-none placeholder:text-fg-faint focus:ring-1 focus:ring-accent"
           onChange={(e) => {
             setQuery(e.target.value);
             setHi(0);
@@ -125,7 +125,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
         {options.map((opt, i) => {
           if (opt.kind === 'new') {
             return (
-              <div key="new" className={i > 0 ? 'mt-1 border-t border-white/8 pt-1' : ''}>
+              <div key="new" className={i > 0 ? 'mt-1 border-t border-white/6 pt-1' : ''}>
                 <button
                   type="button"
                   className={rowClass(i === highlight, false)}

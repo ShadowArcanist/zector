@@ -45,7 +45,7 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
           <FilesBlock leafId={leaf.id} block={block} />
         )}
       </div>
-      {highlightOn && focused && (
+      {highlightOn && (preset?.highlightActive ?? true) && focused && (
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 z-40 rounded-lg"

@@ -24,6 +24,7 @@ export type BackgroundDef = {
   bg: string;
   opacity: number;
   accent?: string; // drives --color-accent (draggers, selections…) while active
+  highlightActive?: boolean; // per-theme focus highlight toggle (default true)
   highlightColor?: string; // focused-block border color (falls back to accent)
   highlightWidth?: number; // focused-block border width in px (default 2)
 };
@@ -89,6 +90,8 @@ function parseBackgrounds(raw: unknown): BackgroundDef[] {
         bg,
         opacity: num(o['bg:opacity']) ?? 1,
         accent: str(o.accent),
+        highlightActive:
+          typeof o['highlight:active'] === 'boolean' ? o['highlight:active'] : undefined,
         highlightColor: str(o['highlight:color']),
         highlightWidth: num(o['highlight:width']),
       };

@@ -69,7 +69,7 @@ export function TabItem({
       onContextMenu={(e) =>
         openContextMenu(e, [
           { label: 'Rename Tab', icon: <EditIcon size={14} />, onClick: startRename },
-          { label: 'Background', icon: <WallpaperIcon size={14} />, submenu: bgItems },
+          { label: 'Themes', icon: <WallpaperIcon size={14} />, submenu: bgItems },
           'separator',
           { label: 'Close Tab', icon: <CloseIcon size={14} />, onClick: () => closeTab(tab.id) },
         ])

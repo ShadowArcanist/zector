@@ -7,8 +7,8 @@ import {
   type MenuItem,
 } from '../../store/contextMenu';
 
-const PANEL_CLASS =
-  'min-w-44 rounded-md border border-edge2 bg-bg1 py-1 shadow-modal';
+// Same design language as the connections-modal dropdowns (Select/ColorSelect).
+const PANEL_CLASS = 'min-w-44 rounded-xl border border-white/6 bg-bg2 py-1.5 shadow-modal';
 
 function ItemRow({
   item,
@@ -40,10 +40,10 @@ function ItemRow({
       <button
         type="button"
         disabled={item.disabled}
-        className={`flex h-[26px] w-full cursor-pointer items-center gap-2 px-2.5 text-left text-[12px] transition-colors disabled:cursor-default disabled:opacity-40 ${
+        className={`flex h-8 w-full cursor-pointer items-center gap-2 px-3 text-left text-[13px] transition-colors disabled:cursor-default disabled:opacity-40 ${
           item.danger
             ? 'text-danger hover:bg-danger/15'
-            : 'text-fg-dim not-disabled:hover:bg-hover not-disabled:hover:text-fg'
+            : 'text-fg-dim not-disabled:hover:bg-white/8 not-disabled:hover:text-fg'
         }`}
         onClick={() => {
           if (item.submenu) return;
@@ -52,8 +52,8 @@ function ItemRow({
         }}
       >
         {hasChecks && (
-          <span className="flex w-3.5 shrink-0 justify-center">
-            {item.checked && <CheckIcon size={12} className="text-accent" />}
+          <span className="flex w-4 shrink-0 justify-center">
+            {item.checked && <CheckIcon size={13} className="text-fg" />}
           </span>
         )}
         {item.icon && <span className="flex w-4 shrink-0 justify-center">{item.icon}</span>}
@@ -62,7 +62,7 @@ function ItemRow({
       </button>
       {item.submenu && subOpen && (
         <div
-          className={`absolute top-[-5px] z-10 ${subLeft ? 'right-full' : 'left-full'}`}
+          className={`absolute top-[-7px] z-10 ${subLeft ? 'right-full' : 'left-full'}`}
         >
           <MenuPanel items={item.submenu} onDone={onDone} clampSelf />
         </div>
@@ -97,7 +97,7 @@ function MenuPanel({
     <div ref={ref} className={PANEL_CLASS}>
       {items.map((entry, i) =>
         entry === 'separator' ? (
-          <div key={`sep-${i}`} className="my-1 h-px bg-white/8" />
+          <div key={`sep-${i}`} className="my-1.5 h-px bg-white/6" />
         ) : (
           <ItemRow key={`${entry.label}-${i}`} item={entry} hasChecks={hasChecks} onDone={onDone} />
         ),
