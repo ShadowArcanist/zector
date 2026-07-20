@@ -11,9 +11,17 @@ test('terminal uses an intermediate normal font weight', async () => {
 });
 
 test('terminal uses a narrow scrollbar', async () => {
-  const sessions = await readFile(
-    new URL('../src/components/terminal/termSessions.ts', import.meta.url),
-    'utf8',
-  );
+  const [sessions, themes] = await Promise.all([
+    readFile(new URL('../src/components/terminal/termSessions.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/components/terminal/themes.ts', import.meta.url), 'utf8'),
+  ]);
   assert.match(sessions, /overviewRuler:\s*\{\s*width:\s*6\s*\}/);
+  assert.match(themes, /overviewRulerBorder:\s*'#00000000'/);
+});
+
+test('mouse-focused block separators do not stay highlighted after resizing', async () => {
+  const css = await readFile(new URL('../src/styles/global.css', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(css, /\[data-separator='focus'\]\s*\{/);
+  assert.match(css, /\[data-separator='focus'\]:focus-visible/);
 });

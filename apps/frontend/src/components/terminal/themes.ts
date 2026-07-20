@@ -20,4 +20,10 @@ export const TERM_FONT =
 
 /** Transparent terminals (tab bg presets) drop the opaque background color. */
 export const themedTheme = (t: ITheme, transparent: boolean): ITheme =>
-  transparent ? { ...t, background: '#00000000' } : t;
+  ({
+    ...t,
+    ...(transparent ? { background: '#00000000' } : {}),
+    // Setting overviewRuler.width is how xterm v6 narrows its scrollbar, but
+    // it also enables a full-height ruler border unless we hide it explicitly.
+    overviewRulerBorder: '#00000000',
+  });

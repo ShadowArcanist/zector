@@ -86,7 +86,7 @@ body {
 }
 [data-separator='hover'],
 [data-separator='active'],
-[data-separator='focus'] {
+[data-separator='focus']:focus-visible {
   background: rgb(from var(--color-accent) r g b / 0.5);
 }
 [data-separator][aria-orientation='horizontal'] {
