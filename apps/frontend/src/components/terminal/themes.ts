@@ -3,7 +3,7 @@ import type { ITheme } from '@xterm/xterm';
 /** Built-in "default" terminal theme (neutral graphite); the config registry
  *  in store/config.ts layers user themes from terminal-themes.json on top. */
 
-export const TERM_FONT_WEIGHT = 500;
+export const TERM_FONT_WEIGHT = 600;
 export const TERM_FONT_WEIGHT_BOLD = 700;
 
 // prettier-ignore
