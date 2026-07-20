@@ -22,14 +22,15 @@ const SETTINGS: &str = r##"{
   "term:theme": "default",
   "block:bgcolor": "#000000",
   "block:blur": false,
-  "block:opacity": 0.25
+  "block:opacity": 0.25,
+  "block:highlight": true
 }
 "##;
 
 const TERMINAL_THEMES: &str = r##"{
   "zed-dark": {
     "display:name": "Zed Dark",
-    "display:order": 3,
+    "display:order": 1,
     "background": "#0E100F",
     "foreground": "#CECDC3",
     "cursor": "#CECDC3",
@@ -54,65 +55,95 @@ const TERMINAL_THEMES: &str = r##"{
 "##;
 
 const BACKGROUNDS: &str = r##"{
-  "bg@shadows-midnight": {
+  "shadows-midnight": {
     "display:name": "Shadow's Midnight",
-    "display:order": 0.1,
+    "display:order": 1,
     "bg": "linear-gradient(135deg, #2a3b4c, rgba(42, 59, 76, 0.4))",
-    "bg:opacity": 0.9
+    "bg:opacity": 0.9,
+    "accent": "#6d7a7c",
+    "highlight:color": "#6d7a7c",
+    "highlight:width": 2
   },
-  "bg@shadows-golden-hour": {
+  "shadows-golden-hour": {
     "display:name": "Shadow's Golden Hour",
-    "display:order": 0.2,
+    "display:order": 2,
     "bg": "linear-gradient(135deg, #d58a42, rgba(213, 138, 66, 0.4))",
-    "bg:opacity": 0.4
+    "bg:opacity": 0.4,
+    "accent": "#bf8c3c",
+    "highlight:color": "#bf8c3c",
+    "highlight:width": 2
   },
-  "bg@shadows-cosmic-purple": {
+  "shadows-cosmic-purple": {
     "display:name": "Shadow's Cosmic Purple",
-    "display:order": 0.3,
+    "display:order": 3,
     "bg": "linear-gradient(135deg, #5d3e66, rgba(93, 62, 102, 0.4))",
-    "bg:opacity": 0.8
+    "bg:opacity": 0.8,
+    "accent": "#A76DBE",
+    "highlight:color": "#A76DBE",
+    "highlight:width": 2
   },
-  "bg@shadows-neon-glow": {
+  "shadows-neon-glow": {
     "display:name": "Shadow's Neon Glow",
-    "display:order": 0.4,
+    "display:order": 4,
     "bg": "linear-gradient(135deg, #f300a6, rgba(243, 0, 166, 0.3))",
-    "bg:opacity": 0.45
+    "bg:opacity": 0.45,
+    "accent": "#DB425A",
+    "highlight:color": "#DB425A",
+    "highlight:width": 2
   },
-  "bg@shadows-icy-mist": {
+  "shadows-icy-mist": {
     "display:name": "Shadow's Icy Mist",
-    "display:order": 0.5,
+    "display:order": 5,
     "bg": "linear-gradient(135deg, #d0d8e2, rgba(208, 216, 226, 0.2))",
-    "bg:opacity": 0.5
+    "bg:opacity": 0.5,
+    "accent": "#93b7c4",
+    "highlight:color": "#93b7c4",
+    "highlight:width": 2
   },
-  "bg@shadows-tropical-storm": {
+  "shadows-tropical-storm": {
     "display:name": "Shadow's Tropical Storm",
-    "display:order": 0.6,
+    "display:order": 6,
     "bg": "linear-gradient(135deg, #00b894, #1fa771, #2ecc71, #27ae60)",
-    "bg:opacity": 0.3
+    "bg:opacity": 0.3,
+    "accent": "#1fa771",
+    "highlight:color": "#1fa771",
+    "highlight:width": 2
   },
-  "bg@shadows-golden-nebula": {
+  "shadows-golden-nebula": {
     "display:name": "Shadow's Golden Nebula",
-    "display:order": 0.7,
+    "display:order": 7,
     "bg": "linear-gradient(135deg, #ffd700, #ff6347, #d4a20e, #ffcc00, #1f3d6f)",
-    "bg:opacity": 0.44
+    "bg:opacity": 0.44,
+    "accent": "#d4a20e",
+    "highlight:color": "#d4a20e",
+    "highlight:width": 2
   },
-  "bg@shadows-cosmic-lagoon": {
+  "shadows-cosmic-lagoon": {
     "display:name": "Shadow's Cosmic Lagoon",
-    "display:order": 0.8,
+    "display:order": 8,
     "bg": "linear-gradient(135deg, #1d2b64, #2f4f96, #00b5b8, #9c27b0, #8e24aa)",
-    "bg:opacity": 0.59
+    "bg:opacity": 0.59,
+    "accent": "#00b5b8",
+    "highlight:color": "#00b5b8",
+    "highlight:width": 2
   },
-  "bg@shadows-neon-nebula": {
+  "shadows-neon-nebula": {
     "display:name": "Shadow's Neon Nebula",
-    "display:order": 0.9,
+    "display:order": 9,
     "bg": "linear-gradient(135deg, #00d9d9, #ff55aa, #1e1e2f, #2f3b57, #ff99ff)",
-    "bg:opacity": 0.6
+    "bg:opacity": 0.6,
+    "accent": "#ff55aa",
+    "highlight:color": "#ff55aa",
+    "highlight:width": 2
   },
-  "bg@shadows-transparent": {
+  "shadows-transparent": {
     "display:name": "Shadow's Blur Black",
-    "display:order": 1.1,
+    "display:order": 10,
     "bg": "rgba(0, 0, 0, 0.7)",
-    "bg:opacity": 0.7
+    "bg:opacity": 0.7,
+    "accent": "#8C8E9C",
+    "highlight:color": "#8C8E9C",
+    "highlight:width": 2
   }
 }
 "##;
