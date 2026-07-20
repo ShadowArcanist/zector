@@ -18,9 +18,15 @@ export const MIN_COL_WIDTH = 50;
 export const MAX_COL_WIDTH = 400;
 export const NAME_MIN_WIDTH = 120;
 
-/** Minimum row width: name min + horizontal padding + the fixed columns. */
-export function rowMinWidth(widths: ColWidths): number {
-  return NAME_MIN_WIDTH + 16 + widths.perm + widths.modified + widths.size + widths.type;
+export const HIDEABLE_COLS: FixedColKey[] = ['perm', 'modified', 'size', 'type'];
+
+/** Minimum row width: name min + horizontal padding + the visible fixed columns. */
+export function rowMinWidth(widths: ColWidths, hidden: ReadonlySet<FixedColKey>): number {
+  return (
+    NAME_MIN_WIDTH +
+    16 +
+    HIDEABLE_COLS.reduce((sum, key) => sum + (hidden.has(key) ? 0 : widths[key]), 0)
+  );
 }
 
 export const COLUMNS: { key: SortKey; label: string }[] = [

@@ -43,6 +43,7 @@ export type UiState = {
   localName?: string;
   localIcon?: string;
   localColor?: string;
+  hiddenFileColumns?: string[]; // file-explorer columns the user hid (perm/modified/size/type)
 };
 
 // Frontend extension over the architecture doc: `root` may be null for a

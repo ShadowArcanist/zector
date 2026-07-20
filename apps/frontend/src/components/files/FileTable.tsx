@@ -2,11 +2,13 @@ import { useRef, useState } from 'react';
 import { FolderPlusIcon } from '../ui/icons/files';
 import type { FsEntry } from '../../api/types';
 import { useFilesNavStore } from '../../store/filesNav';
+import { useLayoutStore } from '../../store/layout';
 import {
   compareEntries,
   DEFAULT_COL_WIDTHS,
   DEFAULT_SORT,
   type ColWidths,
+  type FixedColKey,
   type SortState,
 } from './columns';
 import { parentPath } from './format';
@@ -55,6 +57,8 @@ export function FileTable({
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
   const widthOverrides = useFilesNavStore((s) => s.colWidths[leafId]);
   const widths: ColWidths = { ...DEFAULT_COL_WIDTHS, ...widthOverrides };
+  const hiddenList = useLayoutStore((s) => s.hiddenFileColumns);
+  const hidden = new Set<FixedColKey>((hiddenList ?? []) as FixedColKey[]);
 
   const atRoot = path === '/' || path === '';
   const rows: FsEntry[] = [
@@ -92,7 +96,13 @@ export function FileTable({
       onMouseDown={() => ref.current?.focus()}
       onContextMenu={onEmptyMenu}
     >
-      <FileTableHeader leafId={leafId} widths={widths} sort={sort} onToggleSort={toggleSort} />
+      <FileTableHeader
+        leafId={leafId}
+        widths={widths}
+        hidden={hidden}
+        sort={sort}
+        onToggleSort={toggleSort}
+      />
       {creatingFolder && (
         <div className="flex h-6 shrink-0 items-center gap-2 px-2">
           <FolderPlusIcon size={14} className="shrink-0 text-accent/80" />
@@ -106,6 +116,7 @@ export function FileTable({
           key={entry.path}
           entry={entry}
           widths={widths}
+          hidden={hidden}
           isParent={entry.name === '..'}
           selected={selected === entry.path}
           renaming={renaming === entry.path}

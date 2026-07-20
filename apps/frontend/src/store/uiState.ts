@@ -38,12 +38,16 @@ export function parseUiState(raw: unknown): UiState | null {
       : undefined;
   const localIcon = typeof state.localIcon === 'string' ? state.localIcon : undefined;
   const localColor = typeof state.localColor === 'string' ? state.localColor : undefined;
+  const hiddenFileColumns = Array.isArray(state.hiddenFileColumns)
+    ? state.hiddenFileColumns.filter((c): c is string => typeof c === 'string')
+    : undefined;
   return {
     tabs,
     activeTabId: tabs.some((t) => t.id === active) ? active : tabs[0].id,
     localName,
     localIcon,
     localColor,
+    hiddenFileColumns,
   };
 }
 
@@ -52,8 +56,8 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined;
 export function schedulePersist(get: () => UiState) {
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
-    const { tabs, activeTabId, localName, localIcon, localColor } = get();
-    putUiState({ tabs, activeTabId, localName, localIcon, localColor }).catch(() => {
+    const { tabs, activeTabId, localName, localIcon, localColor, hiddenFileColumns } = get();
+    putUiState({ tabs, activeTabId, localName, localIcon, localColor, hiddenFileColumns }).catch(() => {
       // quiet: layout persistence is best-effort while the backend is down
     });
   }, 500);

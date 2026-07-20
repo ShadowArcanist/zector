@@ -1,7 +1,10 @@
 import { ArrowDownIcon, ArrowUpIcon } from '../ui/icons/general';
 import { useFilesNavStore } from '../../store/filesNav';
+import { useLayoutStore } from '../../store/layout';
+import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import {
   COLUMNS,
+  HIDEABLE_COLS,
   MAX_COL_WIDTH,
   MIN_COL_WIDTH,
   NAME_MIN_WIDTH,
@@ -53,20 +56,36 @@ function ColDivider({ leafId, colKey, width }: { leafId: string; colKey: FixedCo
 export function FileTableHeader({
   leafId,
   widths,
+  hidden,
   sort,
   onToggleSort,
 }: {
   leafId: string;
   widths: ColWidths;
+  hidden: ReadonlySet<FixedColKey>;
   sort: SortState;
   onToggleSort: (key: SortState['key']) => void;
 }) {
+  const toggleFileColumn = useLayoutStore((s) => s.toggleFileColumn);
+  const columnMenu = (e: React.MouseEvent) => {
+    const items: MenuEntry[] = COLUMNS.filter(
+      (c): c is { key: FixedColKey; label: string } =>
+        HIDEABLE_COLS.includes(c.key as FixedColKey),
+    ).map((c) => ({
+      label: c.label,
+      checked: !hidden.has(c.key),
+      onClick: () => toggleFileColumn(c.key),
+    }));
+    openContextMenu(e, items);
+  };
+
   return (
     <div
       className="sticky top-0 z-10 flex h-[26px] shrink-0 items-center border-b border-white/8 bg-white/4 px-2 backdrop-blur-[8px]"
-      style={{ minWidth: rowMinWidth(widths) }}
+      style={{ minWidth: rowMinWidth(widths, hidden) }}
+      onContextMenu={columnMenu}
     >
-      {COLUMNS.map((col) => {
+      {COLUMNS.filter((col) => col.key === 'name' || !hidden.has(col.key as FixedColKey)).map((col) => {
         const active = sort.key === col.key;
         const Arrow = sort.dir === 'asc' ? ArrowUpIcon : ArrowDownIcon;
         const sortButton = (

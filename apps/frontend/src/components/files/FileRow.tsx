@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileIcon, FolderIcon, LinkIcon } from '../ui/icons/files';
+import { LinkIcon } from '../ui/icons/files';
 import type { FsEntry } from '../../api/types';
 import {
   formatModified,
@@ -8,12 +8,15 @@ import {
   rowMinWidth,
   typeLabel,
   type ColWidths,
+  type FixedColKey,
 } from './columns';
+import { fileIconUrl } from './fileIcons';
 import { humanSize } from './format';
 
 type Props = {
   entry: FsEntry;
   widths: ColWidths;
+  hidden: ReadonlySet<FixedColKey>;
   isParent: boolean; // the synthetic ".." row
   selected: boolean;
   renaming: boolean;
@@ -26,8 +29,17 @@ type Props = {
 
 function EntryIcon({ entry }: { entry: FsEntry }) {
   if (entry.is_symlink) return <LinkIcon size={14} className="shrink-0 text-fg-faint" />;
-  if (entry.is_dir) return <FolderIcon size={14} className="shrink-0 text-accent/80" />;
-  return <FileIcon size={14} className="shrink-0 text-fg-faint" />;
+  return (
+    <img
+      src={fileIconUrl(entry.name, entry.is_dir)}
+      width={14}
+      height={14}
+      className="shrink-0"
+      alt=""
+      loading="lazy"
+      draggable={false}
+    />
+  );
 }
 
 export function RenameInput({
@@ -74,6 +86,7 @@ export function RenameInput({
 export function FileRow({
   entry,
   widths,
+  hidden,
   isParent,
   selected,
   renaming,
@@ -96,7 +109,7 @@ export function FileRow({
       className={`flex h-6 shrink-0 cursor-default items-center px-2 text-[12px] select-none ${
         selected ? 'bg-accent/30 text-fg' : 'text-fg-dim hover:bg-white/8'
       }`}
-      style={{ minWidth: rowMinWidth(widths) }}
+      style={{ minWidth: rowMinWidth(widths, hidden) }}
       onClick={() => onSelect(entry)}
       onDoubleClick={() => onOpen(entry)}
       onContextMenu={isParent ? undefined : (e) => onContextMenu(entry, e)}
@@ -115,30 +128,38 @@ export function FileRow({
           )}
         </span>
       </span>
-      <span
-        className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
-        style={{ width: widths.perm }}
-      >
-        {isParent ? '' : permString(entry)}
-      </span>
-      <span
-        className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
-        style={{ width: widths.modified }}
-      >
-        {isParent ? '' : formatModified(entry.modified)}
-      </span>
-      <span
-        className={`shrink-0 text-right font-mono text-[11px] ${metaCls}`}
-        style={{ width: widths.size }}
-      >
-        {entry.is_dir ? '' : humanSize(entry.size)}
-      </span>
-      <span
-        className={`shrink-0 truncate pl-3 text-[11px] ${metaCls}`}
-        style={{ width: widths.type }}
-      >
-        {typeLabel(entry)}
-      </span>
+      {!hidden.has('perm') && (
+        <span
+          className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
+          style={{ width: widths.perm }}
+        >
+          {isParent ? '' : permString(entry)}
+        </span>
+      )}
+      {!hidden.has('modified') && (
+        <span
+          className={`shrink-0 truncate font-mono text-[11px] ${metaCls}`}
+          style={{ width: widths.modified }}
+        >
+          {isParent ? '' : formatModified(entry.modified)}
+        </span>
+      )}
+      {!hidden.has('size') && (
+        <span
+          className={`shrink-0 text-right font-mono text-[11px] ${metaCls}`}
+          style={{ width: widths.size }}
+        >
+          {entry.is_dir ? '' : humanSize(entry.size)}
+        </span>
+      )}
+      {!hidden.has('type') && (
+        <span
+          className={`shrink-0 truncate pl-3 text-[11px] ${metaCls}`}
+          style={{ width: widths.type }}
+        >
+          {typeLabel(entry)}
+        </span>
+      )}
     </div>
   );
 }

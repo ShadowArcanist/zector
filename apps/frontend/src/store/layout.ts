@@ -37,6 +37,7 @@ type LayoutStore = UiState & {
   setLocalName: (name: string) => void;
   setLocalIcon: (icon: string | null) => void;
   setLocalColor: (color: string | null) => void;
+  toggleFileColumn: (key: string) => void;
 };
 
 function killTree(root: Tab['root']) {
@@ -186,5 +187,13 @@ export const useLayoutStore = create<LayoutStore>((set, get) => {
     setLocalIcon: (icon) => mutate(() => ({ localIcon: icon ?? undefined })),
 
     setLocalColor: (color) => mutate(() => ({ localColor: color ?? undefined })),
+
+    toggleFileColumn: (key) =>
+      mutate((s) => {
+        const hidden = new Set(s.hiddenFileColumns ?? []);
+        if (hidden.has(key)) hidden.delete(key);
+        else hidden.add(key);
+        return { hiddenFileColumns: hidden.size ? [...hidden] : undefined };
+      }),
   };
 });
