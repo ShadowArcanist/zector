@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let config = config::Config::load()?;
     tracing::info!(data_dir = %config.data_dir.display(), "using data directory");
 
-    let db = db::init(&config.db_path())?;
+    let db = db::init(&config.config_dir, &config.db_path())?;
     let state = state::AppState::new(db);
 
     let app = Router::new()

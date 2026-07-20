@@ -4,6 +4,7 @@ use std::path::PathBuf;
 pub struct Config {
     pub port: u16,
     pub data_dir: PathBuf,
+    pub config_dir: PathBuf,
 }
 
 impl Config {
@@ -15,15 +16,28 @@ impl Config {
             Err(_) => 7887,
         };
 
+        // legacy data dir: only read for one-time sqlite migration
         let data_dir = match std::env::var("ZECTOR_DATA_DIR") {
             Ok(v) => PathBuf::from(v),
             Err(_) => dirs::data_dir()
                 .ok_or_else(|| anyhow::anyhow!("could not determine OS data directory"))?
                 .join("zector"),
         };
-        std::fs::create_dir_all(&data_dir)?;
 
-        Ok(Self { port, data_dir })
+        // JSON configs live here (connections.json, state.json) for easy backup
+        let config_dir = match std::env::var("ZECTOR_CONFIG_DIR") {
+            Ok(v) => PathBuf::from(v),
+            Err(_) => dirs::home_dir()
+                .ok_or_else(|| anyhow::anyhow!("could not determine home directory"))?
+                .join(".config")
+                .join("zector"),
+        };
+
+        Ok(Self {
+            port,
+            data_dir,
+            config_dir,
+        })
     }
 
     pub fn db_path(&self) -> PathBuf {
