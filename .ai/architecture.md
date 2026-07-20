@@ -109,7 +109,8 @@ type Block =
     - `connections.json` — saved servers (incl. secrets, icon, icon_color); written by the app.
     - `settings.json` — defaults + global block chrome: `tab:preset` (bg key for new tabs), `term:fontsize`, `term:theme` (defaults; per-tab bg / per-block fontSize/termTheme override), `block:bgcolor` / `block:opacity` / `block:blur` (apply to ALL blocks via CSS vars).
     - `terminal-themes.json` — Wave-format named terminal themes (display:name/order + ANSI colors); merged after the built-in "default" (graphite).
-    - `backgrounds.json` — Wave-format `bg@<key>` background presets (bg css + bg:opacity); the `bg@` prefix is stripped internally.
+    - `backgrounds.json` — background presets keyed WITHOUT the `bg@` prefix (a legacy `bg@` prefix is still stripped on parse). Per entry: `display:name`, `display:order` (int), `bg` (css), `bg:opacity`, `accent` (drives `--color-accent` while that bg is active — draggers/selections/focus rings), `highlight:color` + `highlight:width` (focused-block border, falls back to accent / 2px).
+    - `settings.json` also has `block:highlight` (bool, default true) toggling the focused-block border.
   - `ZECTOR_DATA_DIR`/zector.db (SQLite, default OS data dir): internal UI layout state only — deliberately NOT in the shareable config folder. A pre-JSON sqlite `connections` table and an interim `state.json` are both auto-imported on startup.
 - In release the frontend `dist/` is embedded via rust-embed and served at `/` with SPA fallback to `index.html`.
 - In dev: run `cargo run` (backend on :7887) and `bun run dev` (Vite on :5173, proxies `/api` to :7887 including WS).
