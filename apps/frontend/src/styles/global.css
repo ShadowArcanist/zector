@@ -6,6 +6,7 @@
   --color-bg0: #1a1a1a; /* app background */
   --color-bg1: #202022; /* panel / modal background */
   --color-bg2: #28282a; /* raised surfaces (inputs, toasts) */
+  --color-menu: #121213; /* menus/dropdowns — matches the modal content pane (bg1 + black/45) */
   --color-bg3: #323234; /* selected surfaces */
   --color-block: rgba(0, 0, 0, 0.25); /* block background (overridden at runtime from config) */
   --color-edge: rgba(255, 255, 255, 0.14); /* general border */

@@ -8,7 +8,7 @@ import {
 } from '../../store/contextMenu';
 
 // Same design language as the connections-modal dropdowns (Select/ColorSelect).
-const PANEL_CLASS = 'min-w-44 rounded-xl border border-white/6 bg-bg2 py-1.5 shadow-modal';
+const PANEL_CLASS = 'min-w-44 rounded-xl border border-white/6 bg-menu py-1.5 shadow-modal';
 
 function ItemRow({
   item,

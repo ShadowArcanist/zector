@@ -91,7 +91,7 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
   return createPortal(
     <div
       ref={panelRef}
-      className="fixed z-[70] rounded-xl border border-white/6 bg-bg2 shadow-modal"
+      className="fixed z-[70] rounded-xl border border-white/6 bg-menu shadow-modal"
       style={{ width: WIDTH, visibility: 'hidden' }}
     >
       <div className="border-b border-white/6 p-1.5">

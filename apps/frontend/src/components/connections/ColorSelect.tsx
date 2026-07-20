@@ -79,7 +79,7 @@ export function ColorSelect({
           <div
             ref={menuRef}
             role="listbox"
-            className="fixed z-100 grid w-[220px] grid-cols-4 gap-1.5 rounded-xl border border-white/6 bg-bg2 p-2 shadow-modal"
+            className="fixed z-100 grid w-[220px] grid-cols-4 gap-1.5 rounded-xl border border-white/6 bg-menu p-2 shadow-modal"
             style={{ top: pos.top, right: pos.right }}
           >
             {CONN_COLORS.map((c) => {
