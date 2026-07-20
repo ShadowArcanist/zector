@@ -1,96 +1,92 @@
-import { useEffect, useState } from 'react';
-import { fsReadUrl } from '../../../api/fs';
+import { useCallback, useEffect, useState } from 'react';
+import { fsReadUrl, fsWrite } from '../../../api/fs';
+import { resolveTermTheme, useConfigStore } from '../../../store/config';
+import { useFilesNavStore, type OpenFile } from '../../../store/filesNav';
+import { useLayoutStore } from '../../../store/layout';
+import { pushToast } from '../../../store/toast';
+import { ConfirmModal } from '../../ui/ConfirmModal';
 import { Spinner } from '../../ui/Spinner';
 import { MAX_TEXT_VIEW_SIZE, isImageFile, isTextName } from '../format';
-import { CodeView } from './CodeView';
+import { CodeEditor } from './CodeEditor';
 import { detectLang } from './lang';
-import { ViewerHeader } from './ViewerHeader';
+import { useFileText } from './useFileText';
+import { SvgToggle, ViewerHeader } from './ViewerHeader';
 
 /**
- * Read-only file viewer overlay (gitbase's CodeFileView adapted to zector):
- * images render a centered preview, SVGs get a Preview/Code toggle, text files
- * get line numbers + shiki highlighting, and binary/oversized files fall back
- * to a download message.
+ * File editor overlay: images render a centered preview, SVGs get a
+ * Preview/Code toggle (code stays read-only), text files open in the editable
+ * CodeEditor with Cmd/Ctrl+S + header Save, and binary/oversized files fall
+ * back to a download message. Open/dirty state lives in the filesNav store so
+ * the block header + back button can see it; closing with unsaved edits goes
+ * through the store's confirm flow (ConfirmModal below).
  */
-
-export type ViewerFile = { path: string; name: string; size: number };
-
-function useEscape(onClose: () => void) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-}
-
-function useFileText(target: string, path: string, enabled: boolean) {
-  const [state, setState] = useState<{ key: string; text: string | null; error: string | null }>({
-    key: '',
-    text: null,
-    error: null,
-  });
-  const key = `${target}\n${path}`;
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    fetch(fsReadUrl(target, path))
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`could not read file (${res.status})`);
-        return res.text();
-      })
-      .then((text) => {
-        if (!cancelled) setState({ key, text, error: null });
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setState({ key, text: null, error: err instanceof Error ? err.message : 'read failed' });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [target, path, key, enabled]);
-  return state.key === key ? state : { key, text: null, error: null };
-}
-
-function SvgToggle({ mode, onChange }: { mode: 'preview' | 'code'; onChange: (m: 'preview' | 'code') => void }) {
-  const seg = (m: 'preview' | 'code', label: string) => (
-    <button
-      type="button"
-      onClick={() => onChange(m)}
-      className={`h-7 cursor-pointer px-2.5 text-[11px] transition-colors ${
-        mode === m ? 'bg-white/12 text-fg' : 'text-fg-dim hover:text-fg'
-      }`}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div className="flex shrink-0 items-center overflow-hidden rounded-full bg-white/6">
-      {seg('preview', 'Preview')}
-      {seg('code', 'Code')}
-    </div>
-  );
-}
 
 function CenterMessage({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-1 items-center justify-center p-8 text-center text-[12px] text-fg-dim">{children}</div>;
 }
 
-export function FileViewer({ target, file, onClose }: { target: string; file: ViewerFile; onClose: () => void }) {
-  useEscape(onClose);
-  const [svgMode, setSvgMode] = useState<'preview' | 'code'>('preview');
+export function FileViewer({ leafId, file }: { leafId: string; file: OpenFile }) {
+  const { target } = file;
+  const setFileDirty = useFilesNavStore((s) => s.setFileDirty);
+  const requestCloseFile = useFilesNavStore((s) => s.requestCloseFile);
+  const cancelCloseFile = useFilesNavStore((s) => s.cancelCloseFile);
+  const closeFile = useFilesNavStore((s) => s.closeFile);
+  const confirming = useFilesNavStore((s) => !!s.openFiles[leafId]?.confirmingClose);
+  // Editor surface follows the terminal background behavior (TerminalBlock):
+  // active-tab bg preset → transparent so the gradient shows, else theme bg.
+  const transparent = useLayoutStore((s) => !!s.tabs.find((t) => t.id === s.activeTabId)?.bg);
+  const settings = useConfigStore((s) => s.settings);
+  const termThemes = useConfigStore((s) => s.termThemes);
+  const theme = resolveTermTheme(termThemes, settings.termTheme);
+  const themeBg = theme.background ?? '#141414';
 
+  const [svgMode, setSvgMode] = useState<'preview' | 'code'>('preview');
   const isSvg = file.name.toLowerCase().endsWith('.svg');
   const isImage = isImageFile(file.name) && !isSvg;
   const isText = isSvg || isTextName(file.name);
   const tooLarge = file.size >= MAX_TEXT_VIEW_SIZE;
   const wantsText = isText && !tooLarge;
-  const { text, error } = useFileText(target, file.path, wantsText);
+  const { key, text, error } = useFileText(target, file.path, wantsText);
 
-  const code = text?.replace(/\n$/, '') ?? null;
+  // Loaded baseline (updated on save) vs edited draft, both keyed to the file.
+  const [base, setBase] = useState<{ key: string; value: string } | null>(null);
+  const [draft, setDraft] = useState<{ key: string; value: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const baseline = base?.key === key ? base.value : text;
+  const value = draft?.key === key ? draft.value : baseline;
+  const dirty = baseline !== null && value !== null && value !== baseline;
+
+  useEffect(() => {
+    setFileDirty(leafId, dirty);
+  }, [leafId, dirty, setFileDirty]);
+
+  const save = useCallback(async () => {
+    if (value === null) return;
+    setSaving(true);
+    try {
+      await fsWrite(target, file.path, value);
+      setBase({ key, value });
+      pushToast('ok', 'Saved');
+    } catch (err) {
+      pushToast('error', err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  }, [target, file.path, key, value]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (!confirming) requestCloseFile(leafId);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (dirty && !saving) void save();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [leafId, confirming, dirty, saving, save, requestCloseFile]);
+
   const showsCode = wantsText && (!isSvg || svgMode === 'code');
   const download = () => {
     const a = document.createElement('a');
@@ -117,29 +113,54 @@ export function FileViewer({ target, file, onClose }: { target: string; file: Vi
     body = <CenterMessage>File too large. {downloadLink}</CenterMessage>;
   } else if (error) {
     body = <CenterMessage>{error}</CenterMessage>;
-  } else if (code === null) {
+  } else if (value === null) {
     body = (
       <div className="flex flex-1 items-center justify-center">
         <Spinner size={18} />
       </div>
     );
   } else {
-    body = <CodeView code={code} lang={detectLang(file.path)} />;
+    body = (
+      <CodeEditor
+        value={value}
+        lang={detectLang(file.path)}
+        onChange={(next) => setDraft({ key, value: next })}
+        readOnly={isSvg}
+        caretColor={theme.foreground ?? '#d4d4d4'}
+        selectionBackground={theme.selectionBackground}
+        gutterBackground={transparent ? 'rgb(0 0 0 / 0.4)' : themeBg}
+      />
+    );
   }
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-menu">
+    <div
+      className="absolute inset-0 z-30 flex flex-col"
+      style={{ background: transparent ? 'transparent' : themeBg }}
+    >
       <ViewerHeader
         name={file.name}
-        lineCount={showsCode && code !== null ? code.split('\n').length : undefined}
+        lineCount={showsCode && value !== null ? value.split('\n').length : undefined}
         size={file.size}
-        copyText={showsCode && code !== null ? code : undefined}
+        copyText={showsCode && value !== null ? value : undefined}
+        dirty={dirty && !isSvg}
+        saving={saving}
+        onSave={() => void save()}
         onDownload={download}
-        onClose={onClose}
+        onClose={() => requestCloseFile(leafId)}
       >
         {isSvg && !tooLarge && <SvgToggle mode={svgMode} onChange={setSvgMode} />}
       </ViewerHeader>
       {body}
+      {confirming && (
+        <ConfirmModal
+          title="Discard changes?"
+          body={`You have unsaved edits in ${file.name}.`}
+          confirmLabel="Discard"
+          onCancel={() => cancelCloseFile(leafId)}
+          onConfirm={() => closeFile(leafId)}
+        />
+      )}
     </div>
   );
 }

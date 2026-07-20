@@ -26,6 +26,11 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const home = useFilesNavStore((s) =>
     block.kind === 'files' ? s.homes[block.target] : undefined,
   );
+  // While a file is open in a files block's editor, the header titles with
+  // the file's path (name visible) instead of the directory path.
+  const openFilePath = useFilesNavStore((s) =>
+    block.kind === 'files' ? s.openFiles[leaf.id]?.file.path : undefined,
+  );
   const [connOpen, setConnOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -40,7 +45,8 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   };
   // Title text renders only when the user renamed the block; a files block
   // additionally shows its ~path (that display is the files nav, not a title).
-  const title = block.title ?? (block.kind === 'files' ? displayPath(block.path, home) : '');
+  const title =
+    block.title ?? (block.kind === 'files' ? displayPath(openFilePath ?? block.path, home) : '');
 
   useEffect(() => {
     if (editing) {

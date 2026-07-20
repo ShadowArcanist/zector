@@ -1,31 +1,55 @@
-import { pushToast } from '../../../store/toast';
-import { CloseIcon } from '../../ui/icons/general';
+import { useEffect, useRef, useState } from 'react';
+import { CheckIcon, CloseIcon } from '../../ui/icons/general';
 import { CopyIcon, DownloadIcon } from '../../ui/icons/files';
+import { Button } from '../../ui/Button';
 import { fileIconUrl } from '../fileIcons';
 import { humanSize } from '../format';
 
-/** Small circular pill icon button for the viewer header bar. */
-function PillIconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+/** Square icon button for the viewer header bar. */
+function HeaderIconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
-      className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/6 text-fg-dim transition-colors hover:bg-white/12 hover:text-fg"
+      className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-white/8 text-fg-dim transition-colors hover:bg-white/14 hover:text-fg"
       {...props}
     />
   );
 }
 
+/** Preview/Code segmented toggle for SVG files. */
+export function SvgToggle({ mode, onChange }: { mode: 'preview' | 'code'; onChange: (m: 'preview' | 'code') => void }) {
+  const seg = (m: 'preview' | 'code', label: string) => (
+    <button
+      type="button"
+      onClick={() => onChange(m)}
+      className={`h-7 cursor-pointer px-2.5 text-[11px] transition-colors ${
+        mode === m ? 'bg-white/12 text-fg' : 'text-fg-dim hover:text-fg'
+      }`}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="flex shrink-0 items-center overflow-hidden rounded-full bg-white/6">
+      {seg('preview', 'Preview')}
+      {seg('code', 'Code')}
+    </div>
+  );
+}
+
 /**
- * Viewer header bar (gitbase's FileViewHeader adapted to zector chrome):
- * material file icon + name + "N lines · size", then optional extra controls
- * (`children`, e.g. the SVG Preview/Code toggle), copy-contents, download,
- * close.
+ * Editor header bar: material file icon + name + "N lines · size", optional
+ * extra controls (`children`, e.g. the SVG toggle), Save (only when dirty),
+ * copy-contents (brief check feedback), download, close.
  */
 export function ViewerHeader({
   name,
   lineCount,
   size,
   copyText,
+  dirty = false,
+  saving = false,
+  onSave,
   onDownload,
   onClose,
   children,
@@ -34,15 +58,23 @@ export function ViewerHeader({
   lineCount?: number;
   size?: number;
   copyText?: string;
+  dirty?: boolean;
+  saving?: boolean;
+  onSave?: () => void;
   onDownload: () => void;
   onClose: () => void;
   children?: React.ReactNode;
 }) {
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+
   const copy = (text: string) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => pushToast('ok', 'File contents copied'))
-      .catch(() => pushToast('error', 'Could not copy contents'));
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), 1200);
+    });
   };
 
   return (
@@ -62,17 +94,22 @@ export function ViewerHeader({
       {size != null && <span className="shrink-0 text-[11px] text-fg-faint">{humanSize(size)}</span>}
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {children}
-        {copyText != null && (
-          <PillIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
-            <CopyIcon size={13} />
-          </PillIconButton>
+        {dirty && onSave && (
+          <Button variant="blurple" size="sm" disabled={saving} onClick={onSave}>
+            Save
+          </Button>
         )}
-        <PillIconButton onClick={onDownload} aria-label="Download file" title="Download">
-          <DownloadIcon size={13} />
-        </PillIconButton>
-        <PillIconButton onClick={onClose} aria-label="Close viewer" title="Close">
-          <CloseIcon size={13} />
-        </PillIconButton>
+        {copyText != null && (
+          <HeaderIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
+            {copied ? <CheckIcon size={14} className="text-ok" /> : <CopyIcon size={14} />}
+          </HeaderIconButton>
+        )}
+        <HeaderIconButton onClick={onDownload} aria-label="Download file" title="Download">
+          <DownloadIcon size={14} />
+        </HeaderIconButton>
+        <HeaderIconButton onClick={onClose} aria-label="Close editor" title="Close">
+          <CloseIcon size={14} />
+        </HeaderIconButton>
       </div>
     </div>
   );

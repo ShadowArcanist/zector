@@ -9,19 +9,33 @@ import { blockForLeaf } from './blocks';
  * back/forward history, a per-target home directory cache (for `~` display),
  * a refresh nonce the block header's refresh button can bump, and the last
  * successful listing per leaf (rendered instantly on remount, e.g. after a
- * block move re-nests the panel tree, while a background refresh runs).
+ * block move re-nests the panel tree, while a background refresh runs), and
+ * the per-leaf open editor file (so the block header/back button see it).
  */
 type NavStacks = { target: string; back: string[]; forward: string[] };
 
 export type CachedListing = { key: string; entries: FsEntry[] };
+
+/** File currently open in a files block's editor overlay. */
+export type OpenFile = { target: string; path: string; name: string; size: number };
+
+type OpenFileState = { file: OpenFile; dirty: boolean; confirmingClose: boolean };
 
 type FilesNavStore = {
   nav: Record<string, NavStacks | undefined>;
   homes: Record<string, string | undefined>;
   refreshNonce: Record<string, number | undefined>;
   listings: Record<string, CachedListing | undefined>;
+  /** Per-block (leafId) open editor file + dirty/close-confirm state. */
+  openFiles: Record<string, OpenFileState | undefined>;
   /** Per-block (leafId) file-table column width overrides, colKey → px. */
   colWidths: Record<string, Record<string, number> | undefined>;
+  openFile: (leafId: string, file: OpenFile) => void;
+  closeFile: (leafId: string) => void;
+  setFileDirty: (leafId: string, dirty: boolean) => void;
+  /** Close the leaf's open file, but ask for confirmation first when dirty. */
+  requestCloseFile: (leafId: string) => void;
+  cancelCloseFile: (leafId: string) => void;
   recordVisit: (leafId: string, target: string, fromPath: string) => void;
   goBack: (leafId: string) => void;
   goForward: (leafId: string) => void;
@@ -44,7 +58,46 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
   homes: {},
   refreshNonce: {},
   listings: {},
+  openFiles: {},
   colWidths: {},
+
+  openFile: (leafId, file) =>
+    set((s) => ({
+      openFiles: { ...s.openFiles, [leafId]: { file, dirty: false, confirmingClose: false } },
+    })),
+
+  closeFile: (leafId) =>
+    set((s) => {
+      const openFiles = { ...s.openFiles };
+      delete openFiles[leafId];
+      return { openFiles };
+    }),
+
+  setFileDirty: (leafId, dirty) =>
+    set((s) => {
+      const cur = s.openFiles[leafId];
+      if (!cur || cur.dirty === dirty) return s;
+      return { openFiles: { ...s.openFiles, [leafId]: { ...cur, dirty } } };
+    }),
+
+  requestCloseFile: (leafId) => {
+    const cur = get().openFiles[leafId];
+    if (!cur) return;
+    if (!cur.dirty) {
+      get().closeFile(leafId);
+      return;
+    }
+    set((s) => ({
+      openFiles: { ...s.openFiles, [leafId]: { ...cur, confirmingClose: true } },
+    }));
+  },
+
+  cancelCloseFile: (leafId) =>
+    set((s) => {
+      const cur = s.openFiles[leafId];
+      if (!cur) return s;
+      return { openFiles: { ...s.openFiles, [leafId]: { ...cur, confirmingClose: false } } };
+    }),
 
   recordVisit: (leafId, target, fromPath) =>
     set((s) => {

@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EditIcon, RefreshIcon, TrashIcon } from '../ui/icons/general';
 import { CopyIcon, DownloadIcon, FolderOpenIcon, FolderPlusIcon, UploadIcon } from '../ui/icons/files';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsReadUrl } from '../../api/fs';
+import { useFilesNavStore } from '../../store/filesNav';
 import { pushToast } from '../../store/toast';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
@@ -10,7 +11,7 @@ import { Spinner } from '../ui/Spinner';
 import { FileTable } from './FileTable';
 import { isImageFile, isTextName } from './format';
 import { useFiles } from './useFiles';
-import { FileViewer, type ViewerFile } from './viewer/FileViewer';
+import { FileViewer } from './viewer/FileViewer';
 
 function download(target: string, path: string) {
   const a = document.createElement('a');
@@ -25,17 +26,32 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [creatingFolder, setCreatingFolder] = useState(false);
-  const [overlay, setOverlay] = useState<ViewerFile | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Open-file state lives in the filesNav store so the block header sees it.
+  const openFile = useFilesNavStore((s) => s.openFiles[leafId]?.file ?? null);
+  const openFileInEditor = useFilesNavStore((s) => s.openFile);
+  const closeFile = useFilesNavStore((s) => s.closeFile);
+
+  // Switching the block's connection while a file is open closes the editor
+  // (its buffer belongs to the previous target).
+  useEffect(() => {
+    if (openFile && openFile.target !== block.target) closeFile(leafId);
+  }, [openFile, block.target, leafId, closeFile]);
+  const viewing = openFile !== null && openFile.target === block.target;
 
   const open = (entry: FsEntry) => {
     if (entry.is_dir) {
       setSelected(null);
       navigate(entry.path);
     } else if (isImageFile(entry.name) || isTextName(entry.name)) {
-      // read-only viewer; it handles the too-large fallback itself
-      setOverlay({ path: entry.path, name: entry.name, size: entry.size });
+      // editor overlay; it handles the too-large fallback itself
+      openFileInEditor(leafId, {
+        target: block.target,
+        path: entry.path,
+        name: entry.name,
+        size: entry.size,
+      });
     } else {
       download(block.target, entry.path);
     }
@@ -92,6 +108,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     <div
       className="absolute inset-0 flex flex-col"
       onDragOver={(e) => {
+        if (viewing) return;
         e.preventDefault();
         setDragOver(true);
       }}
@@ -104,7 +121,11 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
         void upload(Array.from(e.dataTransfer.files));
       }}
     >
-      {error ? (
+      {/* the table unmounts while a file is open so a transparent editor
+          surface shows the tab background, not the listing beneath */}
+      {viewing ? (
+        <FileViewer leafId={leafId} file={openFile} />
+      ) : error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-8">
           <p className="text-center text-[12px] text-danger">{error}</p>
           <Button size="sm" onClick={refresh}>Retry</Button>
@@ -163,7 +184,6 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
           </span>
         </div>
       )}
-      {overlay && <FileViewer target={block.target} file={overlay} onClose={() => setOverlay(null)} />}
     </div>
   );
 }

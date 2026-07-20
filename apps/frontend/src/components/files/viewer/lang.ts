@@ -23,25 +23,36 @@ const EXT_TO_LANG: Record<string, string> = {
   dockerfile: 'dockerfile', diff: 'diff', patch: 'diff', php: 'php',
 };
 
+// prettier-ignore
 const NAME_TO_LANG: Record<string, string> = {
-  dockerfile: 'dockerfile',
-  makefile: 'bash',
-  gemfile: 'ruby',
-  '.gitignore': 'bash',
-  '.gitattributes': 'bash',
-  '.dockerignore': 'bash',
-  '.editorconfig': 'ini',
-  '.env': 'bash',
-  '.env.local': 'bash',
-  '.env.example': 'bash',
+  dockerfile: 'dockerfile', containerfile: 'dockerfile',
+  makefile: 'bash', gnumakefile: 'bash', justfile: 'bash', procfile: 'bash',
+  gemfile: 'ruby', rakefile: 'ruby', brewfile: 'ruby', podfile: 'ruby', vagrantfile: 'ruby',
+  taskfile: 'yaml',
+  '.gitignore': 'bash', '.gitattributes': 'bash', '.dockerignore': 'bash', '.npmignore': 'bash',
+  '.editorconfig': 'ini', '.npmrc': 'ini', '.gitconfig': 'ini', '.gitmodules': 'ini',
   'nginx.conf': 'nginx',
 };
+
+/**
+ * Extensionless filenames that are known text (drives open-as-text detection
+ * in files/format.ts): everything extensionless in NAME_TO_LANG plus the
+ * classic doc files that have no language.
+ */
+// prettier-ignore
+export const KNOWN_TEXT_NAMES: ReadonlySet<string> = new Set([
+  ...Object.keys(NAME_TO_LANG).filter((n) => !n.includes('.')),
+  'license', 'licence', 'copying', 'notice', 'readme', 'changelog', 'authors',
+  'contributing', 'contributors', 'codeowners', 'owners', 'todo', 'version',
+]);
 
 export function detectLang(path: string): string {
   const name = path.split('/').pop() ?? '';
   const lower = name.toLowerCase();
   const nameMatch = NAME_TO_LANG[lower];
   if (nameMatch) return nameMatch;
+  if (lower.startsWith('.env')) return 'bash'; // .env, .env.local, .env.production, …
+  if (/^\.[a-z0-9_-]+rc$/.test(lower)) return 'bash'; // .zshrc, .bashrc, .vimrc, …
   const ext = lower.split('.').pop() ?? '';
   return EXT_TO_LANG[ext] ?? 'text';
 }

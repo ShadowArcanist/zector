@@ -4,9 +4,14 @@ import { useFilesNavStore } from '../../store/filesNav';
 const NAV_BTN =
   'flex w-5 shrink-0 items-center justify-center py-1 text-fg transition-opacity not-disabled:cursor-pointer';
 
-/** Back/forward history buttons shown in a files block header. */
+/**
+ * Back/forward history buttons shown in a files block header. While a file is
+ * open in the editor, back closes the file instead (dirty edits go through
+ * the store's discard-confirm flow); forward stays history-forward.
+ */
 export function FilesNavButtons({ leafId, target }: { leafId: string; target: string }) {
-  const canBack = useFilesNavStore(
+  const hasOpenFile = useFilesNavStore((s) => !!s.openFiles[leafId]);
+  const canHistoryBack = useFilesNavStore(
     (s) => (s.nav[leafId]?.target === target ? s.nav[leafId]!.back.length : 0) > 0,
   );
   const canForward = useFilesNavStore(
@@ -14,6 +19,8 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
   );
   const goBack = useFilesNavStore((s) => s.goBack);
   const goForward = useFilesNavStore((s) => s.goForward);
+  const requestCloseFile = useFilesNavStore((s) => s.requestCloseFile);
+  const canBack = hasOpenFile || canHistoryBack;
 
   return (
     <div className="-ml-1 flex shrink-0 items-center">
@@ -23,7 +30,7 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
         aria-label="Back"
         disabled={!canBack}
         className={`${NAV_BTN} ${canBack ? 'opacity-70 hover:opacity-100' : 'opacity-25'}`}
-        onClick={() => goBack(leafId)}
+        onClick={() => (hasOpenFile ? requestCloseFile(leafId) : goBack(leafId))}
       >
         <ChevronLeftIcon size={12} />
       </button>
