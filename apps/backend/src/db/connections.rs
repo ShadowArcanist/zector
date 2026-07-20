@@ -67,15 +67,15 @@ fn now_unix() -> String {
 }
 
 pub fn list(db: &Db) -> anyhow::Result<Vec<SshConnection>> {
-    Ok(db.lock()?.connections.clone())
+    Ok(db.lock_connections()?.clone())
 }
 
 pub fn get(db: &Db, id: &str) -> anyhow::Result<Option<SshConnection>> {
-    Ok(db.lock()?.connections.iter().find(|c| c.id == id).cloned())
+    Ok(db.lock_connections()?.iter().find(|c| c.id == id).cloned())
 }
 
 pub fn insert(db: &Db, input: &ConnectionInput) -> anyhow::Result<SshConnection> {
-    let mut data = db.lock()?;
+    let mut data = db.lock_connections()?;
     let mut conn = SshConnection {
         id: uuid::Uuid::new_v4().to_string(),
         name: String::new(),
@@ -92,14 +92,14 @@ pub fn insert(db: &Db, input: &ConnectionInput) -> anyhow::Result<SshConnection>
         created_at: now_unix(),
     };
     apply(&mut conn, input);
-    data.connections.push(conn.clone());
+    data.push(conn.clone());
     db.save_connections(&data)?;
     Ok(conn)
 }
 
 pub fn update(db: &Db, id: &str, input: &ConnectionInput) -> anyhow::Result<Option<SshConnection>> {
-    let mut data = db.lock()?;
-    let Some(conn) = data.connections.iter_mut().find(|c| c.id == id) else {
+    let mut data = db.lock_connections()?;
+    let Some(conn) = data.iter_mut().find(|c| c.id == id) else {
         return Ok(None);
     };
     apply(conn, input);
@@ -109,10 +109,10 @@ pub fn update(db: &Db, id: &str, input: &ConnectionInput) -> anyhow::Result<Opti
 }
 
 pub fn delete(db: &Db, id: &str) -> anyhow::Result<bool> {
-    let mut data = db.lock()?;
-    let before = data.connections.len();
-    data.connections.retain(|c| c.id != id);
-    let changed = data.connections.len() != before;
+    let mut data = db.lock_connections()?;
+    let before = data.len();
+    data.retain(|c| c.id != id);
+    let changed = data.len() != before;
     if changed {
         db.save_connections(&data)?;
     }

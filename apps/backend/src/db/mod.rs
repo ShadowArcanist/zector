@@ -1,5 +1,5 @@
 pub mod connections;
-mod migrate;
+mod defaults;
 pub mod ui_state;
 
 use std::path::{Path, PathBuf};
@@ -8,85 +8,124 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use anyhow::Context;
 use connections::SshConnection;
 
-/// JSON-file config store (~/.config/zector): connections.json + state.json.
-/// Human-readable so users can back up or share their setup.
+/// Storage split:
+/// - `~/.config/zector` (config_dir): user-facing JSON — connections.json,
+///   settings.json, terminal-themes.json, backgrounds.json. Easy to back up.
+/// - data_dir/zector.db (sqlite): internal UI/layout state, not for sharing.
 pub struct Store {
-    dir: PathBuf,
-    data: Mutex<StoreData>,
-}
-
-#[derive(Default)]
-pub struct StoreData {
-    pub connections: Vec<SshConnection>,
-    pub ui_state: serde_json::Value,
+    config_dir: PathBuf,
+    connections: Mutex<Vec<SshConnection>>,
+    sqlite: Mutex<rusqlite::Connection>,
 }
 
 pub type Db = Arc<Store>;
 
-pub fn init(config_dir: &Path, legacy_db: &Path) -> anyhow::Result<Db> {
+pub fn init(config_dir: &Path, data_dir: &Path) -> anyhow::Result<Db> {
     std::fs::create_dir_all(config_dir)
         .with_context(|| format!("could not create {}", config_dir.display()))?;
-    let conns_path = config_dir.join("connections.json");
-    let state_path = config_dir.join("state.json");
+    std::fs::create_dir_all(data_dir)
+        .with_context(|| format!("could not create {}", data_dir.display()))?;
 
-    let mut data = StoreData {
-        connections: Vec::new(),
-        ui_state: serde_json::json!({}),
+    let sqlite = rusqlite::Connection::open(data_dir.join("zector.db"))?;
+    sqlite.execute_batch(
+        "PRAGMA journal_mode = WAL;
+        CREATE TABLE IF NOT EXISTS ui_state (
+            id   INTEGER PRIMARY KEY CHECK (id = 1),
+            json TEXT NOT NULL
+        );",
+    )?;
+
+    // Connections: JSON file, importing from a pre-JSON sqlite table once.
+    let conns_path = config_dir.join("connections.json");
+    let connections: Vec<SshConnection> = if conns_path.exists() {
+        let text = std::fs::read_to_string(&conns_path)?;
+        serde_json::from_str(&text)
+            .with_context(|| format!("invalid JSON in {}", conns_path.display()))?
+    } else {
+        import_legacy_connections(&sqlite).unwrap_or_default()
     };
 
-    if conns_path.exists() || state_path.exists() {
-        if conns_path.exists() {
-            let text = std::fs::read_to_string(&conns_path)?;
-            data.connections = serde_json::from_str(&text)
-                .with_context(|| format!("invalid JSON in {}", conns_path.display()))?;
-        }
-        if state_path.exists() {
-            let text = std::fs::read_to_string(&state_path)?;
-            data.ui_state = serde_json::from_str(&text)
-                .with_context(|| format!("invalid JSON in {}", state_path.display()))?;
-        }
-    } else if legacy_db.exists() {
-        // One-time import from the pre-JSON SQLite database.
-        migrate::from_sqlite(legacy_db, &mut data)?;
-        let store = Store {
-            dir: config_dir.to_path_buf(),
-            data: Mutex::new(data),
-        };
-        {
-            let guard = store.lock()?;
-            store.save_connections(&guard)?;
-            store.save_state(&guard)?;
-        }
-        let _ = std::fs::rename(legacy_db, legacy_db.with_extension("db.bak"));
-        tracing::info!("migrated legacy sqlite data to {}", config_dir.display());
-        return Ok(Arc::new(store));
+    // UI state briefly lived in config_dir/state.json — move it into sqlite.
+    let state_path = config_dir.join("state.json");
+    if state_path.exists()
+        && let Ok(text) = std::fs::read_to_string(&state_path)
+        && serde_json::from_str::<serde_json::Value>(&text).is_ok()
+    {
+        sqlite.execute(
+            "INSERT INTO ui_state (id, json) VALUES (1, ?1)
+             ON CONFLICT(id) DO UPDATE SET json = excluded.json",
+            rusqlite::params![text],
+        )?;
+        let _ = std::fs::remove_file(&state_path);
+        tracing::info!("moved state.json into the database");
     }
 
-    Ok(Arc::new(Store {
-        dir: config_dir.to_path_buf(),
-        data: Mutex::new(data),
-    }))
+    defaults::seed_config_files(config_dir)?;
+
+    let store = Store {
+        config_dir: config_dir.to_path_buf(),
+        connections: Mutex::new(connections),
+        sqlite: Mutex::new(sqlite),
+    };
+    if !conns_path.exists() {
+        store.save_connections(&store.lock_connections()?)?;
+    }
+    Ok(Arc::new(store))
+}
+
+/// Pre-JSON databases stored connections in sqlite; import them once.
+fn import_legacy_connections(
+    sqlite: &rusqlite::Connection,
+) -> anyhow::Result<Vec<SshConnection>> {
+    let mut stmt = sqlite.prepare("SELECT * FROM connections ORDER BY created_at ASC")?;
+    let rows = stmt.query_map([], |row| {
+        Ok(SshConnection {
+            id: row.get("id")?,
+            name: row.get("name")?,
+            host: row.get("host")?,
+            port: row.get("port")?,
+            username: row.get("username")?,
+            auth_type: row.get("auth_type")?,
+            password: row.get("password")?,
+            private_key: row.get("private_key")?,
+            key_path: row.get("key_path").unwrap_or(None),
+            key_passphrase: row.get("key_passphrase")?,
+            icon_color: row.get("icon_color").unwrap_or(None),
+            icon: None,
+            created_at: row.get("created_at")?,
+        })
+    })?;
+    let list = rows.collect::<Result<Vec<_>, _>>()?;
+    tracing::info!(count = list.len(), "imported legacy sqlite connections");
+    Ok(list)
 }
 
 impl Store {
-    pub fn lock(&self) -> anyhow::Result<MutexGuard<'_, StoreData>> {
-        self.data
+    pub fn lock_connections(&self) -> anyhow::Result<MutexGuard<'_, Vec<SshConnection>>> {
+        self.connections
             .lock()
-            .map_err(|_| anyhow::anyhow!("config store lock poisoned"))
+            .map_err(|_| anyhow::anyhow!("connections lock poisoned"))
     }
 
-    pub fn save_connections(&self, data: &StoreData) -> anyhow::Result<()> {
+    pub fn lock_sqlite(&self) -> anyhow::Result<MutexGuard<'_, rusqlite::Connection>> {
+        self.sqlite
+            .lock()
+            .map_err(|_| anyhow::anyhow!("database lock poisoned"))
+    }
+
+    pub fn save_connections(&self, list: &[SshConnection]) -> anyhow::Result<()> {
         atomic_write(
-            &self.dir.join("connections.json"),
-            &serde_json::to_vec_pretty(&data.connections)?,
+            &self.config_dir.join("connections.json"),
+            &serde_json::to_vec_pretty(list)?,
         )
     }
 
-    pub fn save_state(&self, data: &StoreData) -> anyhow::Result<()> {
-        atomic_write(
-            &self.dir.join("state.json"),
-            &serde_json::to_vec_pretty(&data.ui_state)?,
-        )
+    /// Parse one of the user-editable config files fresh from disk.
+    pub fn read_config_file(&self, name: &str) -> anyhow::Result<serde_json::Value> {
+        let path = self.config_dir.join(name);
+        let text = std::fs::read_to_string(&path)
+            .with_context(|| format!("failed to read {}", path.display()))?;
+        serde_json::from_str(&text).with_context(|| format!("invalid JSON in {name}"))
     }
 }
 

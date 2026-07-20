@@ -1,3 +1,4 @@
+pub mod config;
 pub mod connections;
 pub mod fs;
 pub mod fs_local;
@@ -28,6 +29,7 @@ pub fn router() -> Router<AppState> {
         .route("/fs/{target}/mkdir", post(fs::mkdir))
         .route("/fs/{target}/rename", post(fs::rename))
         .route("/fs/{target}/delete", post(fs::delete))
+        .route("/config", get(config::get_config))
         .route("/state", get(state::get_state).put(state::put_state))
         .route("/term/ws", get(term::ws_handler))
         .route("/term/{term_id}", delete(term::delete))
