@@ -8,8 +8,13 @@ import { IconButton } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { SettingsDivider, SettingsRow, SettingsTitle } from '../ui/Settings';
 import { connColor } from './colors';
-import { connIcon } from './icons';
+import { connIcon, localGlyph } from './icons';
+import { ColorSelect } from './ColorSelect';
+import { IconSelect } from './IconSelect';
 import { ConnectionForm } from './ConnectionForm';
+
+/** Neutral tint shown for the local icon when no color is picked. */
+const LOCAL_AUTO_COLOR = '#b4b4b8';
 
 function SidebarItem({
   icon,
@@ -38,10 +43,14 @@ function SidebarItem({
   );
 }
 
-/** Content pane for the pinned local machine: rename stays inline. */
+/** Content pane for the pinned local machine: every row saves immediately. */
 function LocalPane() {
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
   const setLocalName = useLayoutStore((s) => s.setLocalName);
+  const localIconKey = useLayoutStore((s) => s.localIcon) ?? null;
+  const setLocalIcon = useLayoutStore((s) => s.setLocalIcon);
+  const localColor = useLayoutStore((s) => s.localColor) ?? null;
+  const setLocalColor = useLayoutStore((s) => s.setLocalColor);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,6 +103,14 @@ function LocalPane() {
         )}
       </SettingsRow>
       <SettingsDivider />
+      <SettingsRow label="Icon">
+        <IconSelect value={localIconKey} defaultIcon={LaptopIcon} onChange={setLocalIcon} />
+      </SettingsRow>
+      <SettingsDivider />
+      <SettingsRow label="Icon color">
+        <ColorSelect value={localColor} autoColor={LOCAL_AUTO_COLOR} onChange={setLocalColor} />
+      </SettingsRow>
+      <SettingsDivider />
       <SettingsRow label="Target">
         <span className="text-[13px] text-fg-faint">This machine</span>
       </SettingsRow>
@@ -105,6 +122,8 @@ function LocalPane() {
 export function ConnectionsModal() {
   const connections = useConnectionsStore((s) => s.connections);
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
+  const localIconKey = useLayoutStore((s) => s.localIcon);
+  const localColor = useLayoutStore((s) => s.localColor);
   const view = useUiStore((s) => s.connectionsView); // null = local, 'new', or conn id
   const openConnections = useUiStore((s) => s.openConnections);
   const closeConnections = useUiStore((s) => s.closeConnections);
@@ -119,7 +138,10 @@ export function ConnectionsModal() {
       <div className="flex h-[540px] max-h-full min-h-0">
         <aside className="flex w-[200px] shrink-0 flex-col gap-1 overflow-y-auto bg-black/20 p-3">
           <SidebarItem
-            icon={<LaptopIcon size={15} />}
+            icon={localGlyph(localIconKey, {
+              size: 15,
+              style: localColor ? { color: localColor } : undefined,
+            })}
             label={localName}
             active={pane === 'local'}
             onClick={() => openConnections(null)}

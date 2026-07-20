@@ -42,3 +42,13 @@ export function connIcon(conn: Pick<Connection, 'icon'>): ComponentType<IconProp
 export function connGlyph(conn: Pick<Connection, 'icon'>, props: IconProps): ReactElement {
   return createElement(connIcon(conn), props);
 }
+
+/** Chosen icon for the local target (UiState.localIcon); LaptopIcon when unset. */
+export function localIcon(key: string | null | undefined): ComponentType<IconProps> {
+  return CONN_ICONS.find((i) => i.key === key)?.Icon ?? LaptopIcon;
+}
+
+/** Render helper for the local-target icon (use inside a component body). */
+export function localGlyph(key: string | null | undefined, props: IconProps): ReactElement {
+  return createElement(localIcon(key), props);
+}

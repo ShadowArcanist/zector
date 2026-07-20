@@ -1,11 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { PlusIcon } from '../ui/icons/general';
-import { LaptopIcon } from '../ui/icons/terminal';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
 import { connColor } from './colors';
-import { connIcon } from './icons';
+import { connGlyph, localGlyph } from './icons';
 
 type Option =
   | { kind: 'local' }
@@ -33,6 +32,8 @@ const WIDTH = 280;
 export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClose }: Props) {
   const connections = useConnectionsStore((s) => s.connections);
   const localName = useLayoutStore((s) => s.localName) ?? 'Localhost';
+  const localIconKey = useLayoutStore((s) => s.localIcon);
+  const localColor = useLayoutStore((s) => s.localColor);
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [hi, setHi] = useState(0);
@@ -139,7 +140,6 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
           }
           const isLocal = opt.kind === 'local';
           const isCurrent = isLocal ? current === 'local' : current === opt.id;
-          const Icon = opt.kind === 'conn' ? connIcon(opt) : LaptopIcon;
           return (
             <button
               key={isLocal ? 'local' : opt.id}
@@ -148,11 +148,17 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
               onMouseEnter={() => setHi(i)}
               onClick={() => pick(opt)}
             >
-              {isLocal ? (
-                <LaptopIcon size={14} className="shrink-0 text-fg-dim" />
-              ) : (
-                <Icon size={14} className="shrink-0" style={{ color: connColor(opt) }} />
-              )}
+              {isLocal
+                ? localGlyph(localIconKey, {
+                    size: 14,
+                    className: 'shrink-0 text-fg-dim',
+                    style: localColor ? { color: localColor } : undefined,
+                  })
+                : connGlyph(opt, {
+                    size: 14,
+                    className: 'shrink-0',
+                    style: { color: connColor(opt) },
+                  })}
               <span className="truncate">{isLocal ? localName : opt.name}</span>
               {!isLocal && (
                 <span className="ml-auto max-w-[45%] truncate font-mono text-[10px] text-fg-faint">

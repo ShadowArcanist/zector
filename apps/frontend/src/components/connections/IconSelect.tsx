@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDownIcon } from '../ui/icons/general';
 import { SwapIcon } from '../ui/icons/terminal';
+import type { IconProps } from '../ui/icons/Icon';
 import { CONN_ICONS } from './icons';
 
 /** Connection-icon dropdown: glyph + name button opening a grid of icon tiles. */
 export function IconSelect({
   value,
+  defaultIcon: DefaultIcon = SwapIcon, // glyph shown for the "Default" (null) entry
   onChange,
 }: {
   value: string | null;
+  defaultIcon?: ComponentType<IconProps>;
   onChange: (value: string | null) => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -54,7 +57,7 @@ export function IconSelect({
   }, [open]);
 
   const current = CONN_ICONS.find((i) => i.key === value);
-  const CurrentIcon = current?.Icon ?? SwapIcon;
+  const CurrentIcon = current?.Icon ?? DefaultIcon;
 
   const pick = (key: string | null) => {
     onChange(key);
@@ -97,7 +100,7 @@ export function IconSelect({
               className={tile(value === null)}
               onClick={() => pick(null)}
             >
-              <SwapIcon size={16} className="text-fg-dim" />
+              <DefaultIcon size={16} className="text-fg-dim" />
             </button>
             {CONN_ICONS.map(({ key, name, Icon }) => (
               <button
