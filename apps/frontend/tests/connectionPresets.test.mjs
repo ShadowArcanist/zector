@@ -23,3 +23,10 @@ test('connection dropdown only renders connection names', async () => {
   const dropdown = await readFile(new URL('connections/ConnectionDropdown.tsx', root), 'utf8');
   assert.doesNotMatch(dropdown, /opt\.sub/);
 });
+
+test('deleting an SSH connection uses the app confirmation modal', async () => {
+  const form = await readFile(new URL('connections/ConnectionForm.tsx', root), 'utf8');
+
+  assert.match(form, /<ConfirmModal/);
+  assert.doesNotMatch(form, /window\.confirm/);
+});

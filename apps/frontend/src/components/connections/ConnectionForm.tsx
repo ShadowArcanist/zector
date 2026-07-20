@@ -4,6 +4,7 @@ import { useConnectionsStore } from '../../store/connections';
 import { pushToast } from '../../store/toast';
 import { AlertIcon, CheckIcon } from '../ui/icons/general';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { Select } from '../ui/Select';
 import { SettingsDivider, SettingsRow } from '../ui/Settings';
 import { Spinner } from '../ui/Spinner';
@@ -39,6 +40,7 @@ export function ConnectionForm({
   const [iconColor, setIconColor] = useState(existing?.icon_color ?? null);
   const [icon, setIcon] = useState(existing?.icon ?? null);
   const [saving, setSaving] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Save appears only when the form differs from the saved connection (or blank defaults).
   const current = [name.trim(), host.trim(), port, username.trim(), authType, password, keyPath.trim(), passphrase, iconColor, icon];
@@ -83,9 +85,11 @@ export function ConnectionForm({
     }
   };
 
-  const onDelete = () => {
-    if (!existing || !window.confirm(`Delete connection "${existing.name}"?`)) return;
-    remove(existing.id)
+  const confirmDelete = () => {
+    if (!existing) return;
+    const id = existing.id;
+    setConfirmingDelete(false);
+    remove(id)
       .then(onDeleted)
       .catch((err) => pushToast('error', err instanceof Error ? err.message : 'Delete failed'));
   };
@@ -161,7 +165,7 @@ export function ConnectionForm({
               <Button variant="ghost" onClick={() => void test(existing.id)} disabled={testState?.state === 'testing'}>
                 Test
               </Button>
-              <Button variant="danger" onClick={onDelete}>
+              <Button variant="danger" onClick={() => setConfirmingDelete(true)}>
                 Delete
               </Button>
               {testState?.state === 'testing' && <Spinner size={13} />}
@@ -187,6 +191,15 @@ export function ConnectionForm({
             </Button>
           )}
         </div>
+      )}
+      {confirmingDelete && existing && (
+        <ConfirmModal
+          title="Delete connection?"
+          body={`Delete "${existing.name}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={confirmDelete}
+        />
       )}
     </form>
   );
