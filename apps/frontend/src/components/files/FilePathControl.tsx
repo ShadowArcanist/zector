@@ -124,7 +124,7 @@ export function FilePathControl({
   return (
     <div
       ref={rootRef}
-      className="absolute top-full left-2 z-50 w-96 max-w-[calc(100%-1rem)] overflow-hidden rounded-b-xl border border-white/6 bg-menu shadow-modal"
+      className="absolute top-[calc(100%+4px)] left-2 z-50 w-96 max-w-[calc(100%-1rem)] overflow-hidden rounded-xl border border-white/6 bg-menu shadow-modal"
       onPointerDown={(event) => event.stopPropagation()}
     >
       <div className="p-2">

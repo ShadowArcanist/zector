@@ -153,7 +153,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           {block.kind === 'files' && (
             <button
               type="button"
-              className="min-w-0 cursor-text truncate text-left text-[11px] font-medium text-fg opacity-80 hover:opacity-100"
+              className="flex h-6 min-w-0 flex-1 cursor-pointer items-center truncate rounded-md border border-white/6 bg-white/5 px-2 text-left text-[11px] font-medium text-fg opacity-80 transition-colors hover:bg-white/10 hover:opacity-100"
               title="Open file or directory"
               onClick={(event) => {
                 event.stopPropagation();
