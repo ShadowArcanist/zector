@@ -44,7 +44,7 @@ function EmptyTabPicker({ tabId }: { tabId: string }) {
   const setTabRoot = useLayoutStore((s) => s.setTabRoot);
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="w-[380px] rounded-[20px] border border-white/6 bg-bg1 shadow-modal">
+      <div className="w-[380px] rounded-[20px] border border-white/6 bg-menu shadow-modal">
         <p className="px-5 pt-4 pb-2 text-[16px] font-semibold text-fg">Add a block</p>
         <BlockPickerList onPick={(block) => setTabRoot(tabId, block)} />
       </div>

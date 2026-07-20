@@ -7,10 +7,11 @@ type Props = {
   onClose: () => void;
   children: ReactNode;
   width?: string; // tailwind width class
+  surface?: string; // tailwind bg class (bg-menu for menu-like pickers)
 };
 
 /** iOS-style dialog shell: large radius, soft shadow, hairline border. */
-export function Modal({ title, onClose, children, width = 'w-[440px]' }: Props) {
+export function Modal({ title, onClose, children, width = 'w-[440px]', surface = 'bg-bg1' }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -30,7 +31,7 @@ export function Modal({ title, onClose, children, width = 'w-[440px]' }: Props) 
       }}
     >
       <div
-        className={`${width} flex max-h-[78vh] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-white/6 bg-bg1 shadow-modal`}
+        className={`${width} ${surface} flex max-h-[78vh] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-white/6 shadow-modal`}
         role="dialog"
         aria-modal="true"
       >

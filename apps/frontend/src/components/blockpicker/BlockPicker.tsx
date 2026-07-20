@@ -128,7 +128,7 @@ export function BlockPickerModal() {
   };
 
   return (
-    <Modal title="Add block" onClose={closePicker} width="w-[380px]">
+    <Modal title="Add block" onClose={closePicker} width="w-[380px]" surface="bg-menu">
       <BlockPickerList onPick={handlePick} />
     </Modal>
   );
