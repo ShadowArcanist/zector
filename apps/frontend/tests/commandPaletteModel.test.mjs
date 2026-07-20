@@ -38,3 +38,12 @@ test('primary commands use one terminal and files entry with connection added fi
   assert.equal((source.match(/label: 'Add files block'/g) ?? []).length, 1);
   assert.match(source, /targetKind/);
 });
+
+test('selected blocks split the current workspace to the right', async () => {
+  const source = await readFile(
+    new URL('../src/components/command/CommandPalette.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.match(source, /splitLeaf\(leafId, 'row', block\)/);
+  assert.match(source, /setTabRoot\(activeTab\.id, block\)/);
+});

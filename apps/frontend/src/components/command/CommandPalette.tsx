@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Block } from '../../api/types';
 import { useConnectionsStore } from '../../store/connections';
 import { useLayoutStore } from '../../store/layout';
+import { firstLeafId } from '../../store/tree';
 import { useUiStore } from '../../store/ui';
 import { connColor } from '../connections/colors';
 import { connGlyph, localGlyph } from '../connections/icons';
@@ -35,11 +36,15 @@ export function CommandPalette() {
   const close = useUiStore((state) => state.closeCommandPalette);
   const openConnections = useUiStore((state) => state.openConnections);
   const tabs = useLayoutStore((state) => state.tabs);
+  const activeTabId = useLayoutStore((state) => state.activeTabId);
+  const focusedLeafId = useLayoutStore((state) => state.focusedLeafId);
   const localName = useLayoutStore((state) => state.localName) ?? 'Localhost';
   const localIcon = useLayoutStore((state) => state.localIcon);
   const localColor = useLayoutStore((state) => state.localColor);
   const addTab = useLayoutStore((state) => state.addTab);
   const addTabWithBlock = useLayoutStore((state) => state.addTabWithBlock);
+  const setTabRoot = useLayoutStore((state) => state.setTabRoot);
+  const splitLeaf = useLayoutStore((state) => state.splitLeaf);
   const setActiveTab = useLayoutStore((state) => state.setActiveTab);
   const connections = useConnectionsStore((state) => state.connections);
   const [query, setQuery] = useState('');
@@ -149,9 +154,23 @@ export function CommandPalette() {
     if (command.closeOnRun === false) resetSearch();
   };
 
+  const addBlockRight = (block: Block) => {
+    const activeTab = tabs.find((tab) => tab.id === activeTabId);
+    if (!activeTab) {
+      addTabWithBlock(block);
+      return;
+    }
+    if (!activeTab.root) {
+      setTabRoot(activeTab.id, block);
+      return;
+    }
+    const leafId = focusedLeafId ?? firstLeafId(activeTab.root);
+    if (leafId) splitLeaf(leafId, 'row', block);
+  };
+
   const chooseTarget = (choice: TargetChoice | undefined) => {
     if (!choice || !targetKind) return;
-    addTabWithBlock(makeBlock(targetKind, choice.target));
+    addBlockRight(makeBlock(targetKind, choice.target));
     close();
   };
 
