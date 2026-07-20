@@ -8,7 +8,7 @@ use crate::state::AppState;
 pub async fn get_config(State(state): State<AppState>) -> ApiResult<Json<serde_json::Value>> {
     let settings = state.db.read_config_file("settings.json")?;
     let term_themes = state.db.read_config_file("terminal-themes.json")?;
-    let backgrounds = state.db.read_config_file("backgrounds.json")?;
+    let backgrounds = state.db.read_config_file("themes.json")?;
     Ok(Json(serde_json::json!({
         "settings": settings,
         "termThemes": term_themes,

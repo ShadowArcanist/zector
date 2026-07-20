@@ -2,10 +2,17 @@ use std::path::Path;
 
 /// Seed the user-editable config files on first run (never overwrites).
 pub fn seed_config_files(config_dir: &Path) -> anyhow::Result<()> {
+    // backgrounds.json was renamed to themes.json; carry old files over once
+    let legacy = config_dir.join("backgrounds.json");
+    let themes = config_dir.join("themes.json");
+    if legacy.exists() && !themes.exists() {
+        std::fs::rename(&legacy, &themes)?;
+        tracing::info!("renamed backgrounds.json to themes.json");
+    }
     for (name, content) in [
         ("settings.json", SETTINGS),
         ("terminal-themes.json", TERMINAL_THEMES),
-        ("backgrounds.json", BACKGROUNDS),
+        ("themes.json", BACKGROUNDS),
     ] {
         let path = config_dir.join(name);
         if !path.exists() {
