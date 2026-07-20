@@ -44,19 +44,19 @@ export function CodeEditor({
   caretColor: string;
   selectionBackground?: string;
 }) {
-  const [html, setHtml] = useState<string | null>(null);
-  const highlightedOnce = useRef(false);
+  const [html, setHtml] = useState<{ source: string; lang: string; markup: string } | null>(null);
+  const highlightStarted = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     const run = () => {
       void highlightCode(value, lang).then((h) => {
         if (cancelled) return;
-        highlightedOnce.current = true;
-        setHtml(h);
+        setHtml({ source: value, lang, markup: h });
       });
     };
-    if (!highlightedOnce.current) {
+    if (!highlightStarted.current) {
+      highlightStarted.current = true;
       run(); // first paint: highlight immediately
       return () => {
         cancelled = true;
@@ -85,12 +85,12 @@ export function CodeEditor({
         <div className="relative flex-1">
           {/* invisible sizer: current text (+1 char of caret room) sets the layer size */}
           <pre aria-hidden className={`invisible ${PAD} ${FONT} whitespace-pre`}>{`${value} `}</pre>
-          {html !== null ? (
+          {html?.source === value && html.lang === lang ? (
             <div
               aria-hidden
               className={`pointer-events-none absolute inset-0 overflow-hidden ${HIGHLIGHT_PRE}`}
               // shiki output is trusted (generated locally from file text)
-              dangerouslySetInnerHTML={{ __html: html }}
+              dangerouslySetInnerHTML={{ __html: html.markup }}
             />
           ) : (
             <pre aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${PAD} ${FONT} whitespace-pre text-fg`}>

@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckIcon, CloseIcon } from '../../ui/icons/general';
-import { CopyIcon, DownloadIcon } from '../../ui/icons/files';
-import { Button } from '../../ui/Button';
+import { CopyIcon, DownloadIcon, SaveIcon } from '../../ui/icons/files';
 import { fileIconUrl } from '../fileIcons';
 import { humanSize } from '../format';
 
 /** Square icon button for the viewer header bar. */
-function HeaderIconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+function HeaderIconButton({ className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
-      className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md bg-white/8 text-fg-dim transition-colors hover:bg-white/14 hover:text-fg"
+      className={`flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-sm bg-white/8 text-fg-dim transition-colors hover:bg-white/14 hover:text-fg ${className}`}
       {...props}
     />
   );
@@ -92,28 +91,29 @@ export function ViewerHeader({
         </span>
       )}
       {size != null && <span className="shrink-0 text-[11px] text-fg-faint">{humanSize(size)}</span>}
-      <div className="ml-auto flex shrink-0 items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
         {children}
         {dirty && onSave && (
-          <Button
-            variant="blurple"
+          <HeaderIconButton
             disabled={saving}
             onClick={onSave}
-            className="h-6 px-2.5 text-[12px]"
+            aria-label="Save file"
+            title="Save"
+            className="bg-[#4d55cc] text-white hover:bg-[#5a63e0] hover:text-white"
           >
-            Save
-          </Button>
+            <SaveIcon size={11} />
+          </HeaderIconButton>
         )}
         {copyText != null && (
           <HeaderIconButton onClick={() => copy(copyText)} aria-label="Copy file contents" title="Copy contents">
-            {copied ? <CheckIcon size={13} className="text-ok" /> : <CopyIcon size={13} />}
+            {copied ? <CheckIcon size={11} className="text-ok" /> : <CopyIcon size={11} />}
           </HeaderIconButton>
         )}
         <HeaderIconButton onClick={onDownload} aria-label="Download file" title="Download">
-          <DownloadIcon size={13} />
+          <DownloadIcon size={11} />
         </HeaderIconButton>
         <HeaderIconButton onClick={onClose} aria-label="Close editor" title="Close">
-          <CloseIcon size={13} />
+          <CloseIcon size={11} />
         </HeaderIconButton>
       </div>
     </div>
