@@ -43,9 +43,10 @@ export function ConnectionButton({ leafId, target, open, setOpen }: Props) {
               style: localColor ? { color: localColor } : undefined,
             })}
         {/* Wave shows icon-only for the local target; name only for remotes.
-            The remote name is tinted with the connection's icon color. */}
-        {conn && (
-          <span className="truncate" style={{ color: connColor(conn) }}>
+            The remote name is tinted with the connection's icon color; a
+            dangling target (deleted connection) still shows its fallback name. */}
+        {target !== 'local' && (
+          <span className="truncate" style={conn ? { color: connColor(conn) } : undefined}>
             {name}
           </span>
         )}
