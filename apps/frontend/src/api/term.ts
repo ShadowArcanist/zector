@@ -7,7 +7,16 @@ export function termWsUrl(termId: string, target: string): string {
   return `${proto}//${window.location.host}/api/term/ws?${q}`;
 }
 
-/** Kill a terminal session (called when a terminal block is closed). */
+// Registered by the frontend terminal session registry so killing a backend
+// session also tears down the matching live xterm instance immediately.
+let killListener: ((termId: string) => void) | null = null;
+
+export function onTermKill(listener: (termId: string) => void) {
+  killListener = listener;
+}
+
+/** Kill a terminal session (called when a terminal block is closed/restarted). */
 export function killTerm(termId: string): Promise<void> {
+  killListener?.(termId);
   return apiJson('DELETE', `/api/term/${encodeURIComponent(termId)}`);
 }

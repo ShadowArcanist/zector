@@ -17,15 +17,20 @@ export function useFiles(leafId: string, block: FilesBlockData) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
   const recordVisit = useFilesNavStore((s) => s.recordVisit);
   const bumpRefresh = useFilesNavStore((s) => s.bumpRefresh);
+  const setListing = useFilesNavStore((s) => s.setListing);
   // header refresh button bumps this; it is part of the fetch key below
   const refreshNonce = useFilesNavStore((s) => s.refreshNonce[leafId] ?? 0);
   const { target, path } = block;
-  const [result, setResult] = useState<LoadResult | null>(null);
-  const [uploadState, setUploadState] = useState<UploadState>(null);
-
   // Identifies the current fetch; loading/error/entries are derived from it so
   // effects never call setState synchronously.
   const key = `${target}\n${path}\n${refreshNonce}`;
+  // Remounts (e.g. a block move re-nesting the panel tree) seed from the last
+  // successful listing so rows render instantly while a refresh runs behind.
+  const [result, setResult] = useState<LoadResult | null>(() => {
+    const cached = useFilesNavStore.getState().listings[leafId];
+    return cached && cached.key === key ? { ...cached, error: null } : null;
+  });
+  const [uploadState, setUploadState] = useState<UploadState>(null);
   const loading = result?.key !== key;
   const error = result?.key === key ? result.error : null;
   // keep previous listing visible while a navigation loads (no flicker)
@@ -57,7 +62,9 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     } else {
       fsList(target, path)
         .then((res) => {
-          if (!cancelled) setResult({ key, entries: res.entries, error: null });
+          if (cancelled) return;
+          setResult({ key, entries: res.entries, error: null });
+          setListing(leafId, { key, entries: res.entries });
         })
         .catch((err) => {
           if (!cancelled) {
@@ -68,7 +75,7 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     return () => {
       cancelled = true;
     };
-  }, [key, target, path, navigate]);
+  }, [key, target, path, navigate, leafId, setListing]);
 
   const refresh = useCallback(() => bumpRefresh(leafId), [leafId, bumpRefresh]);
 

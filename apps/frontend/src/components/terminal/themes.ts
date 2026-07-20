@@ -17,3 +17,7 @@ export const TERM_THEME: ITheme = {
 
 export const TERM_FONT =
   "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace";
+
+/** Transparent terminals (tab bg presets) drop the opaque background color. */
+export const themedTheme = (t: ITheme, transparent: boolean): ITheme =>
+  transparent ? { ...t, background: '#00000000' } : t;

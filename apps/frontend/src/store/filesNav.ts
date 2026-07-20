@@ -1,19 +1,25 @@
 import { create } from 'zustand';
+import type { FsEntry } from '../api/types';
 import { fsHome } from '../api/fs';
 import { useLayoutStore } from './layout';
 import { blockForLeaf } from './blocks';
 
 /**
  * Ephemeral (never persisted) navigation state for files blocks: per-leaf
- * back/forward history, a per-target home directory cache (for `~` display)
- * and a refresh nonce the block header's refresh button can bump.
+ * back/forward history, a per-target home directory cache (for `~` display),
+ * a refresh nonce the block header's refresh button can bump, and the last
+ * successful listing per leaf (rendered instantly on remount, e.g. after a
+ * block move re-nests the panel tree, while a background refresh runs).
  */
 type NavStacks = { target: string; back: string[]; forward: string[] };
+
+export type CachedListing = { key: string; entries: FsEntry[] };
 
 type FilesNavStore = {
   nav: Record<string, NavStacks | undefined>;
   homes: Record<string, string | undefined>;
   refreshNonce: Record<string, number | undefined>;
+  listings: Record<string, CachedListing | undefined>;
   /** Per-block (leafId) file-table column width overrides, colKey → px. */
   colWidths: Record<string, Record<string, number> | undefined>;
   recordVisit: (leafId: string, target: string, fromPath: string) => void;
@@ -21,6 +27,7 @@ type FilesNavStore = {
   goForward: (leafId: string) => void;
   bumpRefresh: (leafId: string) => void;
   setHome: (target: string, home: string) => void;
+  setListing: (leafId: string, listing: CachedListing) => void;
   setColWidth: (leafId: string, colKey: string, px: number) => void;
   resetColWidth: (leafId: string, colKey: string) => void;
 };
@@ -36,6 +43,7 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
   nav: {},
   homes: {},
   refreshNonce: {},
+  listings: {},
   colWidths: {},
 
   recordVisit: (leafId, target, fromPath) =>
@@ -90,6 +98,9 @@ export const useFilesNavStore = create<FilesNavStore>((set, get) => ({
     })),
 
   setHome: (target, home) => set((s) => ({ homes: { ...s.homes, [target]: home } })),
+
+  setListing: (leafId, listing) =>
+    set((s) => ({ listings: { ...s.listings, [leafId]: listing } })),
 
   setColWidth: (leafId, colKey, px) =>
     set((s) => ({
