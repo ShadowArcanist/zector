@@ -14,9 +14,19 @@ export type ConfigSettings = {
   blockBg: string; // block background color (hex, or any CSS color passed through)
   blockBlur: boolean; // backdrop blur behind every block
   blockOpacity: number; // opacity applied to blockBg (hex only)
+  blockHighlight: boolean; // draw a border around the focused block
 };
 
-export type BackgroundDef = { key: string; name: string; order: number; bg: string; opacity: number };
+export type BackgroundDef = {
+  key: string;
+  name: string;
+  order: number;
+  bg: string;
+  opacity: number;
+  accent?: string; // drives --color-accent (draggers, selections…) while active
+  highlightColor?: string; // focused-block border color (falls back to accent)
+  highlightWidth?: number; // focused-block border width in px (default 2)
+};
 export type TermThemeDef = { key: string; name: string; order: number; theme: ITheme };
 
 export type AppConfig = {
@@ -33,6 +43,7 @@ export const DEFAULT_SETTINGS: ConfigSettings = {
   blockBg: '#000000',
   blockBlur: false,
   blockOpacity: 0.25,
+  blockHighlight: true,
 };
 
 export function getConfig(): Promise<unknown> {
@@ -58,6 +69,10 @@ function parseSettings(raw: unknown): ConfigSettings {
     blockBg: str(s['block:bgcolor']) ?? DEFAULT_SETTINGS.blockBg,
     blockBlur: typeof s['block:blur'] === 'boolean' ? s['block:blur'] : DEFAULT_SETTINGS.blockBlur,
     blockOpacity: num(s['block:opacity']) ?? DEFAULT_SETTINGS.blockOpacity,
+    blockHighlight:
+      typeof s['block:highlight'] === 'boolean'
+        ? s['block:highlight']
+        : DEFAULT_SETTINGS.blockHighlight,
   };
 }
 
@@ -73,6 +88,9 @@ function parseBackgrounds(raw: unknown): BackgroundDef[] {
         order: num(o['display:order']) ?? 0,
         bg,
         opacity: num(o['bg:opacity']) ?? 1,
+        accent: str(o.accent),
+        highlightColor: str(o['highlight:color']),
+        highlightWidth: num(o['highlight:width']),
       };
     })
     .sort((a, b) => a.order - b.order);

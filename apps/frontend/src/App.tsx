@@ -14,6 +14,9 @@ import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { PlusIcon } from './components/ui/icons/general';
 
+/** Fallback accent when the active tab has no background (matches global.css). */
+const DEFAULT_ACCENT = '#4c8dff';
+
 /** Active tab's Wave-style background preset, behind the tab bar and blocks. */
 function WorkspaceBg() {
   const bgKey = useLayoutStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.bg);
@@ -21,6 +24,12 @@ function WorkspaceBg() {
   const preset = useConfigStore((s) =>
     bgKey ? s.backgrounds.find((b) => b.key === bgKey) : undefined,
   );
+
+  // Background-driven accent: draggers, selections, focus rings follow the preset.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--color-accent', preset?.accent ?? DEFAULT_ACCENT);
+  }, [preset]);
+
   if (!preset) return null;
   return (
     <div

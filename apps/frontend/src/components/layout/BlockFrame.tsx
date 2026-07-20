@@ -1,6 +1,7 @@
 import type { LeafNode } from '../../api/types';
 import type { DropEdge } from '../../store/tree';
 import { useLayoutStore } from '../../store/layout';
+import { useConfigStore } from '../../store/config';
 import { TerminalBlock } from '../terminal/TerminalBlock';
 import { FilesBlock } from '../files/FilesBlock';
 import { BlockHeader } from './BlockHeader';
@@ -19,6 +20,13 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
   const setFocusedLeaf = useLayoutStore((s) => s.setFocusedLeaf);
   const dropEdge = useBlockDragStore((s) => (s.over?.leafId === leaf.id ? s.over.edge : null));
   const isDragSrc = useBlockDragStore((s) => s.srcLeafId === leaf.id);
+  // Focused-block highlight: toggled in settings.json, styled by the active background.
+  const focused = useLayoutStore((s) => s.focusedLeafId === leaf.id);
+  const highlightOn = useConfigStore((s) => s.settings.blockHighlight);
+  const bgKey = useLayoutStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.bg);
+  const preset = useConfigStore((s) =>
+    bgKey ? s.backgrounds.find((b) => b.key === bgKey) : undefined,
+  );
   const { block } = leaf;
 
   return (
@@ -37,6 +45,17 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
           <FilesBlock leafId={leaf.id} block={block} />
         )}
       </div>
+      {highlightOn && focused && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-40 rounded-lg"
+          style={{
+            border: `${preset?.highlightWidth ?? 2}px solid ${
+              preset?.highlightColor ?? preset?.accent ?? 'var(--color-accent)'
+            }`,
+          }}
+        />
+      )}
       {dropEdge && (
         <div
           className={`pointer-events-none absolute z-30 rounded-md border-2 border-accent/70 bg-accent/25 ${EDGE_CLASS[dropEdge]}`}
