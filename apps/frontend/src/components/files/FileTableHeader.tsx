@@ -63,7 +63,7 @@ export function FileTableHeader({
 }) {
   return (
     <div
-      className="sticky top-0 z-10 flex h-[26px] shrink-0 items-center border-b border-white/8 bg-black/40 px-2 backdrop-blur-[8px]"
+      className="sticky top-0 z-10 flex h-[26px] shrink-0 items-center border-b border-white/8 bg-white/4 px-2 backdrop-blur-[8px]"
       style={{ minWidth: rowMinWidth(widths) }}
     >
       {COLUMNS.map((col) => {
@@ -75,7 +75,7 @@ export function FileTableHeader({
             className={`flex w-full cursor-pointer items-center gap-1 text-[11px] font-medium select-none ${
               col.key === 'size' ? 'justify-end' : ''
             } ${col.key === 'type' ? 'pl-3' : ''} ${
-              active ? 'text-fg-dim' : 'text-fg-faint hover:text-fg-dim'
+              active ? 'text-fg' : 'text-fg-dim hover:text-fg'
             }`}
             onClick={() => onToggleSort(col.key)}
           >

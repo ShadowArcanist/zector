@@ -7,7 +7,7 @@
   --color-bg1: #202022; /* panel / modal background */
   --color-bg2: #28282a; /* raised surfaces (inputs, toasts) */
   --color-bg3: #323234; /* selected surfaces */
-  --color-block: rgba(0, 0, 0, 0.4); /* block background */
+  --color-block: rgba(0, 0, 0, 0.25); /* block background */
   --color-edge: rgba(255, 255, 255, 0.14); /* general border */
   --color-edge2: rgba(255, 255, 255, 0.12); /* modal / menu border */
   --color-hover: rgba(255, 255, 255, 0.08);

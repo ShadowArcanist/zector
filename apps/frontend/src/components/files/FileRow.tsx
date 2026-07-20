@@ -87,7 +87,8 @@ export function FileRow({
   useEffect(() => {
     if (selected) ref.current?.scrollIntoView({ block: 'nearest' });
   }, [selected]);
-  const metaCls = selected ? 'text-fg-dim' : 'text-fg-faint';
+  // meta cells stay a step dimmer than the bright name, but clearly readable
+  const metaCls = 'text-fg-dim';
 
   return (
     <div
@@ -102,7 +103,7 @@ export function FileRow({
     >
       <span className="flex flex-1 items-center gap-2" style={{ minWidth: NAME_MIN_WIDTH }}>
         <EntryIcon entry={entry} />
-        <span className="min-w-0 flex-1 truncate">
+        <span className="min-w-0 flex-1 truncate text-fg">
           {renaming ? (
             <RenameInput
               initial={entry.name}
