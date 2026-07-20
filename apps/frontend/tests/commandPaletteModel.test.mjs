@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { filterCommands, nextCommandIndex } from '../src/components/command/commandPaletteModel.ts';
@@ -25,4 +26,15 @@ test('keyboard selection wraps around the result list', () => {
   assert.equal(nextCommandIndex(2, 1, 3), 0);
   assert.equal(nextCommandIndex(0, -1, 3), 2);
   assert.equal(nextCommandIndex(0, 1, 0), 0);
+});
+
+test('primary commands use one terminal and files entry with connection added first', async () => {
+  const source = await readFile(
+    new URL('../src/components/command/CommandPalette.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.ok(source.indexOf("label: 'Add SSH connection'") < source.indexOf("label: 'Open connections'"));
+  assert.equal((source.match(/label: 'Add terminal block'/g) ?? []).length, 1);
+  assert.equal((source.match(/label: 'Add files block'/g) ?? []).length, 1);
+  assert.match(source, /targetKind/);
 });
