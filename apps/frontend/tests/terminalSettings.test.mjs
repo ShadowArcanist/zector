@@ -19,6 +19,19 @@ test('terminal uses a narrow scrollbar', async () => {
   assert.match(themes, /overviewRulerBorder:\s*'#00000000'/);
 });
 
+test('terminal scrollbar appears only while scrolling or directly hovered', async () => {
+  const [sessions, css] = await Promise.all([
+    readFile(new URL('../src/components/terminal/termSessions.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../src/styles/global.css', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(sessions, /term\.onScroll/);
+  assert.match(sessions, /classList\.add\('xterm-scrolling'\)/);
+  assert.match(sessions, /classList\.remove\('xterm-scrolling'\)/);
+  assert.match(css, /\.scrollbar\.vertical\.visible/);
+  assert.match(css, /\.xterm\.xterm-scrolling/);
+});
+
 test('mouse-focused block separators do not stay highlighted after resizing', async () => {
   const css = await readFile(new URL('../src/styles/global.css', import.meta.url), 'utf8');
 

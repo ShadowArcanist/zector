@@ -62,6 +62,7 @@ function createSession(termId: string, init: TermInit): TermSession {
   let done = false; // session ended via exit/error control frame
   let attempts = 0;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+  let scrollbarFadeTimer: ReturnType<typeof setTimeout> | undefined;
   const encoder = new TextEncoder();
 
   const session: TermSession = {
@@ -84,6 +85,7 @@ function createSession(termId: string, init: TermInit): TermSession {
       if (disposed) return;
       disposed = true;
       clearTimeout(reconnectTimer);
+      clearTimeout(scrollbarFadeTimer);
       clearTimeout(session.disposeTimer);
       sessions.delete(termId);
       const socket = ws;
@@ -158,6 +160,15 @@ function createSession(termId: string, init: TermInit): TermSession {
     if (ws?.readyState === WebSocket.OPEN) ws.send(encoder.encode(data));
   });
   term.onResize(sendResize);
+  term.onScroll(() => {
+    const element = term.element;
+    if (!element) return;
+    element.classList.add('xterm-scrolling');
+    clearTimeout(scrollbarFadeTimer);
+    scrollbarFadeTimer = setTimeout(() => {
+      element.classList.remove('xterm-scrolling');
+    }, 700);
+  });
 
   return session;
 }

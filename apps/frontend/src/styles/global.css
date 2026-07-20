@@ -118,6 +118,18 @@ body.col-resizing * {
   background-color: transparent !important;
 }
 
+/* macOS-style overlay scrollbar: reveal during scrolling or when the pointer
+   is directly over the hidden thumb, then fade away when idle. */
+.xterm .xterm-scrollable-element > .scrollbar.vertical.visible {
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+.xterm.xterm-scrolling .xterm-scrollable-element > .scrollbar.vertical.visible,
+.xterm .xterm-scrollable-element > .scrollbar.vertical.visible:hover {
+  opacity: 1;
+  transition-duration: 80ms;
+}
+
 /* Wrapped editor lines keep logical line numbers aligned with visual wraps. */
 .code-editor-wrap pre,
 pre.code-editor-wrap {
