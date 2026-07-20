@@ -1,9 +1,10 @@
 use axum::Json;
-use axum::extract::{Path, Query, State};
+use axum::extract::{ConnectInfo, Path, Query, State};
 use axum::http::{StatusCode, header};
 use axum::response::Response;
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 
 use crate::error::{ApiError, ApiResult};
 use crate::ssh::sftp;
@@ -11,7 +12,7 @@ use crate::state::AppState;
 
 use super::fs_local as local;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FsEntry {
     pub name: String,
     pub path: String,
@@ -44,6 +45,12 @@ pub struct PathBody {
 pub struct RenameBody {
     pub from: String,
     pub to: String,
+}
+
+#[derive(Deserialize)]
+pub struct SudoListBody {
+    pub path: String,
+    pub password: String,
 }
 
 fn sort_entries(entries: &mut [FsEntry]) {
@@ -81,6 +88,30 @@ pub async fn list(
     sort_entries(&mut entries);
     Ok(Json(ListResponse {
         path: query.path,
+        entries,
+    }))
+}
+
+fn sudo_allowed_from(peer: SocketAddr) -> bool {
+    peer.ip().is_loopback()
+}
+
+pub async fn list_sudo(
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    Json(body): Json<SudoListBody>,
+) -> ApiResult<Json<ListResponse>> {
+    if !sudo_allowed_from(peer) {
+        return Err(ApiError::forbidden(
+            "sudo file access is available only from this machine",
+        ));
+    }
+    if body.password.is_empty() {
+        return Err(ApiError::bad_request("password is required"));
+    }
+    let mut entries = local::list_sudo(&body.path, &body.password).await?;
+    sort_entries(&mut entries);
+    Ok(Json(ListResponse {
+        path: body.path,
         entries,
     }))
 }
@@ -184,4 +215,16 @@ pub async fn delete(
         sftp::delete(&sftp, &body.path).await?;
     }
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sudo_file_access_is_loopback_only() {
+        assert!(sudo_allowed_from("127.0.0.1:4567".parse().unwrap()));
+        assert!(sudo_allowed_from("[::1]:4567".parse().unwrap()));
+        assert!(!sudo_allowed_from("192.168.1.20:4567".parse().unwrap()));
+    }
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FilesBlockData, FsEntry } from '../../api/types';
-import { fsDelete, fsHome, fsList, fsMkdir, fsRename, fsWrite } from '../../api/fs';
+import { fsDelete, fsHome, fsList, fsListSudo, fsMkdir, fsRename, fsWrite } from '../../api/fs';
+import { ApiError } from '../../api/http';
 import { useLayoutStore } from '../../store/layout';
 import { ensureHome, useFilesNavStore } from '../../store/filesNav';
 import { pushToast } from '../../store/toast';
@@ -11,7 +12,12 @@ export type UploadState = { current: number; total: number; name: string } | nul
 const errMsg = (err: unknown, fallback: string) =>
   err instanceof Error ? err.message : fallback;
 
-type LoadResult = { key: string; entries: FsEntry[]; error: string | null };
+type LoadResult = {
+  key: string;
+  entries: FsEntry[];
+  error: string | null;
+  errorStatus: number | null;
+};
 
 export function useFiles(leafId: string, block: FilesBlockData) {
   const updateLeafBlock = useLayoutStore((s) => s.updateLeafBlock);
@@ -28,11 +34,12 @@ export function useFiles(leafId: string, block: FilesBlockData) {
   // successful listing so rows render instantly while a refresh runs behind.
   const [result, setResult] = useState<LoadResult | null>(() => {
     const cached = useFilesNavStore.getState().listings[leafId];
-    return cached && cached.key === key ? { ...cached, error: null } : null;
+    return cached && cached.key === key ? { ...cached, error: null, errorStatus: null } : null;
   });
   const [uploadState, setUploadState] = useState<UploadState>(null);
   const loading = result?.key !== key;
   const error = result?.key === key ? result.error : null;
+  const errorStatus = result?.key === key ? result.errorStatus : null;
   // keep previous listing visible while a navigation loads (no flicker)
   const entries = result?.entries ?? [];
 
@@ -56,19 +63,29 @@ export function useFiles(leafId: string, block: FilesBlockData) {
         })
         .catch((err) => {
           if (!cancelled) {
-            setResult({ key, entries: [], error: errMsg(err, 'Could not resolve home directory') });
+            setResult({
+              key,
+              entries: [],
+              error: errMsg(err, 'Could not resolve home directory'),
+              errorStatus: err instanceof ApiError ? err.status : null,
+            });
           }
         });
     } else {
       fsList(target, path)
         .then((res) => {
           if (cancelled) return;
-          setResult({ key, entries: res.entries, error: null });
+          setResult({ key, entries: res.entries, error: null, errorStatus: null });
           setListing(leafId, { key, entries: res.entries });
         })
         .catch((err) => {
           if (!cancelled) {
-            setResult({ key, entries: [], error: errMsg(err, 'Could not list directory') });
+            setResult({
+              key,
+              entries: [],
+              error: errMsg(err, 'Could not list directory'),
+              errorStatus: err instanceof ApiError ? err.status : null,
+            });
           }
         });
     }
@@ -78,6 +95,20 @@ export function useFiles(leafId: string, block: FilesBlockData) {
   }, [key, target, path, navigate, leafId, setListing]);
 
   const refresh = useCallback(() => bumpRefresh(leafId), [leafId, bumpRefresh]);
+
+  const listAsSudo = useCallback(
+    async (password: string): Promise<string | null> => {
+      try {
+        const res = await fsListSudo(path, password);
+        setResult({ key, entries: res.entries, error: null, errorStatus: null });
+        setListing(leafId, { key, entries: res.entries });
+        return null;
+      } catch (err) {
+        return errMsg(err, 'Could not list directory as sudo');
+      }
+    },
+    [path, key, leafId, setListing],
+  );
 
   const mkdir = useCallback(
     async (name: string) => {
@@ -133,5 +164,18 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     [target, path, refresh],
   );
 
-  return { entries, loading, error, uploadState, navigate, refresh, mkdir, rename, remove, upload };
+  return {
+    entries,
+    loading,
+    error,
+    errorStatus,
+    uploadState,
+    navigate,
+    refresh,
+    listAsSudo,
+    mkdir,
+    rename,
+    remove,
+    upload,
+  };
 }

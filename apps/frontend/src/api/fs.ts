@@ -11,6 +11,10 @@ export function fsList(target: string, path: string): Promise<FsListing> {
   return apiGet(`${base(target)}/list?path=${encodeURIComponent(path)}`);
 }
 
+export function fsListSudo(path: string, password: string): Promise<FsListing> {
+  return apiJson('POST', `${base('local')}/list-sudo`, { path, password });
+}
+
 export function fsStat(target: string, path: string): Promise<FsEntry> {
   return apiGet(`${base(target)}/stat?path=${encodeURIComponent(path)}`);
 }

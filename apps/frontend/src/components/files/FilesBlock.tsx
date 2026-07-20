@@ -12,6 +12,7 @@ import { FileTable } from './FileTable';
 import { isImageFile, isTextName } from './format';
 import { useFiles } from './useFiles';
 import { FileViewer } from './viewer/FileViewer';
+import { SudoPasswordModal } from './SudoPasswordModal';
 
 function download(target: string, path: string) {
   const a = document.createElement('a');
@@ -21,12 +22,25 @@ function download(target: string, path: string) {
 }
 
 export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBlockData }) {
-  const { entries, loading, error, uploadState, navigate, refresh, mkdir, rename, remove, upload } =
-    useFiles(leafId, block);
+  const {
+    entries,
+    loading,
+    error,
+    errorStatus,
+    uploadState,
+    navigate,
+    refresh,
+    listAsSudo,
+    mkdir,
+    rename,
+    remove,
+    upload,
+  } = useFiles(leafId, block);
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [sudoOpen, setSudoOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Runtime editor state lives in filesNav; block.openFile restores it after reload.
   const openFile = useFilesNavStore((s) => s.openFiles[leafId]?.file ?? null);
@@ -134,7 +148,11 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       ) : error ? (
         <div className="flex flex-col items-center gap-3 px-4 py-8">
           <p className="text-center text-[12px] text-danger">{error}</p>
-          <Button size="sm" onClick={refresh}>Retry</Button>
+          {block.target === 'local' && errorStatus === 403 ? (
+            <Button size="sm" variant="primary" onClick={() => setSudoOpen(true)}>Try as sudo</Button>
+          ) : (
+            <Button size="sm" onClick={refresh}>Retry</Button>
+          )}
         </div>
       ) : (
         <FileTable
@@ -189,6 +207,13 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
             Drop files to upload
           </span>
         </div>
+      )}
+      {sudoOpen && (
+        <SudoPasswordModal
+          path={block.path}
+          onClose={() => setSudoOpen(false)}
+          onSubmit={listAsSudo}
+        />
       )}
     </div>
   );

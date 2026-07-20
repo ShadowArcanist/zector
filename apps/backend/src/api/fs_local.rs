@@ -1,8 +1,11 @@
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
+use std::process::Stdio;
 use std::time::UNIX_EPOCH;
 
 use anyhow::Context;
+use tokio::io::AsyncWriteExt;
+use tokio::process::Command;
 
 use super::fs::FsEntry;
 
@@ -43,6 +46,46 @@ pub async fn list(path: &str) -> anyhow::Result<Vec<FsEntry>> {
         });
     }
     Ok(entries)
+}
+
+pub fn parse_sudo_entries(output: &[u8]) -> anyhow::Result<Vec<FsEntry>> {
+    serde_json::from_slice(output).context("invalid response from privileged file helper")
+}
+
+/// List one local directory through a fresh sudo process. The password is sent
+/// only to sudo's stdin and `-k` prevents reuse of a cached credential.
+pub async fn list_sudo(path: &str, password: &str) -> anyhow::Result<Vec<FsEntry>> {
+    let executable = std::env::current_exe().context("could not locate zector executable")?;
+    let mut child = Command::new("/usr/bin/sudo")
+        .args(["-S", "-k", "-p", "", "--"])
+        .arg(executable)
+        .arg("--sudo-list")
+        .arg(path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .context("failed to start sudo")?;
+
+    let mut stdin = child.stdin.take().context("failed to open sudo stdin")?;
+    stdin.write_all(password.as_bytes()).await?;
+    stdin.write_all(b"\n").await?;
+    drop(stdin);
+
+    let output = child.wait_with_output().await?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if stderr.contains("Operation not permitted") {
+            anyhow::bail!(
+                "macOS denied access even with sudo. Grant Full Disk Access to the app that starts Zector"
+            );
+        }
+        if stderr.contains("incorrect password") || stderr.contains("Sorry, try again") {
+            anyhow::bail!("incorrect password");
+        }
+        anyhow::bail!("sudo failed: {}", stderr.trim());
+    }
+    parse_sudo_entries(&output.stdout)
 }
 
 pub async fn stat(path: &str) -> anyhow::Result<FsEntry> {
@@ -133,5 +176,16 @@ mod tests {
         assert!(!file_entry.is_dir);
 
         tokio::fs::remove_dir_all(root).await.unwrap();
+    }
+
+    #[test]
+    fn parses_privileged_helper_entries() {
+        let json = br#"[{"name":"secret","path":"/root/secret","is_dir":true,"is_symlink":false,"size":0,"modified":null,"mode":448}]"#;
+
+        let entries = parse_sudo_entries(json).unwrap();
+
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].name, "secret");
+        assert!(entries[0].is_dir);
     }
 }
