@@ -12,7 +12,6 @@ type Option =
       kind: 'conn';
       id: string;
       name: string;
-      sub: string;
       icon_color: string | null;
       icon: string | null;
     }
@@ -57,7 +56,6 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
         kind: 'conn' as const,
         id: c.id,
         name: c.name,
-        sub: `${c.username}@${c.host}`,
         icon_color: c.icon_color,
         icon: c.icon,
       })),
@@ -160,11 +158,6 @@ export function ConnectionDropdown({ anchorRef, current, onSelect, onNew, onClos
                     style: { color: connColor(opt) },
                   })}
               <span className="truncate">{isLocal ? localName : opt.name}</span>
-              {!isLocal && (
-                <span className="ml-auto max-w-[45%] truncate font-mono text-[10px] text-fg-faint">
-                  {opt.sub}
-                </span>
-              )}
             </button>
           );
         })}

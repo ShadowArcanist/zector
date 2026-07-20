@@ -3,6 +3,7 @@ import type { Connection } from '../../api/types';
 import type { IconProps } from '../ui/icons/Icon';
 import {
   CloudIcon,
+  BoltIcon,
   CpuIcon,
   DatabaseIcon,
   GamepadIcon,
@@ -10,11 +11,13 @@ import {
   HomeIcon,
   LockIcon,
   MonitorIcon,
+  Phone3Icon,
   RouterIcon,
+  Screencast2Icon,
   ShieldIcon,
+  StarSparkleIcon,
 } from '../ui/icons/connections';
-import { FolderIcon, LinkIcon } from '../ui/icons/files';
-import { LaptopIcon, ServerIcon, SwapIcon, TerminalIcon } from '../ui/icons/terminal';
+import { LaptopIcon, ServerIcon, SwapIcon } from '../ui/icons/terminal';
 
 export type ConnIconDef = { key: string; name: string; Icon: ComponentType<IconProps> };
 
@@ -24,7 +27,7 @@ export const CONN_ICONS: ConnIconDef[] = [
   { key: 'database', name: 'Database', Icon: DatabaseIcon },
   { key: 'cloud', name: 'Cloud', Icon: CloudIcon },
   { key: 'globe', name: 'Globe', Icon: GlobeIcon },
-  { key: 'laptop', name: 'Laptop', Icon: LaptopIcon },
+  { key: 'laptop', name: 'Bolt', Icon: BoltIcon },
   { key: 'monitor', name: 'Monitor', Icon: MonitorIcon },
   { key: 'cpu', name: 'CPU', Icon: CpuIcon },
   { key: 'shield', name: 'Shield', Icon: ShieldIcon },
@@ -32,9 +35,9 @@ export const CONN_ICONS: ConnIconDef[] = [
   { key: 'home', name: 'Home', Icon: HomeIcon },
   { key: 'router', name: 'Router', Icon: RouterIcon },
   { key: 'gamepad', name: 'Gamepad', Icon: GamepadIcon },
-  { key: 'terminal', name: 'Terminal', Icon: TerminalIcon },
-  { key: 'link', name: 'Link', Icon: LinkIcon },
-  { key: 'folder', name: 'Folder', Icon: FolderIcon },
+  { key: 'terminal', name: 'Star Sparkle', Icon: StarSparkleIcon },
+  { key: 'link', name: 'Phone 3', Icon: Phone3Icon },
+  { key: 'folder', name: 'Screencast 2', Icon: Screencast2Icon },
 ];
 
 /** Chosen icon component for a connection; SwapIcon when unset/unknown. */

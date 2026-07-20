@@ -11,8 +11,8 @@ export const CONN_COLORS = [
   { value: '#dbde52', name: 'Yellow' },
   { value: '#58c142', name: 'Green' },
   { value: '#14b8a6', name: 'Teal' },
-  { value: '#6366f1', name: 'Indigo' },
-  { value: '#84cc16', name: 'Lime' },
+  { value: '#a8734f', name: 'Brown' },
+  { value: '#e8e8ed', name: 'White' },
   { value: '#94a3b8', name: 'Slate' },
 ];
 
