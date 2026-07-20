@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CloseIcon, EditIcon } from '../ui/icons/general';
-import { FolderIcon } from '../ui/icons/files';
-import { ServerIcon, SplitDownIcon, SplitRightIcon, TerminalIcon } from '../ui/icons/terminal';
+import { ServerIcon, SplitDownIcon, SplitRightIcon } from '../ui/icons/terminal';
 import type { Block, LeafNode } from '../../api/types';
 import { useLayoutStore } from '../../store/layout';
 import { useUiStore } from '../../store/ui';
@@ -17,7 +16,7 @@ import { startBlockDrag } from './blockDrag';
 const END_ICON_CLASS =
   'flex w-6 shrink-0 cursor-pointer items-center justify-center px-1.5 py-1 text-fg opacity-70 transition-opacity hover:opacity-100';
 
-/** Wave-exact 30px block header: view icon, connection button, title, end icons. */
+/** Wave-exact 30px block header: connection button, optional title, end icons. */
 export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const closeLeaf = useLayoutStore((s) => s.closeLeaf);
   const localName = useLayoutStore((s) => s.localName);
@@ -32,14 +31,16 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Terminal: "Localhost" / connection name (Wave wording). Files: the path.
+  // Drag-ghost label: custom title, else target name / path.
   const defaultTitle = (b: Block): string => {
     if (b.kind === 'terminal') {
       return b.target === 'local' ? (localName ?? 'Localhost') : targetName(b.target, connections);
     }
     return displayPath(b.path, home);
   };
-  const title = block.title ?? defaultTitle(block);
+  // Title text renders only when the user renamed the block; a files block
+  // additionally shows its ~path (that display is the files nav, not a title).
+  const title = block.title ?? (block.kind === 'files' ? displayPath(block.path, home) : '');
 
   useEffect(() => {
     if (editing) {
@@ -49,7 +50,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   }, [editing]);
 
   const startRename = () => {
-    setDraft(block.title ?? defaultTitle(block));
+    setDraft(block.title ?? '');
     setEditing(true);
   };
   const commit = () => {
@@ -73,14 +74,11 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
 
   return (
     <div
-      className="flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-[7px] text-[11px] font-bold select-none"
+      className="flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-2.5 text-[11px] font-bold select-none"
       onContextMenu={headerMenu}
-      onPointerDown={(e) => startBlockDrag(e, leaf.id, title)}
+      onPointerDown={(e) => startBlockDrag(e, leaf.id, block.title ?? defaultTitle(block))}
     >
       {block.kind === 'files' && <FilesNavButtons leafId={leaf.id} target={block.target} />}
-      <span className="flex w-4 shrink-0 justify-center opacity-50">
-        {block.kind === 'terminal' ? <TerminalIcon size={14} /> : <FolderIcon size={14} />}
-      </span>
       <ConnectionButton
         leafId={leaf.id}
         target={block.target}
@@ -101,11 +99,16 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           className="min-w-0 flex-1 border-none bg-transparent p-0 text-[11px] font-medium text-fg outline-none"
         />
       ) : (
+        // Fills the header even when empty so the blank area double-clicks to rename
         <span
-          className="min-w-0 flex-1 truncate text-[11px] font-medium text-fg opacity-80"
+          className="flex min-w-0 flex-1 items-center self-stretch"
           onDoubleClick={startRename}
         >
-          {title}
+          {title && (
+            <span className="min-w-0 truncate text-[11px] font-medium text-fg opacity-80">
+              {title}
+            </span>
+          )}
         </span>
       )}
       <div className="flex shrink-0 items-center">
