@@ -42,6 +42,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [pathOpen, setPathOpen] = useState(false);
+  const [pathLeft, setPathLeft] = useState(8);
   const [pendingPath, setPendingPath] = useState<FsEntry | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -153,10 +154,11 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           {block.kind === 'files' && (
             <button
               type="button"
-              className="flex h-6 min-w-0 flex-1 cursor-pointer items-center truncate rounded-md border border-white/6 bg-white/5 px-2 text-left text-[11px] font-medium text-fg opacity-80 transition-colors hover:bg-white/10 hover:opacity-100"
+              className="flex h-5 min-w-0 flex-1 cursor-pointer items-center truncate rounded-md border border-white/6 bg-white/5 px-2 text-left text-[11px] font-medium text-fg opacity-80 transition-colors hover:bg-white/10 hover:opacity-100"
               title="Open file or directory"
               onClick={(event) => {
                 event.stopPropagation();
+                setPathLeft(event.currentTarget.offsetLeft);
                 setPathOpen((open) => !open);
               }}
               onDoubleClick={(event) => event.stopPropagation()}
@@ -186,6 +188,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           target={block.target}
           cwd={block.path}
           home={home}
+          anchorLeft={pathLeft}
           onOpen={requestOpenPath}
           onClose={() => setPathOpen(false)}
         />
