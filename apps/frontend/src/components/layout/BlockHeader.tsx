@@ -74,7 +74,7 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
 
   return (
     <div
-      className="flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-2.5 text-[11px] font-bold select-none"
+      className="group/header flex h-[30px] shrink-0 items-center gap-2 border-b border-edge py-1 pr-[5px] pl-2.5 text-[11px] font-bold select-none"
       onContextMenu={headerMenu}
       onPointerDown={(e) => startBlockDrag(e, leaf.id, block.title ?? defaultTitle(block))}
     >
@@ -111,7 +111,8 @@ export function BlockHeader({ leaf }: { leaf: LeafNode }) {
           )}
         </span>
       )}
-      <div className="flex shrink-0 items-center">
+      {/* end icons appear only while the pointer is over the header */}
+      <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/header:opacity-100">
         {block.kind === 'files' && (
           <FilesRefreshButton leafId={leaf.id} className={END_ICON_CLASS} />
         )}

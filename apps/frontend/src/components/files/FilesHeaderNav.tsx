@@ -25,7 +25,7 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
         className={`${NAV_BTN} ${canBack ? 'opacity-70 hover:opacity-100' : 'opacity-25'}`}
         onClick={() => goBack(leafId)}
       >
-        <ChevronLeftIcon size={15} />
+        <ChevronLeftIcon size={12} />
       </button>
       <button
         type="button"
@@ -35,7 +35,7 @@ export function FilesNavButtons({ leafId, target }: { leafId: string; target: st
         className={`${NAV_BTN} ${canForward ? 'opacity-70 hover:opacity-100' : 'opacity-25'}`}
         onClick={() => goForward(leafId)}
       >
-        <ChevronRightIcon size={15} />
+        <ChevronRightIcon size={12} />
       </button>
     </div>
   );
