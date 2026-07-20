@@ -49,6 +49,7 @@ function createSession(termId: string, init: TermInit): TermSession {
     fontWeightBold: TERM_FONT_WEIGHT_BOLD,
     lineHeight: 1.15,
     scrollback: 5000,
+    overviewRuler: { width: 6 },
     theme: themedTheme(theme, transparent),
   });
   const fit = new FitAddon();

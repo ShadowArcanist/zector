@@ -9,3 +9,11 @@ test('terminal uses an intermediate normal font weight', async () => {
   );
   assert.match(themes, /TERM_FONT_WEIGHT = 550/);
 });
+
+test('terminal uses a narrow scrollbar', async () => {
+  const sessions = await readFile(
+    new URL('../src/components/terminal/termSessions.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(sessions, /overviewRuler:\s*\{\s*width:\s*6\s*\}/);
+});
