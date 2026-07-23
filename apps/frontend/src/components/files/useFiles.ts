@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FilesBlockData, FsEntry } from '../../api/types';
-import { fsDelete, fsHome, fsList, fsListSudo, fsMkdir, fsRename, fsWrite } from '../../api/fs';
+import {
+  fsCreate,
+  fsDelete,
+  fsHome,
+  fsList,
+  fsListSudo,
+  fsMkdir,
+  fsRename,
+  fsWrite,
+} from '../../api/fs';
 import { ApiError } from '../../api/http';
 import { useLayoutStore } from '../../store/layout';
 import { ensureHome, useFilesNavStore } from '../../store/filesNav';
@@ -122,6 +131,21 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     [target, path, refresh],
   );
 
+  const createFile = useCallback(
+    async (name: string): Promise<string | null> => {
+      const filePath = joinPath(path, name);
+      try {
+        await fsCreate(target, filePath);
+        refresh();
+        return filePath;
+      } catch (err) {
+        pushToast('error', errMsg(err, 'Could not create file'));
+        return null;
+      }
+    },
+    [target, path, refresh],
+  );
+
   const rename = useCallback(
     async (from: string, toName: string) => {
       try {
@@ -173,6 +197,7 @@ export function useFiles(leafId: string, block: FilesBlockData) {
     navigate,
     refresh,
     listAsSudo,
+    createFile,
     mkdir,
     rename,
     remove,

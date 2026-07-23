@@ -43,6 +43,7 @@ pub fn router() -> Router<AppState> {
         .route("/fs/{target}/stat", get(fs::stat))
         .route("/fs/{target}/read", get(fs::read))
         .route("/fs/{target}/write", post(fs::write))
+        .route("/fs/{target}/create", post(fs::create_file))
         .route("/fs/{target}/mkdir", post(fs::mkdir))
         .route("/fs/{target}/rename", post(fs::rename))
         .route("/fs/{target}/delete", post(fs::delete))

@@ -1,5 +1,6 @@
 use anyhow::Context;
 use russh_sftp::client::SftpSession;
+use russh_sftp::protocol::OpenFlags;
 use tokio::io::AsyncWriteExt;
 
 use crate::api::fs::FsEntry;
@@ -72,6 +73,17 @@ pub async fn write(sftp: &SftpSession, path: &str, data: &[u8]) -> anyhow::Resul
     // SftpSession::write does not create/truncate, so open explicitly.
     let mut file = sftp.create(path).await?;
     file.write_all(data).await?;
+    file.shutdown().await?;
+    Ok(())
+}
+
+pub async fn create_file(sftp: &SftpSession, path: &str) -> anyhow::Result<()> {
+    let mut file = sftp
+        .open_with_flags(
+            path,
+            OpenFlags::CREATE | OpenFlags::EXCLUDE | OpenFlags::WRITE,
+        )
+        .await?;
     file.shutdown().await?;
     Ok(())
 }

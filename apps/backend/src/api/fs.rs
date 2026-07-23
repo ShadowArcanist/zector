@@ -175,6 +175,20 @@ pub async fn write(
     Ok(StatusCode::NO_CONTENT)
 }
 
+pub async fn create_file(
+    State(state): State<AppState>,
+    Path(target): Path<String>,
+    Json(body): Json<PathBody>,
+) -> ApiResult<StatusCode> {
+    if target == "local" {
+        local::create_file(&body.path).await?;
+    } else {
+        let sftp = sftp::open(&state.ssh, &state.db, &target).await?;
+        sftp::create_file(&sftp, &body.path).await?;
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
 pub async fn mkdir(
     State(state): State<AppState>,
     Path(target): Path<String>,

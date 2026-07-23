@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { EditIcon, RefreshIcon, TrashIcon } from '../ui/icons/general';
-import { CopyIcon, DownloadIcon, FolderOpenIcon, FolderPlusIcon, UploadIcon } from '../ui/icons/files';
+import {
+  CopyIcon,
+  DownloadIcon,
+  FileIcon,
+  FolderOpenIcon,
+  FolderPlusIcon,
+  UploadIcon,
+} from '../ui/icons/files';
 import type { FilesBlockData, FsEntry } from '../../api/types';
 import { fsReadUrl } from '../../api/fs';
 import { useFilesNavStore } from '../../store/filesNav';
@@ -31,6 +38,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     navigate,
     refresh,
     listAsSudo,
+    createFile,
     mkdir,
     rename,
     remove,
@@ -38,6 +46,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   } = useFiles(leafId, block);
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [creatingFile, setCreatingFile] = useState(false);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [sudoOpen, setSudoOpen] = useState(false);
@@ -114,7 +123,22 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
 
   const listMenu = (e: React.MouseEvent) =>
     openContextMenu(e, [
-      { label: 'New Folder', icon: <FolderPlusIcon size={14} />, onClick: () => setCreatingFolder(true) },
+      {
+        label: 'New File',
+        icon: <FileIcon size={14} />,
+        onClick: () => {
+          setCreatingFolder(false);
+          setCreatingFile(true);
+        },
+      },
+      {
+        label: 'New Folder',
+        icon: <FolderPlusIcon size={14} />,
+        onClick: () => {
+          setCreatingFile(false);
+          setCreatingFolder(true);
+        },
+      },
       {
         label: 'Upload Files…',
         icon: <UploadIcon size={14} />,
@@ -161,6 +185,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
           entries={entries}
           selected={selected}
           renaming={renaming}
+          creatingFile={creatingFile}
           creatingFolder={creatingFolder}
           onSelect={(entry) => setSelected(entry?.path ?? null)}
           onOpen={open}
@@ -174,6 +199,19 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
             void rename(entry.path, name);
           }}
           onRenameCancel={() => setRenaming(null)}
+          onCreateFile={(name) => {
+            setCreatingFile(false);
+            void createFile(name).then((path) => {
+              if (!path) return;
+              openFileInEditor(leafId, {
+                target: block.target,
+                path,
+                name,
+                size: 0,
+              });
+            });
+          }}
+          onCreateFileCancel={() => setCreatingFile(false)}
           onMkdir={(name) => {
             setCreatingFolder(false);
             void mkdir(name);

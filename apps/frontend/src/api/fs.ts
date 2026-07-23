@@ -28,6 +28,10 @@ export function fsWrite(target: string, path: string, body: Blob | string): Prom
   return apiRaw('POST', `${base(target)}/write?path=${encodeURIComponent(path)}`, body);
 }
 
+export function fsCreate(target: string, path: string): Promise<void> {
+  return apiJson('POST', `${base(target)}/create`, { path });
+}
+
 export function fsMkdir(target: string, path: string): Promise<void> {
   return apiJson('POST', `${base(target)}/mkdir`, { path });
 }

@@ -129,6 +129,16 @@ pub async fn write(path: &str, data: &[u8]) -> anyhow::Result<()> {
         .with_context(|| format!("failed to write {path}"))
 }
 
+pub async fn create_file(path: &str) -> anyhow::Result<()> {
+    tokio::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .await
+        .with_context(|| format!("failed to create file {path}"))?;
+    Ok(())
+}
+
 pub async fn mkdir(path: &str) -> anyhow::Result<()> {
     tokio::fs::create_dir_all(path)
         .await
@@ -174,6 +184,21 @@ mod tests {
         assert_eq!(file_entry.name, "example.txt");
         assert_eq!(file_entry.size, 5);
         assert!(!file_entry.is_dir);
+
+        tokio::fs::remove_dir_all(root).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn create_file_never_truncates_an_existing_file() {
+        let root = std::env::temp_dir().join(format!("zector-create-{}", uuid::Uuid::new_v4()));
+        let file = root.join("example.txt");
+        tokio::fs::create_dir_all(&root).await.unwrap();
+
+        create_file(file.to_str().unwrap()).await.unwrap();
+        tokio::fs::write(&file, b"keep me").await.unwrap();
+
+        assert!(create_file(file.to_str().unwrap()).await.is_err());
+        assert_eq!(tokio::fs::read(&file).await.unwrap(), b"keep me");
 
         tokio::fs::remove_dir_all(root).await.unwrap();
     }

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FolderPlusIcon } from '../ui/icons/files';
+import { FileIcon, FolderPlusIcon } from '../ui/icons/files';
 import type { FsEntry } from '../../api/types';
 import { useFilesNavStore } from '../../store/filesNav';
 import { useLayoutStore } from '../../store/layout';
@@ -21,6 +21,7 @@ type Props = {
   entries: FsEntry[];
   selected: string | null; // entry path
   renaming: string | null; // entry path being renamed inline
+  creatingFile: boolean;
   creatingFolder: boolean;
   onSelect: (entry: FsEntry | null) => void;
   onOpen: (entry: FsEntry) => void;
@@ -28,6 +29,8 @@ type Props = {
   onEmptyMenu: (e: React.MouseEvent) => void;
   onRenameCommit: (entry: FsEntry, newName: string) => void;
   onRenameCancel: () => void;
+  onCreateFile: (name: string) => void;
+  onCreateFileCancel: () => void;
   onMkdir: (name: string) => void;
   onMkdirCancel: () => void;
 };
@@ -43,6 +46,7 @@ export function FileTable({
   entries,
   selected,
   renaming,
+  creatingFile,
   creatingFolder,
   onSelect,
   onOpen,
@@ -50,6 +54,8 @@ export function FileTable({
   onEmptyMenu,
   onRenameCommit,
   onRenameCancel,
+  onCreateFile,
+  onCreateFileCancel,
   onMkdir,
   onMkdirCancel,
 }: Props) {
@@ -103,6 +109,19 @@ export function FileTable({
         sort={sort}
         onToggleSort={toggleSort}
       />
+      {creatingFile && (
+        <div className="flex h-6 shrink-0 items-center gap-2 px-2">
+          <FileIcon size={14} className="shrink-0 text-accent/80" />
+          <span className="min-w-0 flex-1">
+            <RenameInput
+              initial=""
+              placeholder="file name"
+              onCommit={onCreateFile}
+              onCancel={onCreateFileCancel}
+            />
+          </span>
+        </div>
+      )}
       {creatingFolder && (
         <div className="flex h-6 shrink-0 items-center gap-2 px-2">
           <FolderPlusIcon size={14} className="shrink-0 text-accent/80" />
@@ -127,7 +146,7 @@ export function FileTable({
           onRenameCancel={onRenameCancel}
         />
       ))}
-      {rows.length === 0 && !creatingFolder && (
+      {rows.length === 0 && !creatingFile && !creatingFolder && (
         <p className="px-4 py-6 text-center text-xs text-fg-faint select-none">Empty directory</p>
       )}
       {/* fill remaining height so right-click anywhere opens the list menu */}
