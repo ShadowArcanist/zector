@@ -14,6 +14,7 @@ import { useFilesNavStore } from '../../store/filesNav';
 import { pushToast } from '../../store/toast';
 import { openContextMenu, type MenuEntry } from '../../store/contextMenu';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { Spinner } from '../ui/Spinner';
 import { FileTable } from './FileTable';
 import { isImageFile, isTextName } from './format';
@@ -50,6 +51,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [sudoOpen, setSudoOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<FsEntry | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Runtime editor state lives in filesNav; block.openFile restores it after reload.
   const openFile = useFilesNavStore((s) => s.openFiles[leafId]?.file ?? null);
@@ -113,11 +115,7 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
       label: 'Delete',
       icon: <TrashIcon size={14} />,
       danger: true,
-      onClick: () => {
-        if (window.confirm(`Delete "${entry.name}"?${entry.is_dir ? ' (recursive)' : ''}`)) {
-          void remove(entry.path);
-        }
-      },
+      onClick: () => setPendingDelete(entry),
     },
   ];
 
@@ -251,6 +249,23 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
           path={block.path}
           onClose={() => setSudoOpen(false)}
           onSubmit={listAsSudo}
+        />
+      )}
+      {pendingDelete && (
+        <ConfirmModal
+          title={`Delete ${pendingDelete.is_dir ? 'folder' : 'file'}?`}
+          body={
+            pendingDelete.is_dir
+              ? `Delete "${pendingDelete.name}" and everything inside it? This cannot be undone.`
+              : `Delete "${pendingDelete.name}"? This cannot be undone.`
+          }
+          confirmLabel="Delete"
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            const entry = pendingDelete;
+            setPendingDelete(null);
+            void remove(entry.path);
+          }}
         />
       )}
     </div>
