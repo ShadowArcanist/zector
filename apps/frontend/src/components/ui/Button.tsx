@@ -20,7 +20,7 @@ export function Button({ variant = 'ghost', size = 'md', className = '', ...rest
   return (
     <button
       type="button"
-      className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-default disabled:opacity-50 ${sizing} ${styles[variant]} ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg font-medium transition-[color,background-color,border-color,transform] active:scale-[0.97] outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-default disabled:opacity-50 disabled:active:scale-100 ${sizing} ${styles[variant]} ${className}`}
       {...rest}
     />
   );
@@ -35,7 +35,7 @@ export function IconButton({
   return (
     <button
       type="button"
-      className={`inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md transition-opacity outline-none focus-visible:ring-1 focus-visible:ring-accent ${
+      className={`inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md transition-[color,opacity,background-color,transform] active:scale-90 outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:active:scale-100 ${
         danger
           ? 'text-fg-dim opacity-70 hover:text-danger hover:opacity-100'
           : 'text-fg-dim opacity-70 hover:text-fg hover:opacity-100'

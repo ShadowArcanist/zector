@@ -25,13 +25,13 @@ export function Modal({ title, onClose, children, width = 'w-[440px]', surface =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-[3px]"
+      className="motion-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-[3px]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`${width} ${surface} flex max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-white/6 shadow-modal`}
+        className={`motion-dialog ${width} ${surface} flex max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-white/6 shadow-modal`}
         role="dialog"
         aria-modal="true"
       >

@@ -79,7 +79,7 @@ export function Select<T extends string>({
           <div
             ref={menuRef}
             role="listbox"
-            className="fixed z-100 min-w-[220px] rounded-xl border border-white/6 bg-menu py-1.5 shadow-modal"
+            className="motion-popover fixed z-100 min-w-[220px] rounded-xl border border-white/6 bg-menu py-1.5 shadow-modal"
             style={{ top: pos.top, right: pos.right }}
           >
             {options.map((opt) => (

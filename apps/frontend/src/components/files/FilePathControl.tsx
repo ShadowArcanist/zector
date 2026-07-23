@@ -126,7 +126,7 @@ export function FilePathControl({
   return (
     <div
       ref={rootRef}
-      className="absolute top-[calc(100%+4px)] z-50 w-96 overflow-hidden rounded-xl border border-white/6 bg-menu shadow-modal"
+      className="motion-popover absolute top-[calc(100%+4px)] z-50 w-96 overflow-hidden rounded-xl border border-white/6 bg-menu shadow-modal"
       style={{ left: anchorLeft, maxWidth: `calc(100% - ${anchorLeft + 8}px)` }}
       onPointerDown={(event) => event.stopPropagation()}
     >

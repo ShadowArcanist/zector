@@ -146,7 +146,7 @@ export function ContextMenuHost() {
   return createPortal(
     <div
       ref={ref}
-      className="fixed z-[70]"
+      className="motion-popover fixed z-[70]"
       style={{ left: menu.x, top: menu.y, visibility: 'hidden' }}
       onContextMenu={(e) => e.preventDefault()}
     >
