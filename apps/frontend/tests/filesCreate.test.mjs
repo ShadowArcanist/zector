@@ -17,3 +17,12 @@ test('file explorer exposes an inline New File action', async () => {
   assert.match(api, /export function fsCreate/);
   assert.match(api, /\/create/);
 });
+
+test('editable files focus the code input when opened', async () => {
+  const editor = await readFile(
+    new URL('../src/components/files/viewer/CodeEditor.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(editor, /autoFocus={!readOnly}/);
+});

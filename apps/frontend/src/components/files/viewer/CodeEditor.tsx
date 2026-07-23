@@ -122,6 +122,7 @@ export function CodeEditor({
           )}
           <textarea
             value={value}
+            autoFocus={!readOnly}
             onChange={(e) => applyChange(e.target.value)}
             onKeyDown={onKeyDown}
             readOnly={readOnly}
