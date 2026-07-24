@@ -1,39 +1,147 @@
-# zector
+# Zector
 
-Self-hosted web terminal for your local network. One small binary gives you a browser app with Wave-Terminal-style tabs and resizable split blocks, local + SSH terminals, a saved-connection manager, and a local/SFTP file browser.
+Zector is a self-hosted browser workspace for local and SSH terminals, remote connections, and file management.
 
-> ⚠️ zector has **no authentication** by design — expose it only on a trusted local network.
+Run one small binary on your Mac, open Zector in a browser, then work across tabs and resizable terminal or file blocks without installing an agent on your servers.
+
+> [!IMPORTANT]
+> Zector has no authentication by design. Only run it on a trusted local network and never expose it directly to the public internet.
+>
+> This project was entirely created using AI, but the application has been thoroughly tested.
+>
+> This project was built primarily for my personal use, so I will not be merging pull requests or adding new features unless I need them myself. If you want to make changes or add features, feel free to fork this repository.
 
 ## Features
 
-- **Terminal** — real PTY shell on the host, plus SSH shells to saved servers (xterm.js, WebGL rendering). Sessions live server-side, so a browser refresh restores your scrollback.
-- **SSH connection manager** — save servers with password or private-key auth, test connections, one click to open a terminal or file browser on them.
-- **File browser** — browse local disk or any server over SFTP: upload (drag & drop), download, rename, move, delete, new folder, built-in text editor and image preview.
-- **Workspace** — tabs across the top, blocks split horizontally/vertically with draggable resizing. Layout persists across restarts.
+- Local terminal sessions with persistent scrollback
+- SSH terminals using saved password or private-key connections
+- Local and SFTP file explorer
+- Built-in text editor with syntax highlighting
+- Upload, download, rename, create, and delete files or folders
+- Tabs with resizable split blocks
+- Reorderable and customizable connections
+- Command palette
+- User-editable themes and settings
+- One binary with the frontend embedded
 
-## Stack
+## Requirements
 
-- Backend: Rust — axum, russh (+ sftp), portable-pty, SQLite (rusqlite). Single process, frontend embedded via rust-embed.
-- Frontend: React 19, xterm.js, Tailwind CSS 4, zustand, react-resizable-panels. Built with Vite + Bun.
+- Apple Silicon Mac
+- A modern browser
 
-## Build & run
+Linux and Windows releases are not available yet.
 
-```sh
-# build frontend, then backend (frontend dist is embedded into the binary)
-cd apps/frontend && bun install && bun run build
-cd ../backend && cargo build --release
+## Install
 
-# run — listens on 0.0.0.0:7887
-./target/release/backend
+Download `zector-macos-arm64.tar.gz` from the latest GitHub release, then run:
+
+```bash
+tar -xzf zector-macos-arm64.tar.gz
+chmod +x zector
+sudo mv zector /usr/local/bin/zector
 ```
 
-Environment: `ZECTOR_PORT` (default `7887`), `ZECTOR_CONFIG_DIR` (default `~/.config/zector` — holds `connections.json` and `state.json`, easy to back up or share).
+If macOS blocks the downloaded binary because it is not notarized:
 
-## Development
-
-```sh
-cd apps/backend && cargo run          # API on :7887
-cd apps/frontend && bun run dev       # UI on :5173, proxies /api (incl. websockets)
+```bash
+xattr -d com.apple.quarantine /usr/local/bin/zector
 ```
 
-Docs for contributors/AI agents live in [`.ai/`](.ai/architecture.md).
+## Usage
+
+Start Zector in the background:
+
+```bash
+zector start
+```
+
+Open http://localhost:7887 in your browser. Other devices on the same trusted network can use `http://<your-mac-ip>:7887`.
+
+Check whether it is running:
+
+```bash
+zector status
+```
+
+Stop it:
+
+```bash
+zector stop
+```
+
+Run it in the foreground instead:
+
+```bash
+zector -f
+```
+
+Press `Ctrl+C` to stop foreground mode. Background logs are written to `~/Library/Application Support/zector/zector.log`.
+
+## Configuration
+
+Shareable configuration lives in `~/.config/zector/`:
+
+- `connections.json`
+- `settings.json`
+- `terminal-themes.json`
+- `themes.json`
+
+Internal workspace state is stored separately in SQLite under the macOS application data directory.
+
+Available environment variables:
+
+- `ZECTOR_PORT` — listening port, default `7887`
+- `ZECTOR_CONFIG_DIR` — user-editable configuration directory
+- `ZECTOR_DATA_DIR` — internal data, PID, and log directory
+
+## Build from source
+
+Requirements:
+
+- Rust stable
+- Bun
+
+Build the frontend before the backend because the frontend is embedded in the Rust binary:
+
+```bash
+cd apps/frontend
+bun install
+bun run build
+
+cd ../backend
+cargo build --release
+```
+
+The binary is written to `apps/backend/target/release/zector`.
+
+## Local development
+
+From the repository root:
+
+```bash
+task dev
+```
+
+Or run each side separately:
+
+```bash
+cd apps/backend && cargo run -- -f
+cd apps/frontend && bun run dev
+```
+
+The frontend development server proxies API and WebSocket requests to the backend.
+
+## Publishing a release
+
+Push a version tag to build and publish the Apple Silicon binary automatically:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow can also be started manually from the GitHub Actions page with a release tag.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
