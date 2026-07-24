@@ -81,14 +81,127 @@ Press `Ctrl+C` to stop foreground mode. Background logs are written to `~/Librar
 
 ## Configuration
 
-Shareable configuration lives in `~/.config/zector/`:
+Zector creates its configuration files in `~/.config/zector/` on first launch. Existing files are never overwritten, so they can be edited, backed up, or copied to another machine.
 
-- `connections.json`
-- `settings.json`
-- `terminal-themes.json`
-- `themes.json`
+Refresh the browser after changing settings or themes. Connections should normally be edited through the Zector UI because `connections.json` is loaded when the server starts.
 
-Internal workspace state is stored separately in SQLite under the macOS application data directory.
+### `settings.json`
+
+Controls the default tab, terminal, and block appearance:
+
+```json
+{
+  "tab:preset": "shadows-golden-hour",
+  "term:fontsize": 13,
+  "term:theme": "default",
+  "block:bgcolor": "#000000",
+  "block:blur": false,
+  "block:opacity": 0.25,
+  "block:highlight": true
+}
+```
+
+| Setting | Description |
+| --- | --- |
+| `tab:preset` | Theme key assigned to newly created tabs. Use `null` for no preset. |
+| `term:fontsize` | Default terminal font size. A terminal block can override it. |
+| `term:theme` | Default key from `terminal-themes.json`. `default` selects Graphite. |
+| `block:bgcolor` | Background color applied to every block. |
+| `block:blur` | Adds backdrop blur behind every block. |
+| `block:opacity` | Opacity applied when `block:bgcolor` is a hexadecimal color. |
+| `block:highlight` | Globally enables the focused-block border. |
+
+### `themes.json`
+
+Defines tab background presets and their matching accent colors. Zector includes:
+
+- Midnight
+- Golden Hour
+- Cosmic Purple
+- Neon Glow
+- Icy Mist
+- Tropical Storm
+- Golden Nebula
+- Cosmic Lagoon
+- Neon Nebula
+- Blur Black
+
+Each top-level key is the value used by `tab:preset`. You can add your own preset using the same format:
+
+```json
+{
+  "my-theme": {
+    "display:name": "My Theme",
+    "display:order": 11,
+    "bg": "linear-gradient(135deg, #1d2b64, #00b5b8)",
+    "bg:opacity": 0.6,
+    "accent": "#00b5b8",
+    "highlight:active": true,
+    "highlight:color": "#00b5b8",
+    "highlight:width": 2
+  }
+}
+```
+
+| Setting | Description |
+| --- | --- |
+| `display:name` | Name shown in the Themes menu. |
+| `display:order` | Position in the Themes menu. |
+| `bg` | CSS color or gradient rendered behind the tab. |
+| `bg:opacity` | Theme background opacity. |
+| `accent` | Accent used for resize handles, selections, and active controls. |
+| `highlight:active` | Enables the focused-block border for this theme. |
+| `highlight:color` | Focused-block border color. Defaults to `accent`. |
+| `highlight:width` | Focused-block border width in pixels. |
+
+### `terminal-themes.json`
+
+Defines xterm-compatible terminal color schemes. Zector always includes the built-in `default` Graphite theme, and ships with Zed Dark as an additional preset:
+
+```json
+{
+  "zed-dark": {
+    "display:name": "Zed Dark",
+    "display:order": 3,
+    "background": "#0E100F",
+    "foreground": "#CECDC3",
+    "cursor": "#CECDC3",
+    "black": "#0E100F",
+    "red": "#D14D41",
+    "green": "#879A39",
+    "yellow": "#D0A215",
+    "blue": "#4385BE",
+    "magenta": "#3AA99F",
+    "cyan": "#3AA99F",
+    "white": "#CECDC3",
+    "brightBlack": "#1e201f",
+    "brightRed": "#D14D41",
+    "brightGreen": "#879A39",
+    "brightYellow": "#D0A215",
+    "brightBlue": "#4385BE",
+    "brightMagenta": "#3AA99F",
+    "brightCyan": "#3AA99F",
+    "brightWhite": "#CECDC3"
+  }
+}
+```
+
+The top-level key is used by `term:theme`. `display:name` and `display:order` control how the theme appears in the terminal Themes menu.
+
+### `connections.json`
+
+Stores saved SSH connections in their displayed order. Zector manages this file through the Connections dialog.
+
+> [!WARNING]
+> Passwords, private keys, and key passphrases are stored as plain text. Never publish `connections.json` or include it in a public backup.
+
+### Internal state
+
+Tabs, split layouts, open blocks, and other workspace state are not part of the shareable configuration. They are stored in SQLite under the macOS application data directory:
+
+```text
+~/Library/Application Support/zector/zector.db
+```
 
 Available environment variables:
 
