@@ -7,7 +7,7 @@ tasks:
 
   dev:backend:
     dir: apps/backend
-    cmds: [cargo run]
+    cmds: [cargo run -- -f]
 
   dev:frontend:
     dir: apps/frontend
@@ -30,4 +30,4 @@ tasks:
   run:
     desc: Run the release binary
     dir: apps/backend
-    cmds: [./target/release/backend]
+    cmds: [./target/release/zector -f]

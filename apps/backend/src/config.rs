@@ -24,7 +24,7 @@ impl Config {
                 .join("zector"),
         };
 
-        // JSON configs live here (connections.json, state.json) for easy backup
+        // User-editable JSON configs live here for easy backup and sharing.
         let config_dir = match std::env::var("ZECTOR_CONFIG_DIR") {
             Ok(v) => PathBuf::from(v),
             Err(_) => dirs::home_dir()
@@ -38,9 +38,5 @@ impl Config {
             data_dir,
             config_dir,
         })
-    }
-
-    pub fn db_path(&self) -> PathBuf {
-        self.data_dir.join("zector.db")
     }
 }

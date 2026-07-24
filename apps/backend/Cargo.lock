@@ -164,29 +164,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "backend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "bytes",
- "dirs",
- "futures-util",
- "mime_guess",
- "portable-pty",
- "rusqlite",
- "russh",
- "russh-sftp",
- "rust-embed",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
 name = "base16ct"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2918,6 +2895,30 @@ dependencies = [
  "ff",
  "group",
  "hybrid-array",
+]
+
+[[package]]
+name = "zector"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bytes",
+ "dirs",
+ "futures-util",
+ "libc",
+ "mime_guess",
+ "portable-pty",
+ "rusqlite",
+ "russh",
+ "russh-sftp",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
