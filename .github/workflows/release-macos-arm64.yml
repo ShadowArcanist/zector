@@ -1,0 +1,90 @@
+name: Release macOS Apple Silicon
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        required: true
+        default: "v0.1.0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-macos-arm64-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build macOS ARM64
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/backend
+
+      - name: Install frontend dependencies
+        working-directory: apps/frontend
+        run: bun install --frozen-lockfile
+
+      - name: Test frontend
+        working-directory: apps/frontend
+        run: |
+          bun run test
+          bun run lint
+
+      - name: Build embedded frontend
+        working-directory: apps/frontend
+        run: bun run build
+
+      - name: Test backend
+        working-directory: apps/backend
+        run: cargo test --locked
+
+      - name: Build Zector
+        working-directory: apps/backend
+        run: cargo build --release --locked --target aarch64-apple-darwin
+
+      - name: Package binary
+        run: |
+          mkdir -p release
+          cp apps/backend/target/aarch64-apple-darwin/release/zector release/zector
+          chmod +x release/zector
+          tar -czf zector-macos-arm64.tar.gz -C release zector
+          shasum -a 256 zector-macos-arm64.tar.gz > zector-macos-arm64.tar.gz.sha256
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zector-macos-arm64
+          path: |
+            zector-macos-arm64.tar.gz
+            zector-macos-arm64.tar.gz.sha256
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: |
+            zector-macos-arm64.tar.gz
+            zector-macos-arm64.tar.gz.sha256
