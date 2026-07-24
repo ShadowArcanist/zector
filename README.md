@@ -4,6 +4,8 @@ Zector is a self-hosted browser workspace for local and SSH terminals, remote co
 
 Run one small binary on your Mac, open Zector in a browser, then work across tabs and resizable terminal or file blocks without installing an agent on your servers.
 
+<img src="/.github/screenshot.png" alt="Zector UI"/>
+
 > [!IMPORTANT]
 > Zector has no authentication by design. Only run it on a trusted local network and never expose it directly to the public internet.
 >
