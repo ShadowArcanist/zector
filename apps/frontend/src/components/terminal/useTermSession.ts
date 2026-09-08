@@ -28,6 +28,7 @@ export function useTermSession(
   theme: ITheme,
   fontSize: number,
   transparent = false,
+  redactIPs: string[] = [],
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const optsRef = useRef({ theme, fontSize });
@@ -53,6 +54,7 @@ export function useTermSession(
       transparent,
       theme: curTheme,
       fontSize: curFontSize,
+      redactIPs,
     });
 
     if (session.term.element) {
@@ -93,10 +95,11 @@ export function useTermSession(
       clearTimeout(fitTimer);
       observer.disconnect();
       session.subscribers.delete(sub);
+      if (session.term.element?.parentElement === container) session.term.element.remove();
       // no dispose: park the element and let the registry grace-collect it
       releaseTermSession(termId);
     };
-  }, [termId, target, transparent]);
+  }, [termId, target, transparent, redactIPs]);
 
   const focus = () => getTermSession(termId)?.term.focus();
   const retry = () => getTermSession(termId)?.retry();

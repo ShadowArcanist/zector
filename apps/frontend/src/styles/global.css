@@ -218,6 +218,14 @@ body.col-resizing * {
   transition-duration: 80ms;
 }
 
+/* Immediate feedback for input sent over a slow link. Local echo is avoided
+   because it breaks password prompts and full-screen terminal programs. */
+.xterm.xterm-input-pending .xterm-cursor-layer {
+  filter: drop-shadow(0 0 3px currentColor);
+  opacity: 0.82;
+  transition: opacity 120ms ease, filter 120ms ease;
+}
+
 /* Wrapped editor lines keep logical line numbers aligned with visual wraps. */
 .code-editor-wrap pre,
 pre.code-editor-wrap {

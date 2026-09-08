@@ -4,6 +4,7 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
 import { onTermKill, termWsUrl } from '../../api/term';
 import { TERM_FONT, TERM_FONT_WEIGHT, TERM_FONT_WEIGHT_BOLD, themedTheme } from './themes';
+import { createStreamRedactor } from './redaction';
 
 export type TermStatus =
   | { kind: 'connecting' | 'open' | 'exited' }
@@ -15,6 +16,7 @@ export type TermSession = {
   termId: string;
   target: string;
   transparent: boolean;
+  redactionKey: string;
   term: Terminal;
   fit: FitAddon;
   status: TermStatus;
@@ -35,10 +37,18 @@ const DISPOSE_DELAY_MS = 5000;
 // teardown: kill/restart, a transparent (renderer) change, or ~5s unmounted.
 const sessions = new Map<string, TermSession>();
 
-export type TermInit = { target: string; transparent: boolean; theme: ITheme; fontSize: number };
+export type TermInit = {
+  target: string;
+  transparent: boolean;
+  theme: ITheme;
+  fontSize: number;
+  redactIPs: string[];
+};
 
 function createSession(termId: string, init: TermInit): TermSession {
-  const { target, transparent, theme, fontSize } = init;
+  const { target, transparent, theme, fontSize, redactIPs } = init;
+  const redactionKey = JSON.stringify(redactIPs);
+  const redact = createStreamRedactor(redactIPs);
   const term = new Terminal({
     allowProposedApi: true,
     allowTransparency: transparent,
@@ -63,12 +73,15 @@ function createSession(termId: string, init: TermInit): TermSession {
   let attempts = 0;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let scrollbarFadeTimer: ReturnType<typeof setTimeout> | undefined;
+  let inputFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
   const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
   const session: TermSession = {
     termId,
     target,
     transparent,
+    redactionKey,
     term,
     fit,
     status: { kind: 'connecting' },
@@ -86,6 +99,7 @@ function createSession(termId: string, init: TermInit): TermSession {
       disposed = true;
       clearTimeout(reconnectTimer);
       clearTimeout(scrollbarFadeTimer);
+      clearTimeout(inputFeedbackTimer);
       clearTimeout(session.disposeTimer);
       sessions.delete(termId);
       const socket = ws;
@@ -126,7 +140,9 @@ function createSession(termId: string, init: TermInit): TermSession {
     socket.onmessage = (ev) => {
       if (disposed) return;
       if (ev.data instanceof ArrayBuffer) {
-        term.write(new Uint8Array(ev.data));
+        term.element?.classList.remove('xterm-input-pending');
+        clearTimeout(inputFeedbackTimer);
+        term.write(redact(decoder.decode(new Uint8Array(ev.data), { stream: true })));
         return;
       }
       try {
@@ -157,7 +173,15 @@ function createSession(termId: string, init: TermInit): TermSession {
   connect();
 
   term.onData((data) => {
-    if (ws?.readyState === WebSocket.OPEN) ws.send(encoder.encode(data));
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(encoder.encode(data));
+      term.element?.classList.add('xterm-input-pending');
+      clearTimeout(inputFeedbackTimer);
+      inputFeedbackTimer = setTimeout(
+        () => term.element?.classList.remove('xterm-input-pending'),
+        3000,
+      );
+    }
   });
   term.onResize(sendResize);
   term.onScroll(() => {
@@ -178,7 +202,12 @@ function createSession(termId: string, init: TermInit): TermSession {
 // mismatch tears the old session down and starts fresh.
 export function acquireTermSession(termId: string, init: TermInit): TermSession {
   let session = sessions.get(termId);
-  if (session && (session.target !== init.target || session.transparent !== init.transparent)) {
+  if (
+    session &&
+    (session.target !== init.target ||
+      session.transparent !== init.transparent ||
+      session.redactionKey !== JSON.stringify(init.redactIPs))
+  ) {
     session.dispose();
     session = undefined;
   }

@@ -15,6 +15,7 @@ export type ConfigSettings = {
   blockBlur: boolean; // backdrop blur behind every block
   blockOpacity: number; // opacity applied to blockBg (hex only)
   blockHighlight: boolean; // draw a border around the focused block
+  redactIPs: string[]; // exact IP addresses replaced in terminal output
 };
 
 export type BackgroundDef = {
@@ -45,6 +46,7 @@ export const DEFAULT_SETTINGS: ConfigSettings = {
   blockBlur: false,
   blockOpacity: 0.25,
   blockHighlight: true,
+  redactIPs: [],
 };
 
 export function getConfig(): Promise<unknown> {
@@ -74,6 +76,9 @@ function parseSettings(raw: unknown): ConfigSettings {
       typeof s['block:highlight'] === 'boolean'
         ? s['block:highlight']
         : DEFAULT_SETTINGS.blockHighlight,
+    redactIPs: Array.isArray(s['redact:ips'])
+      ? s['redact:ips'].filter((ip): ip is string => typeof ip === 'string' && ip.length > 0)
+      : DEFAULT_SETTINGS.redactIPs,
   };
 }
 

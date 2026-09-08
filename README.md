@@ -97,7 +97,8 @@ Controls the default tab, terminal, and block appearance:
   "block:bgcolor": "#000000",
   "block:blur": false,
   "block:opacity": 0.25,
-  "block:highlight": true
+  "block:highlight": true,
+  "redact:ips": ["203.0.113.10", "2001:db8::10"]
 }
 ```
 
@@ -110,6 +111,7 @@ Controls the default tab, terminal, and block appearance:
 | `block:blur` | Adds backdrop blur behind every block. |
 | `block:opacity` | Opacity applied when `block:bgcolor` is a hexadecimal color. |
 | `block:highlight` | Globally enables the focused-block border. |
+| `redact:ips` | Exact IPv4 or IPv6 values replaced with `REDACTED` in terminal output. This is display-only; it does not alter the remote session. |
 
 ### `themes.json`
 

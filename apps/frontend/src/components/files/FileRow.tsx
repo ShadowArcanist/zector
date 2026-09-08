@@ -106,7 +106,7 @@ export function FileRow({
   return (
     <div
       ref={ref}
-      className={`flex h-6 shrink-0 cursor-default items-center px-2 text-[12px] select-none ${
+      className={`flex h-6 shrink-0 cursor-default items-center px-2 text-[12px] font-medium select-none ${
         selected ? 'bg-accent/30 text-fg' : 'text-fg-dim hover:bg-white/8'
       }`}
       style={{ minWidth: rowMinWidth(widths, hidden) }}

@@ -77,7 +77,9 @@ function Workspace() {
     );
   }
   if (!activeTab.root) return <EmptyTabPicker tabId={activeTab.id} />;
-  return <NodeView node={activeTab.root} />;
+  // Tabs are separate React trees. The key prevents the previous tab's xterm
+  // canvas from being reused for one frame while the next one connects.
+  return <NodeView key={activeTab.id} node={activeTab.root} />;
 }
 
 export default function App() {

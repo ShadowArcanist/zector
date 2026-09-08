@@ -30,7 +30,8 @@ const SETTINGS: &str = r##"{
   "block:bgcolor": "#000000",
   "block:blur": false,
   "block:opacity": 0.25,
-  "block:highlight": true
+  "block:highlight": true,
+  "redact:ips": []
 }
 "##;
 

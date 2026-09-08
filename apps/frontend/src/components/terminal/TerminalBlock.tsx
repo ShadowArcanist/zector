@@ -24,6 +24,7 @@ export function TerminalBlock({ leafId, block }: { leafId: string; block: Termin
     theme,
     fontSize,
     transparent,
+    settings.redactIPs,
   );
 
   const restart = () => {
