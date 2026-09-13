@@ -1,7 +1,10 @@
 use anyhow::Context;
 use russh_sftp::client::SftpSession;
 use russh_sftp::protocol::OpenFlags;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+/// Chunk size for streaming SFTP transfers.
+const CHUNK: usize = 64 * 1024;
 
 use crate::api::fs::FsEntry;
 use crate::db::Db;
@@ -66,13 +69,27 @@ pub async fn stat(sftp: &SftpSession, path: &str) -> anyhow::Result<FsEntry> {
 }
 
 pub async fn read(sftp: &SftpSession, path: &str) -> anyhow::Result<Vec<u8>> {
-    Ok(sftp.read(path).await?)
+    // Read in chunks rather than one whole-file request.
+    let mut file = sftp.open(path).await?;
+    let mut buf = Vec::new();
+    let mut chunk = vec![0u8; CHUNK];
+    loop {
+        let n = file.read(&mut chunk).await?;
+        if n == 0 {
+            break;
+        }
+        buf.extend_from_slice(&chunk[..n]);
+    }
+    Ok(buf)
 }
 
 pub async fn write(sftp: &SftpSession, path: &str, data: &[u8]) -> anyhow::Result<()> {
     // SftpSession::write does not create/truncate, so open explicitly.
     let mut file = sftp.create(path).await?;
-    file.write_all(data).await?;
+    // Write in chunks rather than one whole-body request.
+    for chunk in data.chunks(CHUNK) {
+        file.write_all(chunk).await?;
+    }
     file.shutdown().await?;
     Ok(())
 }

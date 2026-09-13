@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useLayoutStore } from './store/layout';
 import { loadConfig, useConfigStore } from './store/config';
 import { useConnectionsStore } from './store/connections';
@@ -7,13 +7,20 @@ import { TabBar } from './components/tabs/TabBar';
 import { NodeView } from './components/layout/NodeView';
 import { BlockDragGhost } from './components/layout/BlockDragGhost';
 import { BlockPickerList, BlockPickerModal } from './components/blockpicker/BlockPicker';
-import { ConnectionsModal } from './components/connections/ConnectionsModal';
 import { ContextMenuHost } from './components/ui/ContextMenu';
 import { Toasts } from './components/ui/Toasts';
 import { Spinner } from './components/ui/Spinner';
 import { Button } from './components/ui/Button';
 import { PlusIcon } from './components/ui/icons/general';
-import { CommandPalette } from './components/command/CommandPalette';
+
+// Modals mount only when their open flag flips, so keep them out of the initial chunk.
+// BlockPickerModal stays static: its module also exports BlockPickerList, used eagerly below.
+const ConnectionsModal = lazy(() =>
+  import('./components/connections/ConnectionsModal').then((m) => ({ default: m.ConnectionsModal })),
+);
+const CommandPalette = lazy(() =>
+  import('./components/command/CommandPalette').then((m) => ({ default: m.CommandPalette })),
+);
 
 /** Fallback accent when the active tab has no background (matches global.css). */
 const DEFAULT_ACCENT = '#4c8dff';
@@ -116,8 +123,10 @@ export default function App() {
         <Workspace />
       </main>
       {picker && <BlockPickerModal />}
-      {connectionsOpen && <ConnectionsModal />}
-      {commandPaletteOpen && <CommandPalette />}
+      <Suspense fallback={null}>
+        {connectionsOpen && <ConnectionsModal />}
+        {commandPaletteOpen && <CommandPalette />}
+      </Suspense>
       <BlockDragGhost />
       <ContextMenuHost />
       <Toasts />

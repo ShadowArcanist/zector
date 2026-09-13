@@ -74,12 +74,23 @@ pub async fn spawn(term_id: String, manager: TermManager) -> anyhow::Result<Term
         read_manager.remove(&read_term_id);
     });
 
+    // Dedicated writer thread: blocking std I/O for PTY stdin stays off the
+    // tokio runtime so a large paste cannot stall it.
+    let (write_tx, write_rx) = std::sync::mpsc::channel::<bytes::Bytes>();
+    std::thread::spawn(move || {
+        while let Ok(data) = write_rx.recv() {
+            if writer.write_all(&data).and_then(|_| writer.flush()).is_err() {
+                break;
+            }
+        }
+    });
+
     // Command task: stdin writes, resize, kill. Owns the master (keeps PTY open).
     tokio::spawn(async move {
         while let Some(cmd) = input_rx.recv().await {
             match cmd {
                 TermCmd::Data(data) => {
-                    if writer.write_all(&data).and_then(|_| writer.flush()).is_err() {
+                    if write_tx.send(data).is_err() {
                         break;
                     }
                 }

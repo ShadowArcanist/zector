@@ -1,9 +1,12 @@
-import J from 'material-icon-theme/dist/material-icons.json';
+import J from './material-icons.gen.json';
 
 /**
  * Material-icon-theme lookup for file/folder icons, adapted from the user's
  * gitbase app (reference/gitbase). SVGs are emitted as separate assets
  * (assetsInlineLimit 0) so the browser only fetches the icons it shows.
+ *
+ * The manifest is a trimmed copy of material-icon-theme's material-icons.json
+ * holding only the keys read below; regenerate with `bun run gen:icons`.
  */
 
 const defs = J.iconDefinitions as Record<string, { iconPath: string }>;

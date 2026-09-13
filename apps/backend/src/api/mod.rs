@@ -6,16 +6,6 @@ pub mod local_info;
 pub mod state;
 pub mod term;
 
-#[cfg(test)]
-mod local_info_tests {
-    #[test]
-    fn local_machine_info_always_has_an_address_and_username() {
-        let info = super::local_info::machine_info();
-        assert!(!info.ip.is_empty());
-        assert!(!info.username.is_empty());
-    }
-}
-
 use axum::Router;
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{delete, get, post, put};
@@ -53,4 +43,14 @@ pub fn router() -> Router<AppState> {
         .route("/term/ws", get(term::ws_handler))
         .route("/term/{term_id}", delete(term::delete))
         .layer(DefaultBodyLimit::max(MAX_BODY))
+}
+
+#[cfg(test)]
+mod local_info_tests {
+    #[test]
+    fn local_machine_info_always_has_an_address_and_username() {
+        let info = super::local_info::machine_info();
+        assert!(!info.ip.is_empty());
+        assert!(!info.username.is_empty());
+    }
 }

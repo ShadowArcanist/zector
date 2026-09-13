@@ -67,7 +67,7 @@ async fn handle_socket(state: AppState, query: WsQuery, mut socket: WebSocket) {
 
     // Atomically subscribe to live output and snapshot the replay buffer.
     let (replay, mut out_rx) = session.output.attach();
-    if !replay.is_empty() && socket.send(Message::Binary(replay.into())).await.is_err() {
+    if !replay.is_empty() && socket.send(Message::Binary(replay)).await.is_err() {
         return;
     }
 
@@ -75,7 +75,8 @@ async fn handle_socket(state: AppState, query: WsQuery, mut socket: WebSocket) {
         tokio::select! {
             msg = socket.recv() => match msg {
                 Some(Ok(Message::Binary(data))) => {
-                    if session.input.send(TermCmd::Data(data.to_vec())).await.is_err() {
+                    // `data` is already `Bytes`; forward it without copying.
+                    if session.input.send(TermCmd::Data(data)).await.is_err() {
                         break;
                     }
                 }
@@ -97,6 +98,10 @@ async fn handle_socket(state: AppState, query: WsQuery, mut socket: WebSocket) {
                     let _ = socket.send(Message::text(r#"{"type":"exit"}"#)).await;
                     break;
                 }
+                // Intentional backpressure: if this socket falls behind the
+                // broadcast, we drop the lagged output rather than block the
+                // backend. The gap is harmless because a reconnecting client
+                // gets the full ring-buffer replay via `attach()`.
                 Err(RecvError::Lagged(_)) => continue,
                 Err(RecvError::Closed) => break,
             },

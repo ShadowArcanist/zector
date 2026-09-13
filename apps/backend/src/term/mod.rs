@@ -2,7 +2,7 @@ pub mod local;
 pub mod ssh;
 pub mod ws;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex as StdMutex};
 
 use bytes::Bytes;
@@ -14,7 +14,7 @@ const BUFFER_CAP: usize = 200 * 1024;
 /// Commands from the WebSocket (or DELETE handler) into a terminal backend.
 #[derive(Debug)]
 pub enum TermCmd {
-    Data(Vec<u8>),
+    Data(Bytes),
     Resize { cols: u16, rows: u16 },
     Kill,
 }
@@ -26,11 +26,19 @@ pub enum TermEvent {
     Exit,
 }
 
+/// Replay ring: a deque of output chunks plus their running byte total, so a
+/// full ring never triggers a large memmove (old chunks are popped whole).
+#[derive(Default)]
+struct Ring {
+    chunks: VecDeque<Bytes>,
+    total: usize,
+}
+
 /// Output side of a session. The ring buffer and the broadcast send happen
 /// under the same lock so an attach can atomically subscribe + snapshot the
 /// buffer without missing or duplicating bytes.
 pub struct Output {
-    buffer: StdMutex<Vec<u8>>,
+    buffer: StdMutex<Ring>,
     tx: broadcast::Sender<TermEvent>,
 }
 
@@ -38,19 +46,25 @@ impl Output {
     pub fn new() -> Arc<Self> {
         let (tx, _) = broadcast::channel(1024);
         Arc::new(Self {
-            buffer: StdMutex::new(Vec::new()),
+            buffer: StdMutex::new(Ring::default()),
             tx,
         })
     }
 
     pub fn push(&self, data: &[u8]) {
+        // Build the shared chunk once; it serves both the ring and the broadcast.
+        let bytes = Bytes::copy_from_slice(data);
         let mut buf = self.buffer.lock().unwrap();
-        buf.extend_from_slice(data);
-        if buf.len() > BUFFER_CAP {
-            let excess = buf.len() - BUFFER_CAP;
-            buf.drain(..excess);
+        buf.chunks.push_back(bytes.clone());
+        buf.total += bytes.len();
+        // Trim to the cap by dropping whole oldest chunks (no memmove).
+        while buf.total > BUFFER_CAP {
+            match buf.chunks.pop_front() {
+                Some(front) => buf.total -= front.len(),
+                None => break,
+            }
         }
-        let _ = self.tx.send(TermEvent::Data(Bytes::copy_from_slice(data)));
+        let _ = self.tx.send(TermEvent::Data(bytes));
     }
 
     pub fn exit(&self) {
@@ -59,11 +73,15 @@ impl Output {
         drop(buf);
     }
 
-    /// Subscribe and snapshot the replay buffer atomically.
-    pub fn attach(&self) -> (Vec<u8>, broadcast::Receiver<TermEvent>) {
+    /// Subscribe and snapshot the replay buffer atomically as one frame.
+    pub fn attach(&self) -> (Bytes, broadcast::Receiver<TermEvent>) {
         let buf = self.buffer.lock().unwrap();
         let rx = self.tx.subscribe();
-        (buf.clone(), rx)
+        let mut snapshot = Vec::with_capacity(buf.total);
+        for chunk in &buf.chunks {
+            snapshot.extend_from_slice(chunk);
+        }
+        (Bytes::from(snapshot), rx)
     }
 }
 

@@ -1,11 +1,15 @@
+import { lazy, Suspense } from 'react';
 import type { LeafNode } from '../../api/types';
 import type { DropEdge } from '../../store/tree';
 import { useLayoutStore } from '../../store/layout';
 import { useConfigStore } from '../../store/config';
 import { TerminalBlock } from '../terminal/TerminalBlock';
-import { FilesBlock } from '../files/FilesBlock';
+import { Spinner } from '../ui/Spinner';
 import { BlockHeader } from './BlockHeader';
 import { useBlockDragStore } from './blockDrag';
+
+// Files feature (viewer, shiki, icon manifest) stays out of the initial chunk.
+const FilesBlock = lazy(() => import('../files/FilesBlock').then((m) => ({ default: m.FilesBlock })));
 
 /** Wave-like drop preview: accent overlay on the half where the block lands. */
 const EDGE_CLASS: Record<DropEdge, string> = {
@@ -42,7 +46,15 @@ export function BlockFrame({ leaf }: { leaf: LeafNode }) {
         {block.kind === 'terminal' ? (
           <TerminalBlock leafId={leaf.id} block={block} />
         ) : (
-          <FilesBlock leafId={leaf.id} block={block} />
+          <Suspense
+            fallback={
+              <div className="flex h-full items-center justify-center">
+                <Spinner size={18} />
+              </div>
+            }
+          >
+            <FilesBlock leafId={leaf.id} block={block} />
+          </Suspense>
         )}
       </div>
       {highlightOn && (preset?.highlightActive ?? true) && focused && (

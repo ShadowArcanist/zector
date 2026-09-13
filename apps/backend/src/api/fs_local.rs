@@ -117,8 +117,9 @@ pub async fn stat(path: &str) -> anyhow::Result<FsEntry> {
     })
 }
 
-pub async fn read(path: &str) -> anyhow::Result<Vec<u8>> {
-    tokio::fs::read(path)
+/// Open a file for streaming download (avoids buffering the whole file in RAM).
+pub async fn open(path: &str) -> anyhow::Result<tokio::fs::File> {
+    tokio::fs::File::open(path)
         .await
         .with_context(|| format!("failed to read {path}"))
 }

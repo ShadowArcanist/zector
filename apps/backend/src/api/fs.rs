@@ -135,13 +135,6 @@ pub async fn read(
     Path(target): Path<String>,
     Query(query): Query<PathQuery>,
 ) -> ApiResult<Response> {
-    let data = if target == "local" {
-        local::read(&query.path).await?
-    } else {
-        let sftp = sftp::open(&state.ssh, &state.db, &target).await?;
-        sftp::read(&sftp, &query.path).await?
-    };
-
     let mime = mime_guess::from_path(&query.path).first_or_octet_stream();
     let mut builder = Response::builder()
         .status(StatusCode::OK)
@@ -155,8 +148,17 @@ pub async fn read(
         );
     }
 
+    let body = if target == "local" {
+        // Stream the file instead of reading it all into memory.
+        let file = local::open(&query.path).await?;
+        axum::body::Body::from_stream(tokio_util::io::ReaderStream::new(file))
+    } else {
+        let sftp = sftp::open(&state.ssh, &state.db, &target).await?;
+        axum::body::Body::from(sftp::read(&sftp, &query.path).await?)
+    };
+
     builder
-        .body(axum::body::Body::from(data))
+        .body(body)
         .map_err(|e| ApiError::internal(format!("failed to build response: {e}")))
 }
 

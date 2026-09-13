@@ -7,9 +7,9 @@
  * `use()` can suspend on a stable promise.
  */
 
-type Shiki = typeof import('shiki');
-type Highlighter = Awaited<ReturnType<Shiki['createHighlighter']>>;
-type Loaded = { shiki: Shiki; highlighter: Highlighter };
+type Highlighter = Awaited<ReturnType<(typeof import('shiki/core'))['createHighlighterCore']>>;
+type BundledLanguages = (typeof import('shiki/langs'))['bundledLanguages'];
+type Loaded = { highlighter: Highlighter; bundledLanguages: BundledLanguages };
 
 /** Dark theme; its #0d1117 background is swapped for transparent below so the
  * viewer's own bg-menu surface shows through. */
@@ -19,17 +19,28 @@ let singleton: Promise<Loaded> | null = null;
 let loaded: Loaded | null = null;
 
 function getHighlighter(): Promise<Loaded> {
-  singleton ??= import('shiki').then(async (shiki) => {
+  // shiki/core keeps only the engine in this dynamic chunk; the theme, the grammar
+  // map, and the wasm engine load alongside it, and grammars themselves stay lazy.
+  singleton ??= Promise.all([
+    import('shiki/core'),
+    import('shiki/engine/oniguruma'),
+    import('shiki/langs'),
+    import('@shikijs/themes/github-dark-default'),
+  ]).then(async ([core, oniguruma, langs, theme]) => {
     loaded = {
-      shiki,
-      highlighter: await shiki.createHighlighter({ themes: [THEME], langs: [] }),
+      highlighter: await core.createHighlighterCore({
+        themes: [theme.default],
+        langs: [],
+        engine: oniguruma.createOnigurumaEngine(import('shiki/wasm')),
+      }),
+      bundledLanguages: langs.bundledLanguages,
     };
     return loaded;
   });
   return singleton;
 }
 
-function toHtml({ highlighter }: Loaded, code: string, lang: string) {
+function toHtml(highlighter: Highlighter, code: string, lang: string) {
   return highlighter.codeToHtml(code, {
     lang,
     theme: THEME,
@@ -40,11 +51,11 @@ function toHtml({ highlighter }: Loaded, code: string, lang: string) {
 /** Re-highlight immediately while typing once the file's grammar is loaded. */
 export function highlightCodeSync(code: string, lang: string): string | null {
   if (!loaded) return null;
-  const effectiveLang = lang in loaded.shiki.bundledLanguages ? lang : 'text';
+  const effectiveLang = lang in loaded.bundledLanguages ? lang : 'text';
   if (effectiveLang !== 'text' && !loaded.highlighter.getLoadedLanguages().includes(effectiveLang)) {
     return null;
   }
-  return toHtml(loaded, code, effectiveLang);
+  return toHtml(loaded.highlighter, code, effectiveLang);
 }
 
 const htmlCache = new Map<string, Promise<string>>();
@@ -54,13 +65,13 @@ export function highlightCode(code: string, lang: string): Promise<string> {
   const cached = htmlCache.get(key);
   if (cached) return cached;
 
-  const promise = getHighlighter().then(async ({ shiki, highlighter }) => {
-    const known = lang in shiki.bundledLanguages;
-    const effectiveLang = known ? (lang as keyof typeof shiki.bundledLanguages) : 'text';
+  const promise = getHighlighter().then(async ({ highlighter, bundledLanguages }) => {
+    const known = lang in bundledLanguages;
+    const effectiveLang = known ? (lang as keyof BundledLanguages) : 'text';
     if (effectiveLang !== 'text' && !highlighter.getLoadedLanguages().includes(effectiveLang)) {
-      await highlighter.loadLanguage(effectiveLang);
+      await highlighter.loadLanguage(bundledLanguages[effectiveLang]);
     }
-    return toHtml({ shiki, highlighter }, code, effectiveLang);
+    return toHtml(highlighter, code, effectiveLang);
   });
   htmlCache.set(key, promise);
   return promise;
