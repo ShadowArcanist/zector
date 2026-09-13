@@ -6,7 +6,7 @@ No app authentication (LAN-only by design). Dark theme only.
 
 ## Repo layout
 
-- `apps/frontend` — Vite + React 19 + TypeScript. Bun is the package manager. Static build output is embedded into the Rust binary.
+- `apps/frontend` — Vite + React 19 + TypeScript. aube is the package manager (lockfile `aube-lock.yaml`). Static build output is embedded into the Rust binary.
 - `apps/backend` — Rust (axum). Single process: HTTP server, SQLite (rusqlite), SSH client (russh + russh-sftp), local PTYs (portable-pty).
 - `.ai/` — docs for AI agents (this folder).
 - `reference/` — read-only reference codebases (Wave Terminal, Nexterm). Never modify; do not copy code verbatim, only ideas.
@@ -119,4 +119,4 @@ type Block =
     - `settings.json` also has `block:highlight` (bool, default true) toggling the focused-block border.
   - `ZECTOR_DATA_DIR`/zector.db (SQLite, default OS data dir): internal UI layout state only — deliberately NOT in the shareable config folder. A pre-JSON sqlite `connections` table and an interim `state.json` are both auto-imported on startup.
 - In release the frontend `dist/` is embedded via rust-embed and served at `/` with SPA fallback to `index.html`.
-- In dev: run `cargo run` (backend on :7887) and `bun run dev` (Vite on :5173, proxies `/api` to :7887 including WS).
+- In dev: run `cargo run` (backend on :7887) and `aube run dev` (Vite on :5173, proxies `/api` to :7887 including WS).

@@ -11,7 +11,7 @@ tasks:
 
   dev:frontend:
     dir: apps/frontend
-    cmds: [bun run dev]
+    cmds: [aube run dev]
 
   build:
     desc: Build the production binary (frontend embedded)
@@ -21,7 +21,7 @@ tasks:
 
   build:frontend:
     dir: apps/frontend
-    cmds: [bun install, bun run build]
+    cmds: [aube install, aube run build]
 
   build:backend:
     dir: apps/backend

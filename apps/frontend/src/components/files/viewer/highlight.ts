@@ -25,8 +25,12 @@ function getHighlighter(): Promise<Loaded> {
     import('shiki/core'),
     import('shiki/engine/oniguruma'),
     import('shiki/langs'),
-    import('@shikijs/themes/github-dark-default'),
-  ]).then(async ([core, oniguruma, langs, theme]) => {
+    import('shiki/themes'),
+  ]).then(async ([core, oniguruma, langs, themes]) => {
+    // Load the one theme through shiki's own `themes` subpath (not the
+    // `@shikijs/themes` package, which is only a transitive dep and so is
+    // unresolvable under a strict, non-hoisted node_modules layout).
+    const theme = await themes.bundledThemes[THEME]();
     loaded = {
       highlighter: await core.createHighlighterCore({
         themes: [theme.default],

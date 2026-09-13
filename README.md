@@ -216,14 +216,14 @@ Available environment variables:
 Requirements:
 
 - Rust stable
-- Bun
+- [aube](https://aube.sh)
 
 Build the frontend before the backend because the frontend is embedded in the Rust binary:
 
 ```bash
 cd apps/frontend
-bun install
-bun run build
+aube install
+aube run build
 
 cd ../backend
 cargo build --release
@@ -243,7 +243,7 @@ Or run each side separately:
 
 ```bash
 cd apps/backend && cargo run -- -f
-cd apps/frontend && bun run dev
+cd apps/frontend && aube run dev
 ```
 
 The frontend development server proxies API and WebSocket requests to the backend.

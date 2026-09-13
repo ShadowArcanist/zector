@@ -25,7 +25,7 @@
 ## Style
 - Dark theme only. Tailwind utility classes; shared design tokens in `src/styles/`.
 - No tests unless they materially speed up development.
-- Frontend package manager is Bun (`bun add`, `bun run`). Never npm/yarn/pnpm. Don't bypass Bun's security defaults; if Bun blocks a too-new package, pin an older version.
+- Frontend package manager is aube (`aube add`, `aube run`, `aube install`/`aube ci`). Never npm/yarn/pnpm/bun. Lockfile is `aube-lock.yaml`. Node runs the scripts (no Bun runtime); keep code Node-compatible.
 - Keep dependencies minimal; prefer std/axum/tokio built-ins over new crates.
 
 ## Reference codebases
