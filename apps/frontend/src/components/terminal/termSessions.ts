@@ -21,7 +21,6 @@ export type TermSession = {
   fit: FitAddon;
   status: TermStatus;
   subscribers: Set<(status: TermStatus) => void>;
-  webglLoaded: boolean; // the WebGL addon is loaded once, after the first open()
   disposeTimer: ReturnType<typeof setTimeout> | undefined;
   retry: () => void;
   dispose: () => void;
@@ -86,7 +85,6 @@ function createSession(termId: string, init: TermInit): TermSession {
     fit,
     status: { kind: 'connecting' },
     subscribers: new Set(),
-    webglLoaded: false,
     disposeTimer: undefined,
     retry: () => {
       if (disposed || done) return;

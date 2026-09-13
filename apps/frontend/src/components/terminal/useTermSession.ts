@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ITheme } from '@xterm/xterm';
-import { WebglAddon } from '@xterm/addon-webgl';
 import {
   acquireTermSession,
   getTermSession,
@@ -11,10 +10,12 @@ import { themedTheme } from './themes';
 
 export type { TermStatus };
 
-// The WebGL renderer does not honor a transparent background, so opaque
-// terminals use it while transparent ones (tab bg preset) fall back to the
-// DOM renderer; a `transparent` flip recreates the session (acceptable flash
-// only when toggling the tab background).
+// Terminals use xterm's built-in DOM renderer. The WebGL renderer was dropped:
+// its only stable release (@xterm/addon-webgl 0.19.0) corrupts its glyph
+// texture atlas during the rapid full-screen redraws that programs like
+// `docker stats`/`top` emit, so cleared cells keep old glyphs and the screen
+// appears to duplicate. The DOM renderer is fast enough for an interactive
+// terminal and also honors transparent backgrounds.
 
 /**
  * Binds one registry-owned xterm session (see termSessions.ts) to a component.
@@ -62,16 +63,6 @@ export function useTermSession(
       container.appendChild(session.term.element);
     } else {
       session.term.open(container);
-      if (!transparent) {
-        session.webglLoaded = true;
-        try {
-          const webgl = new WebglAddon();
-          webgl.onContextLoss(() => webgl.dispose());
-          session.term.loadAddon(webgl);
-        } catch {
-          // WebGL unavailable — xterm 6 falls back to the DOM renderer
-        }
-      }
     }
     session.term.options.theme = themedTheme(curTheme, transparent);
     session.term.options.fontSize = curFontSize;
