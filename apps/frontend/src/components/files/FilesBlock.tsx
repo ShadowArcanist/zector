@@ -17,7 +17,6 @@ import { Button } from '../ui/Button';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { Spinner } from '../ui/Spinner';
 import { FileTable } from './FileTable';
-import { isImageFile, isTextName } from './format';
 import { useFiles } from './useFiles';
 import { FileViewer } from './viewer/FileViewer';
 import { SudoPasswordModal } from './SudoPasswordModal';
@@ -75,17 +74,18 @@ export function FilesBlock({ leafId, block }: { leafId: string; block: FilesBloc
     if (entry.is_dir) {
       setSelected(null);
       navigate(entry.path);
-    } else if (isImageFile(entry.name) || isTextName(entry.name)) {
-      // editor overlay; it handles the too-large fallback itself
-      openFileInEditor(leafId, {
-        target: block.target,
-        path: entry.path,
-        name: entry.name,
-        size: entry.size,
-      });
-    } else {
-      download(block.target, entry.path);
+      return;
     }
+    // Every file opens in the viewer overlay; it renders an image preview,
+    // an editable editor, or a binary/too-large fallback with a download link.
+    // Downloading is a deliberate action from the context menu / viewer header,
+    // never an automatic side effect of opening.
+    openFileInEditor(leafId, {
+      target: block.target,
+      path: entry.path,
+      name: entry.name,
+      size: entry.size,
+    });
   };
 
   const entryMenu = (entry: FsEntry): MenuEntry[] => [

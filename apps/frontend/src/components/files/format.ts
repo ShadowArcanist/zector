@@ -1,5 +1,3 @@
-import { KNOWN_TEXT_NAMES } from './viewer/lang';
-
 export function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   const units = ['KB', 'MB', 'GB', 'TB'];
@@ -17,15 +15,7 @@ const IMAGE_EXTS = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif',
 ]);
 
-const TEXT_EXTS = new Set([
-  'txt', 'md', 'markdown', 'json', 'js', 'jsx', 'ts', 'tsx', 'css', 'scss', 'html', 'htm',
-  'xml', 'yaml', 'yml', 'toml', 'ini', 'conf', 'cfg', 'env', 'sh', 'bash', 'zsh', 'fish',
-  'py', 'rb', 'rs', 'go', 'c', 'h', 'cpp', 'hpp', 'cc', 'java', 'kt', 'swift', 'php',
-  'sql', 'log', 'csv', 'tsv', 'lock', 'gitignore', 'dockerfile', 'service', 'lua', 'vim',
-  'properties', 'gradle', 'tf', 'nix', 'pub', 'mod', 'sum', 'diff', 'patch', 'graphql',
-]);
-
-/** Extensions that are definitely binary — dotfiles with these still download. */
+/** Extensions that are definitely binary — everything else opens as editable text. */
 // prettier-ignore
 const BINARY_EXTS = new Set([
   ...IMAGE_EXTS, 'heic', 'heif', 'tiff', 'psd', 'icns',
@@ -44,16 +34,16 @@ export function extOf(name: string): string {
 export const isImageFile = (name: string) => IMAGE_EXTS.has(extOf(name));
 
 /**
- * Name looks like text, regardless of size (Type column + open-as-editor):
- * dotfiles (.env, .zshrc, …) count as text unless their extension is a known
- * binary type, known extensionless names (README, Makefile, …) count as text,
- * everything else goes by the extension allowlist.
+ * Name should open as editable text (Type column + open-as-editor): everything
+ * that is not a known binary extension. Unknown or extensionless names
+ * (Dockerfile.dev, Makefile, .env, compose.override, …) count as text so they
+ * open in the editor instead of downloading; the viewer still catches a binary
+ * that carries an unfamiliar extension by sniffing its content.
  */
 export const isTextName = (name: string): boolean => {
   const lower = name.toLowerCase();
-  if (lower.startsWith('.')) return !BINARY_EXTS.has(extOf(lower.slice(1)));
-  if (TEXT_EXTS.has(extOf(lower))) return true;
-  return !lower.includes('.') && KNOWN_TEXT_NAMES.has(lower);
+  const ext = extOf(lower.startsWith('.') ? lower.slice(1) : lower);
+  return !BINARY_EXTS.has(ext);
 };
 
 /** Max file size the viewer will fetch as text; larger files show "File too large." */
